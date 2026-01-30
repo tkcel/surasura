@@ -49,7 +49,7 @@ export function ModelSelectionScreen({
 
   const handleContinue = () => {
     if (!setupComplete[ModelType.Local]) {
-      toast.error("Please complete setup to continue");
+      toast.error("続行するにはセットアップを完了してください");
       return;
     }
 
@@ -61,14 +61,14 @@ export function ModelSelectionScreen({
 
   return (
     <OnboardingLayout
-      title="Set Up Speech Recognition"
-      subtitle="Download a local Whisper model to transcribe your audio"
+      title="音声認識のセットアップ"
+      subtitle="ローカルWhisperモデルをダウンロードして音声を文字起こし"
       footer={
         <NavigationButtons
           onBack={onBack}
           onNext={handleContinue}
           disableNext={!canContinue}
-          nextLabel={canContinue ? "Continue" : "Complete setup to continue"}
+          nextLabel={canContinue ? "続ける" : "セットアップを完了してください"}
         />
       }
     >
@@ -78,8 +78,7 @@ export function ModelSelectionScreen({
           <Info className="h-4 w-4 text-blue-500" />
           <AlertDescription>
             <div>
-              Amical uses local Whisper models for speech recognition. Your
-              audio never leaves your device.
+              Amicalはローカルで動作するWhisperモデルを使用します。音声データがデバイスの外に出ることはありません。
             </div>
           </AlertDescription>
         </Alert>
@@ -103,10 +102,10 @@ export function ModelSelectionScreen({
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium">Local Whisper Model</h3>
+                      <h3 className="font-medium">ローカルWhisperモデル</h3>
                     </div>
                     <p className="text-sm">
-                      Private, offline speech recognition on your device
+                      プライベートでオフライン動作する音声認識
                     </p>
                   </div>
                 </div>
@@ -119,9 +118,7 @@ export function ModelSelectionScreen({
 
               {/* Description */}
               <p className="text-sm text-muted-foreground">
-                Download and run Whisper models locally. Multiple sizes
-                available from tiny (~78MB) to large (~3.1GB). Larger models are
-                more accurate but slower.
+                Whisperモデルをダウンロードしてローカルで実行します。tiny（約78MB）からlarge（約3.1GB）まで複数のサイズが利用可能です。大きいモデルほど精度が高くなりますが、処理速度は遅くなります。
               </p>
 
               {/* Features */}
@@ -129,15 +126,15 @@ export function ModelSelectionScreen({
                 <ul className="space-y-0.5 text-muted-foreground">
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                    Full privacy - audio stays on your device
+                    完全なプライバシー - 音声はデバイス内に留まります
                   </li>
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                    Works completely offline
+                    完全オフラインで動作
                   </li>
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                    No subscription required
+                    サブスクリプション不要
                   </li>
                 </ul>
               </div>
@@ -149,8 +146,7 @@ export function ModelSelectionScreen({
         <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-4">
           <Star className="h-4 w-4 mt-0.5 text-yellow-500 shrink-0" />
           <p className="text-sm text-muted-foreground">
-            You can download additional models and configure OpenAI API for text
-            formatting in Settings.
+            追加モデルのダウンロードやテキスト整形用のOpenAI APIの設定は、設定画面から行えます。
           </p>
         </div>
       </div>

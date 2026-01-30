@@ -13,7 +13,7 @@ export function FeedbackButton() {
     <SidebarMenuItem>
       <SidebarMenuButton onClick={showFeedbackSurvey}>
         <IconMessageHeart />
-        <span>Feedback</span>
+        <span>フィードバック</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );

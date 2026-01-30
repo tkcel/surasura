@@ -134,15 +134,15 @@ export function PermissionsScreen({
 
   return (
     <OnboardingLayout
-      title="Setup Permissions"
-      subtitle="Amical needs a few permissions to work properly"
+      title="アクセス許可の設定"
+      subtitle="Amicalが正しく動作するためにいくつかの許可が必要です"
       footer={
         <NavigationButtons
           onBack={onBack}
           onNext={onNext}
           disableNext={!allPermissionsGranted}
           nextLabel={
-            allPermissionsGranted ? "Continue" : "Waiting for permissions..."
+            allPermissionsGranted ? "続ける" : "許可を待っています..."
           }
         />
       }
@@ -155,10 +155,10 @@ export function PermissionsScreen({
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div>
                 <p className="font-medium text-green-900 dark:text-green-100">
-                  All permissions granted
+                  すべての許可が完了しました
                 </p>
                 <p className="text-sm text-green-800 dark:text-green-200">
-                  You're all set! You can continue to the next step.
+                  準備完了です！次のステップに進めます。
                 </p>
               </div>
             </div>
@@ -169,7 +169,7 @@ export function PermissionsScreen({
         {isPolling && !allPermissionsGranted && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            <span>Checking for permission changes...</span>
+            <span>許可の変更を確認中...</span>
           </div>
         )}
 
@@ -183,16 +183,16 @@ export function PermissionsScreen({
                   <Mic className={`h-5 w-5 ${micStatus.color}`} />
                 </div>
                 <div>
-                  <h3 className="font-medium">Microphone Access</h3>
+                  <h3 className="font-medium">マイクへのアクセス</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Required for recording and transcribing audio
+                    音声の録音と文字起こしに必要です
                   </p>
 
                   {permissions.microphone === "granted" && (
                     <div className="mt-2 flex items-center gap-2">
                       <MicIcon className={`h-4 w-4 ${micStatus.color}`} />
                       <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                        Permission granted
+                        許可されました
                       </span>
                     </div>
                   )}
@@ -202,11 +202,11 @@ export function PermissionsScreen({
                       <div className="flex items-center gap-2">
                         <MicIcon className={`h-4 w-4 ${micStatus.color}`} />
                         <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                          Permission denied
+                          許可が拒否されました
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Please grant microphone access in System Preferences
+                        システム環境設定でマイクへのアクセスを許可してください
                       </p>
                     </div>
                   )}
@@ -215,7 +215,7 @@ export function PermissionsScreen({
                     <div className="mt-2 flex items-center gap-2">
                       <MicIcon className={`h-4 w-4 ${micStatus.color}`} />
                       <span className="text-sm font-medium">
-                        Permission not yet requested
+                        まだ許可がリクエストされていません
                       </span>
                     </div>
                   )}
@@ -231,7 +231,7 @@ export function PermissionsScreen({
                       size="sm"
                       variant="default"
                     >
-                      {isRequestingMic ? "Requesting..." : "Request Permission"}
+                      {isRequestingMic ? "リクエスト中..." : "許可をリクエスト"}
                     </Button>
                   )}
 
@@ -243,7 +243,7 @@ export function PermissionsScreen({
                       className="gap-2"
                     >
                       <ExternalLink className="h-4 w-4" />
-                      Open Settings
+                      設定を開く
                     </Button>
                   )}
                 </div>
@@ -260,17 +260,16 @@ export function PermissionsScreen({
                     <Accessibility className={`h-5 w-5 ${accStatus.color}`} />
                   </div>
                   <div>
-                    <h3 className="font-medium">Accessibility Access</h3>
+                    <h3 className="font-medium">アクセシビリティへのアクセス</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Required for pasting transcription and global keyboard
-                      shortcuts (macOS only)
+                      文字起こしの貼り付けとグローバルキーボードショートカットに必要です（macOSのみ）
                     </p>
 
                     {permissions.accessibility ? (
                       <div className="mt-2 flex items-center gap-2">
                         <AccIcon className={`h-4 w-4 ${accStatus.color}`} />
                         <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                          Permission granted
+                          許可されました
                         </span>
                       </div>
                     ) : (
@@ -278,11 +277,11 @@ export function PermissionsScreen({
                         <div className="flex items-center gap-2">
                           <AccIcon className={`h-4 w-4 ${accStatus.color}`} />
                           <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
-                            Permission required
+                            許可が必要です
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Add Amical to Accessibility in System Preferences
+                          システム環境設定のアクセシビリティにAmicalを追加してください
                         </p>
                       </div>
                     )}
@@ -297,7 +296,7 @@ export function PermissionsScreen({
                     className="gap-2"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    Open Settings
+                    設定を開く
                   </Button>
                 )}
               </div>

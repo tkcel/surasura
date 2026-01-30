@@ -30,7 +30,7 @@ export function CompletionScreen({
 }: CompletionScreenProps) {
   return (
     <OnboardingLayout
-      title="Setup Complete!"
+      title="セットアップ完了！"
       titleIcon={<CheckCircle className="h-7 w-7 text-green-500" />}
       footer={
         <NavigationButtons
@@ -39,7 +39,7 @@ export function CompletionScreen({
           showBack={true}
           showNext={false}
           showComplete={true}
-          completeLabel="Start Using Amical"
+          completeLabel="Amicalを使い始める"
         />
       }
     >
@@ -48,7 +48,7 @@ export function CompletionScreen({
         <Card className="p-6">
           <h3 className="mb-4 font-medium flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Quick Configuration
+            クイック設定
           </h3>
           <div className="space-y-4">
             <OnboardingMicrophoneSelect />
@@ -68,40 +68,40 @@ export function CompletionScreen({
               />
             </div>
             <div className="flex-1">
-              <h3 className="font-medium">Join our Community</h3>
+              <h3 className="font-medium">コミュニティに参加</h3>
               <p className="text-sm text-muted-foreground">
-                Get help, share feedback, and connect with other users
+                サポートを受けたり、フィードバックを共有したり、他のユーザーと交流しましょう
               </p>
             </div>
             <Button
               variant="outline"
               onClick={() => window.electronAPI.openExternal(DISCORD_URL)}
             >
-              Join Discord
+              Discordに参加
             </Button>
           </div>
         </Card>
 
         {/* Next Steps */}
         <Card className="border-primary/20 bg-primary/5 px-6 gap-2">
-          <h3 className="font-medium">You're All Set!</h3>
+          <h3 className="font-medium">準備完了です！</h3>
           <div>
             <div className="flex items-start gap-2">
               <span className="text-sm font-medium text-primary">•</span>
               <p className="text-sm">
-                Use your push-to-talk shortcut to start transcribing
+                プッシュトゥトークのショートカットを使って文字起こしを開始
               </p>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-sm font-medium text-primary">•</span>
               <p className="text-sm">
-                Click the floating widget for quick access
+                フローティングウィジェットをクリックして素早くアクセス
               </p>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-sm font-medium text-primary">•</span>
               <p className="text-sm">
-                Explore Settings for more customization options
+                設定画面でさらにカスタマイズ
               </p>
             </div>
           </div>
@@ -111,9 +111,9 @@ export function CompletionScreen({
         <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-4">
           <Info className="mt-0.5 h-4 w-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            All settings can be changed anytime in the application preferences.
+            すべての設定はアプリケーションの設定からいつでも変更できます。
             {preferences.modelType === ModelType.Local &&
-              " Your selected local model is ready to use offline."}
+              " 選択したローカルモデルはオフラインで使用できます。"}
           </p>
         </div>
       </div>

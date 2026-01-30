@@ -29,8 +29,8 @@ export function ShortcutsSettingsPage() {
       } else {
         toast.success(
           variables.type === "pushToTalk"
-            ? "Push to talk shortcut updated"
-            : "Toggle Recording shortcut updated",
+            ? "プッシュトゥトークのショートカットを更新しました"
+            : "録音切り替えのショートカットを更新しました",
         );
       }
     },
@@ -68,9 +68,9 @@ export function ShortcutsSettingsPage() {
   return (
     <div className="container mx-auto p-6 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-xl font-bold">Shortcuts</h1>
+        <h1 className="text-xl font-bold">ショートカット</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Configure keyboard shortcuts for dictation and hands-free modes
+          音声入力とハンズフリーモードのキーボードショートカットを設定します
         </p>
       </div>
 
@@ -81,10 +81,10 @@ export function ShortcutsSettingsPage() {
               <div className="flex flex-col md:flex-row md:justify-between gap-4">
                 <div>
                   <Label className="text-base font-semibold text-foreground">
-                    Push to talk
+                    プッシュトゥトーク
                   </Label>
                   <p className="text-xs text-muted-foreground mt-1 max-w-md">
-                    Hold to dictate while key is pressed
+                    キーを押している間、音声入力を行います
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 items-end min-w-[260px]">
@@ -105,11 +105,10 @@ export function ShortcutsSettingsPage() {
               <div className="flex flex-col md:flex-row md:justify-between gap-4">
                 <div>
                   <Label className="text-base font-semibold text-foreground">
-                    Hands-free mode
+                    ハンズフリーモード
                   </Label>
                   <p className="text-xs text-muted-foreground mt-1 max-w-md">
-                    Start/stop dictation by pressing once to start and pressing
-                    again to stop
+                    1回押すと音声入力を開始し、もう1回押すと停止します
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 items-end min-w-[260px]">

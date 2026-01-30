@@ -29,7 +29,7 @@ export function LanguageSettings() {
   const utils = api.useUtils();
 
   // Local state for immediate UI updates
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("ja");
   const [autoDetect, setAutoDetect] = useState(true);
 
   // Sync local state with server data
@@ -46,7 +46,7 @@ export function LanguageSettings() {
 
     const newSettings = {
       autoDetectEnabled: enabled,
-      selectedLanguage: enabled ? selectedLanguage : selectedLanguage || "en",
+      selectedLanguage: enabled ? selectedLanguage : selectedLanguage || "ja",
     };
 
     try {
@@ -71,7 +71,7 @@ export function LanguageSettings() {
       await updateDictationSettings.mutateAsync(newSettings);
     } catch (error) {
       // Revert local state on error
-      setSelectedLanguage(dictationSettings?.selectedLanguage || "en");
+      setSelectedLanguage(dictationSettings?.selectedLanguage || "ja");
       console.error("Failed to update language setting:", error);
     }
   };
@@ -81,11 +81,10 @@ export function LanguageSettings() {
       <div className="flex items-center justify-between mb-2">
         <div>
           <Label className="text-base font-semibold text-foreground">
-            Auto detect language
+            言語を自動検出
           </Label>
           <p className="text-xs text-muted-foreground mb-2">
-            Automatically detect spoken language. Turn off to select specific
-            languages.
+            話されている言語を自動的に検出します。特定の言語を選択するにはオフにしてください。
           </p>
         </div>
         <Switch
@@ -103,7 +102,7 @@ export function LanguageSettings() {
           )}
         >
           <Label className="text-sm font-medium text-foreground">
-            Languages
+            言語
           </Label>
         </div>
         <Tooltip delayDuration={100}>
@@ -113,7 +112,7 @@ export function LanguageSettings() {
                 options={AVAILABLE_LANGUAGES.filter((l) => l.value !== "auto")}
                 value={selectedLanguage}
                 onChange={handleLanguageChange}
-                placeholder="Select languages..."
+                placeholder="言語を選択..."
                 disabled={
                   autoDetect || isLoading || updateDictationSettings.isPending
                 }
@@ -122,8 +121,7 @@ export function LanguageSettings() {
           </TooltipTrigger>
           {autoDetect && (
             <TooltipContent className="max-w-sm text-center">
-              Disable auto detection to select languages. Selecting specific
-              languages may increase accuracy.
+              言語を選択するには自動検出を無効にしてください。特定の言語を選択すると精度が向上する場合があります。
             </TooltipContent>
           )}
         </Tooltip>

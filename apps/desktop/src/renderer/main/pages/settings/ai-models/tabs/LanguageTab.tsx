@@ -39,7 +39,7 @@ export default function LanguageTab() {
 
   const handleValidateAndSave = async () => {
     if (!apiKey.trim()) {
-      toast.error("Please enter an API key");
+      toast.error("APIキーを入力してください");
       return;
     }
 
@@ -50,14 +50,14 @@ export default function LanguageTab() {
       if (result.success) {
         await setOpenAIConfig.mutateAsync({ apiKey });
         setIsConnected(true);
-        toast.success("OpenAI API key saved successfully");
+        toast.success("OpenAI APIキーを保存しました");
       } else {
         setIsConnected(false);
-        toast.error(result.error || "Invalid API key");
+        toast.error(result.error || "無効なAPIキーです");
       }
     } catch (error) {
       setIsConnected(false);
-      toast.error("Failed to validate API key");
+      toast.error("APIキーの検証に失敗しました");
     } finally {
       setIsValidating(false);
     }
@@ -76,15 +76,15 @@ export default function LanguageTab() {
         });
         refetchFormatterConfig();
       }
-      toast.success("OpenAI API key removed");
+      toast.success("OpenAI APIキーを削除しました");
     } catch (error) {
-      toast.error("Failed to remove API key");
+      toast.error("APIキーの削除に失敗しました");
     }
   };
 
   const handleFormatterToggle = async (enabled: boolean) => {
     if (enabled && !isConnected) {
-      toast.error("Please configure OpenAI API key first");
+      toast.error("先にOpenAI APIキーを設定してください");
       return;
     }
 
@@ -94,9 +94,9 @@ export default function LanguageTab() {
         modelId: enabled ? "gpt-4o-mini" : undefined,
       });
       refetchFormatterConfig();
-      toast.success(enabled ? "Text formatting enabled" : "Text formatting disabled");
+      toast.success(enabled ? "テキスト整形を有効にしました" : "テキスト整形を無効にしました");
     } catch (error) {
-      toast.error("Failed to update formatter settings");
+      toast.error("設定の更新に失敗しました");
     }
   };
 
@@ -116,11 +116,11 @@ export default function LanguageTab() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            OpenAI API Configuration
+            OpenAI API 設定
             {isConnected && (
               <span className="flex items-center gap-1 text-sm font-normal text-green-600">
                 <Check className="h-4 w-4" />
-                Connected
+                接続済み
               </span>
             )}
           </CardTitle>
@@ -129,8 +129,7 @@ export default function LanguageTab() {
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              OpenAI API is used for text formatting and correction. Get your
-              API key from{" "}
+              OpenAI APIはテキストの整形と修正に使用されます。APIキーは{" "}
               <a
                 href="https://platform.openai.com/api-keys"
                 target="_blank"
@@ -139,11 +138,12 @@ export default function LanguageTab() {
               >
                 platform.openai.com
               </a>
+              {" "}から取得できます。
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="api-key">API Key</Label>
+            <Label htmlFor="api-key">APIキー</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Input
@@ -177,14 +177,14 @@ export default function LanguageTab() {
                 {isValidating ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : isConnected ? (
-                  "Update"
+                  "更新"
                 ) : (
-                  "Save"
+                  "保存"
                 )}
               </Button>
               {isConnected && (
                 <Button variant="outline" onClick={handleRemoveApiKey}>
-                  Remove
+                  削除
                 </Button>
               )}
             </div>
@@ -195,15 +195,14 @@ export default function LanguageTab() {
       {/* Text Formatting Settings */}
       <Card>
         <CardHeader>
-          <CardTitle>Text Formatting</CardTitle>
+          <CardTitle>テキスト整形</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Enable Text Formatting</Label>
+              <Label>テキスト整形を有効にする</Label>
               <p className="text-sm text-muted-foreground">
-                Use AI to improve grammar, punctuation, and clarity of
-                transcribed text
+                AIを使用して文字起こしテキストの文法、句読点、読みやすさを改善します
               </p>
             </div>
             <Switch
@@ -216,8 +215,7 @@ export default function LanguageTab() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                OpenAI API key is required for text formatting. Please configure
-                your API key above.
+                テキスト整形にはOpenAI APIキーが必要です。上記でAPIキーを設定してください。
               </AlertDescription>
             </Alert>
           )}
@@ -225,9 +223,7 @@ export default function LanguageTab() {
           {formatterConfig?.enabled && isConnected && (
             <div className="rounded-lg bg-muted/50 p-3">
               <p className="text-sm text-muted-foreground">
-                Using <span className="font-medium">gpt-4o-mini</span> for text
-                formatting. This model provides a good balance of quality and
-                cost.
+                テキスト整形に <span className="font-medium">gpt-4o-mini</span> を使用中。このモデルは品質とコストのバランスが優れています。
               </p>
             </div>
           )}

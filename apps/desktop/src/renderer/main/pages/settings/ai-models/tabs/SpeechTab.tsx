@@ -118,7 +118,7 @@ export default function SpeechTab() {
     },
     onError: (error) => {
       console.error("Failed to start download:", error);
-      toast.error("Failed to start download");
+      toast.error("ダウンロードの開始に失敗しました");
     },
   });
 
@@ -128,7 +128,7 @@ export default function SpeechTab() {
     },
     onError: (error) => {
       console.error("Failed to cancel download:", error);
-      toast.error("Failed to cancel download");
+      toast.error("ダウンロードのキャンセルに失敗しました");
     },
   });
 
@@ -140,7 +140,7 @@ export default function SpeechTab() {
     },
     onError: (error) => {
       console.error("Failed to delete model:", error);
-      toast.error("Failed to delete model");
+      toast.error("モデルの削除に失敗しました");
       setShowDeleteDialog(false);
       setModelToDelete(null);
     },
@@ -152,7 +152,7 @@ export default function SpeechTab() {
     },
     onError: (error) => {
       console.error("Failed to select model:", error);
-      toast.error("Failed to select model");
+      toast.error("モデルの選択に失敗しました");
     },
   });
 
@@ -201,7 +201,7 @@ export default function SpeechTab() {
         delete newProgress[modelId];
         return newProgress;
       });
-      toast.error(`Download failed: ${error}`);
+      toast.error(`ダウンロードに失敗しました: ${error}`);
       utils.models.getActiveDownloads.invalidate();
     },
     onError: (error) => {
@@ -312,7 +312,7 @@ export default function SpeechTab() {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin" />
-        <span className="ml-2">Loading models...</span>
+        <span className="ml-2">モデルを読み込み中...</span>
       </div>
     );
   }
@@ -324,11 +324,11 @@ export default function SpeechTab() {
           {/* Default model picker using unified component */}
           <DefaultModelCombobox
             modelType="speech"
-            title="Default Speech Model"
+            title="デフォルト音声モデル"
           />
           <div>
             <Label className="text-lg font-semibold mb-2 block">
-              Available Models
+              利用可能なモデル
             </Label>
             <div className="divide-y border rounded-md bg-muted/30">
               <TooltipProvider>
@@ -339,10 +339,10 @@ export default function SpeechTab() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Model</TableHead>
-                        <TableHead>Features</TableHead>
-                        <TableHead>Speed</TableHead>
-                        <TableHead>Accuracy</TableHead>
+                        <TableHead>モデル</TableHead>
+                        <TableHead>機能</TableHead>
+                        <TableHead>速度</TableHead>
+                        <TableHead>精度</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -434,7 +434,7 @@ export default function SpeechTab() {
                                       handleDownload(model.id, e)
                                     }
                                     className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center text-primary-foreground transition-colors"
-                                    title="Click to download"
+                                    title="クリックしてダウンロード"
                                   >
                                     <Download className="w-4 h-4 text-muted-foreground" />
                                   </button>
@@ -449,8 +449,8 @@ export default function SpeechTab() {
                                         handleCancelDownload(model.id, e)
                                       }
                                       className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 flex items-center justify-center text-white transition-colors"
-                                      title="Click to cancel download"
-                                      aria-label={`Cancel downloading ${model.name}`}
+                                      title="クリックしてダウンロードをキャンセル"
+                                      aria-label={`${model.name}のダウンロードをキャンセル`}
                                     >
                                       <Square className="w-4 h-4" />
                                     </button>
@@ -495,8 +495,8 @@ export default function SpeechTab() {
                                       handleDeleteClick(model.id, e)
                                     }
                                     className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-colors"
-                                    title="Click to delete model"
-                                    aria-label={`Delete ${model.name}`}
+                                    title="クリックしてモデルを削除"
+                                    aria-label={`${model.name}を削除`}
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
@@ -522,22 +522,20 @@ export default function SpeechTab() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Model</AlertDialogTitle>
+            <AlertDialogTitle>モデルを削除</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this model? This action cannot be
-              undone and you will need to download the model again if you want
-              to use it.
+              このモデルを削除してもよろしいですか？この操作は取り消せません。再度使用する場合はモデルを再ダウンロードする必要があります。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleDeleteCancel}>
-              Cancel
+              キャンセル
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-red-500 hover:bg-red-600"
             >
-              Delete
+              削除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

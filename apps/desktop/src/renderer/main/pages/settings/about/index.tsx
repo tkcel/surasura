@@ -19,7 +19,7 @@ export default function AboutSettingsPage() {
     setChecking(true);
     setTimeout(() => {
       setChecking(false);
-      toast.success("Version is up to date");
+      toast.success("最新バージョンです");
     }, 2000);
   }
 
@@ -27,9 +27,9 @@ export default function AboutSettingsPage() {
     <div className="container mx-auto p-6 max-w-5xl">
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-xl font-bold">About</h1>
+        <h1 className="text-xl font-bold">このアプリについて</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Version information, resources, and support links
+          バージョン情報、リソース、サポートリンク
         </p>
       </div>
 
@@ -37,7 +37,7 @@ export default function AboutSettingsPage() {
         <Card>
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <div className="text-lg font-semibold">Current Version</div>
+              <div className="text-lg font-semibold">現在のバージョン</div>
               <Badge variant="secondary" className="mt-1">
                 v{version || "..."}
               </Badge>
@@ -51,7 +51,7 @@ export default function AboutSettingsPage() {
               <RefreshCw
                 className={"w-4 h-4 " + (checking ? "animate-spin" : "")}
               />
-              {checking ? "Checking..." : "Check for Updates"}
+              {checking ? "確認中..." : "アップデートを確認"}
             </Button> */}
           </CardContent>
         </Card>
@@ -60,11 +60,10 @@ export default function AboutSettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-1">
               <div className="text-lg font-semibold text-foreground">
-                Resources
+                リソース
               </div>
               <p className="text-xs text-muted-foreground">
-                Get help, report issues, and stay updated with the latest
-                changes
+                ヘルプ、問題の報告、最新の変更情報を確認できます
               </p>
             </div>
             <div className="divide-y">
@@ -73,10 +72,10 @@ export default function AboutSettingsPage() {
                   <div>
                     <div className="flex items-center gap-2 font-semibold text-base group-hover:underline">
                       <BookOpen className="w-5 h-5 text-muted-foreground" />
-                      Change Log
+                      変更履歴
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      View release notes and updates
+                      リリースノートとアップデートを確認
                     </div>
                   </div>
                 </div>
@@ -91,10 +90,10 @@ export default function AboutSettingsPage() {
                         alt="GitHub"
                         className="w-5 h-5 inline-block align-middle"
                       />
-                      GitHub Repository
+                      GitHubリポジトリ
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      Source code and issue tracking
+                      ソースコードと問題追跡
                     </div>
                   </div>
                 </div>
@@ -109,10 +108,10 @@ export default function AboutSettingsPage() {
                         alt="Discord"
                         className="w-5 h-5 inline-block align-middle"
                       />
-                      Discord Community
+                      Discordコミュニティ
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      Join our community for support and discussions
+                      コミュニティに参加してサポートや議論に参加
                     </div>
                   </div>
                 </div>
@@ -125,10 +124,10 @@ export default function AboutSettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-1">
               <div className="text-lg font-semibold text-foreground">
-                Contact
+                お問い合わせ
               </div>
               <p className="text-xs text-muted-foreground">
-                Get in touch with our team for support and inquiries
+                サポートやお問い合わせはこちらからご連絡ください
               </p>
             </div>
             <ExternalLink href={`mailto:${CONTACT_EMAIL}`}>
@@ -138,7 +137,7 @@ export default function AboutSettingsPage() {
                     {CONTACT_EMAIL}
                   </div>
                   <div className="text-muted-foreground text-xs">
-                    Send us an email
+                    メールでお問い合わせ
                   </div>
                 </div>
               </div>

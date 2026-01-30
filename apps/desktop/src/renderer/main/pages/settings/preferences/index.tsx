@@ -13,12 +13,12 @@ export default function PreferencesSettingsPage() {
   const preferencesQuery = api.settings.getPreferences.useQuery();
   const updatePreferencesMutation = api.settings.updatePreferences.useMutation({
     onSuccess: () => {
-      toast.success("Preferences updated");
+      toast.success("設定を更新しました");
       utils.settings.getPreferences.invalidate();
     },
     onError: (error) => {
       console.error("Failed to update preferences:", error);
-      toast.error("Failed to update preferences. Please try again.");
+      toast.error("設定の更新に失敗しました。もう一度お試しください。");
     },
   });
 
@@ -57,9 +57,9 @@ export default function PreferencesSettingsPage() {
     <div className="container mx-auto p-6 max-w-5xl">
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-xl font-bold">Preferences</h1>
+        <h1 className="text-xl font-bold">環境設定</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Customize your application behavior and appearance
+          アプリケーションの動作と外観をカスタマイズします
         </p>
       </div>
 
@@ -70,10 +70,10 @@ export default function PreferencesSettingsPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label className="text-base font-medium text-foreground">
-                  Launch at login
+                  ログイン時に起動
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Automatically start the application when you log in
+                  ログイン時にアプリケーションを自動的に起動します
                 </p>
               </div>
               <Switch
@@ -108,10 +108,10 @@ export default function PreferencesSettingsPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label className="text-base font-medium text-foreground">
-                  Show widget while inactive
+                  非アクティブ時もウィジェットを表示
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Keep the widget visible on screen when not recording
+                  録音していないときもウィジェットを画面に表示し続けます
                 </p>
               </div>
               <Switch
@@ -129,10 +129,10 @@ export default function PreferencesSettingsPage() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <Label className="text-base font-medium text-foreground">
-                      Show app in dock
+                      Dockにアプリを表示
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Display the application icon in the macOS dock
+                      macOSのDockにアプリケーションアイコンを表示します
                     </p>
                   </div>
                   <Switch
@@ -150,10 +150,10 @@ export default function PreferencesSettingsPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label className="text-base font-medium text-foreground">
-                  Theme
+                  テーマ
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Choose your preferred color scheme
+                  お好みのカラースキームを選択してください
                 </p>
               </div>
               <ThemeToggle />

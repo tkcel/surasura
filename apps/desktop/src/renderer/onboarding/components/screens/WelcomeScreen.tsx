@@ -30,30 +30,30 @@ export function WelcomeScreen({
   const features = [
     {
       id: FeatureInterest.ContextualDictation,
-      title: "Contextual Dictation",
+      title: "音声入力",
       description:
-        "Quick voice input in any application for seamless speech-to-text",
+        "あらゆるアプリケーションでシームレスな音声入力を実現",
       icon: Mic,
     },
     {
       id: FeatureInterest.NoteTaking,
-      title: "Note Taking",
+      title: "メモ作成",
       description:
-        "Capture thoughts and ideas through speech with smart formatting",
+        "音声でアイデアや思いつきをスマートなフォーマットで記録",
       icon: FileText,
     },
     {
       id: FeatureInterest.MeetingTranscriptions,
-      title: "Meeting Transcriptions",
+      title: "会議の文字起こし",
       description:
-        "Record and transcribe meetings and conversations with high accuracy",
+        "会議や会話を高精度で録音・文字起こし",
       icon: Users,
     },
     {
       id: FeatureInterest.VoiceCommands,
-      title: "Voice Commands",
+      title: "音声コマンド",
       description:
-        "Control your apps hands-free - act on tasks with natural voice commands",
+        "自然な音声でハンズフリーでアプリを操作",
       icon: Command,
     },
   ];
@@ -65,7 +65,7 @@ export function WelcomeScreen({
     } else {
       // Maximum 4 interests
       if (newInterests.size >= 4) {
-        toast.error("You can select up to 4 features");
+        toast.error("最大4つまで選択できます");
         return;
       }
       newInterests.add(interest);
@@ -76,7 +76,7 @@ export function WelcomeScreen({
   const handleContinue = () => {
     if (selectedInterests.size === 0) {
       toast.error(
-        "Please select at least one feature to personalize your experience",
+        "体験をカスタマイズするために、少なくとも1つの機能を選択してください",
       );
       return;
     }
@@ -85,8 +85,8 @@ export function WelcomeScreen({
 
   return (
     <OnboardingLayout
-      title="Welcome to Amical"
-      subtitle="Select the features you're interested in to personalize your experience"
+      title="Amicalへようこそ"
+      subtitle="興味のある機能を選択して、体験をカスタマイズしましょう"
       footer={
         <div className="space-y-4">
           <NavigationButtons
@@ -100,7 +100,7 @@ export function WelcomeScreen({
                 onClick={onSkip}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Skip onboarding
+                セットアップをスキップ
               </button>
             </div>
           )}
@@ -130,7 +130,7 @@ export function WelcomeScreen({
                     onCheckedChange={() => handleToggleInterest(feature.id)}
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-0 top-0"
-                    aria-label={`Select ${feature.title}`}
+                    aria-label={`${feature.title}を選択`}
                   />
                   <div className="flex items-center gap-3 pr-8">
                     <div
@@ -154,7 +154,7 @@ export function WelcomeScreen({
                             variant="outline"
                             className="text-[10px] px-1.5 py-0 h-4 shrink-0"
                           >
-                            Coming Soon
+                            近日公開
                           </Badge>
                         )}
                       </div>
@@ -173,16 +173,15 @@ export function WelcomeScreen({
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             {selectedInterests.size === 0
-              ? "Select at least one feature"
-              : `${selectedInterests.size} selected`}
+              ? "少なくとも1つの機能を選択してください"
+              : `${selectedInterests.size}件選択中`}
           </p>
         </div>
 
         {/* Settings Note */}
         <div className="rounded-lg bg-muted/50 p-4">
           <p className="text-sm text-muted-foreground">
-            Your choices help personalize setup — all features remain available
-            anytime.
+            選択内容はセットアップのカスタマイズに使用されます。すべての機能はいつでもご利用いただけます。
           </p>
         </div>
       </div>

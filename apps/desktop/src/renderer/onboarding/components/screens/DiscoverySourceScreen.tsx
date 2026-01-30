@@ -31,19 +31,19 @@ export function DiscoverySourceScreen({
   const sources = [
     {
       id: DiscoverySource.SearchEngine,
-      label: "Search engine (Google, Bing, etc.)",
+      label: "検索エンジン（Google、Bingなど）",
     },
     {
       id: DiscoverySource.SocialMedia,
-      label: "Social media (Twitter, LinkedIn, etc.)",
+      label: "SNS（Twitter、LinkedInなど）",
     },
     {
       id: DiscoverySource.WordOfMouth,
-      label: "Friend or colleague recommendation",
+      label: "友人や同僚からの紹介",
     },
     {
       id: DiscoverySource.BlogArticle,
-      label: "Blog post or article",
+      label: "ブログ記事やニュース",
     },
     {
       id: DiscoverySource.GitHub,
@@ -51,22 +51,22 @@ export function DiscoverySourceScreen({
     },
     {
       id: DiscoverySource.AIAssistant,
-      label: "AI assistant (ChatGPT, Claude, etc.)",
+      label: "AIアシスタント（ChatGPT、Claudeなど）",
     },
     {
       id: DiscoverySource.Other,
-      label: "Other",
+      label: "その他",
     },
   ];
 
   const handleContinue = () => {
     if (!selectedSource) {
-      toast.error("Please select how you discovered Amical");
+      toast.error("Amicalをどこで知ったか選択してください");
       return;
     }
 
     if (selectedSource === DiscoverySource.Other && !otherDetails.trim()) {
-      toast.error("Please provide details for 'Other'");
+      toast.error("「その他」の詳細を入力してください");
       return;
     }
 
@@ -78,8 +78,8 @@ export function DiscoverySourceScreen({
 
   return (
     <OnboardingLayout
-      title="How did you discover Amical?"
-      subtitle="This helps us understand where our users come from"
+      title="Amicalをどこで知りましたか？"
+      subtitle="ユーザーの皆様がどこから来ているか把握するのに役立ちます"
       footer={
         <NavigationButtons
           onBack={onBack}
@@ -114,16 +114,16 @@ export function DiscoverySourceScreen({
         {/* Other Details Input */}
         {selectedSource === DiscoverySource.Other && (
           <div className="space-y-2">
-            <Label htmlFor="other-details">Please specify</Label>
+            <Label htmlFor="other-details">詳細を入力</Label>
             <Input
               id="other-details"
-              placeholder="Tell us more..."
+              placeholder="詳しく教えてください..."
               value={otherDetails}
               onChange={(e) => setOtherDetails(e.target.value)}
               maxLength={200}
             />
             <p className="text-xs text-muted-foreground">
-              {otherDetails.length}/100 characters
+              {otherDetails.length}/100文字
             </p>
           </div>
         )}

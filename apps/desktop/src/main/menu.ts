@@ -20,14 +20,14 @@ export const setupApplicationMenu = (
               ...(checkForUpdates
                 ? [
                     {
-                      label: "Check for Updates...",
+                      label: "アップデートを確認...",
                       click: () => checkForUpdates(),
                     } as MenuItemConstructorOptions,
                     { type: "separator" as const },
                   ]
                 : []),
               {
-                label: "Settings",
+                label: "設定",
                 accelerator: "CmdOrCtrl+,",
                 click: () => createOrShowSettingsWindow(),
               },
@@ -47,10 +47,10 @@ export const setupApplicationMenu = (
     ...(process.platform !== "darwin"
       ? ([
           {
-            label: "File",
+            label: "ファイル",
             submenu: [
               {
-                label: "Settings",
+                label: "設定",
                 accelerator: "CmdOrCtrl+,",
                 click: () => createOrShowSettingsWindow(),
               },
@@ -62,7 +62,7 @@ export const setupApplicationMenu = (
       : []),
     // { role: 'editMenu' }
     {
-      label: "Edit",
+      label: "編集",
       submenu: [
         { role: "undo" as const },
         { role: "redo" as const },
@@ -77,7 +77,7 @@ export const setupApplicationMenu = (
               { role: "selectAll" as const },
               { type: "separator" as const },
               {
-                label: "Speech",
+                label: "スピーチ",
                 submenu: [
                   { role: "startSpeaking" as const },
                   { role: "stopSpeaking" as const },
@@ -93,7 +93,7 @@ export const setupApplicationMenu = (
     },
     // { role: 'viewMenu' }
     {
-      label: "View",
+      label: "表示",
       submenu: [
         { role: "reload" as const },
         { role: "forceReload" as const },
@@ -101,7 +101,7 @@ export const setupApplicationMenu = (
         ...(openAllDevTools
           ? [
               {
-                label: "Open All Dev Tools",
+                label: "すべての開発者ツールを開く",
                 accelerator: "CmdOrCtrl+Shift+I",
                 click: () => openAllDevTools(),
               } as MenuItemConstructorOptions,
@@ -117,7 +117,7 @@ export const setupApplicationMenu = (
     },
     // { role: 'windowMenu' }
     {
-      label: "Window",
+      label: "ウィンドウ",
       submenu: [
         { role: "minimize" as const },
         { role: "zoom" as const },
@@ -139,14 +139,14 @@ export const setupApplicationMenu = (
         ...(checkForUpdates
           ? [
               {
-                label: "Check for Updates...",
+                label: "アップデートを確認...",
                 click: () => checkForUpdates(),
               } as MenuItemConstructorOptions,
               { type: "separator" as const },
             ]
           : []),
         {
-          label: "Learn More",
+          label: "詳しく見る",
           click: async () => {
             const { shell } = await import("electron");
             shell.openExternal("https://electronjs.org");
@@ -162,7 +162,7 @@ export const setupApplicationMenu = (
   // Add "Version" prefix on macOS About panel
   if (process.platform === "darwin") {
     app.setAboutPanelOptions({
-      applicationVersion: `Version ${app.getVersion()}`,
+      applicationVersion: `バージョン ${app.getVersion()}`,
     });
   }
 };

@@ -35,14 +35,14 @@ export function FormattingSettings() {
         <div>
           <div className="flex items-center gap-2">
             <Label className="text-base font-semibold text-foreground">
-              Formatting
+              フォーマット
             </Label>
             <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/20 text-orange-500 hover:bg-orange-500/20">
               Alpha
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mb-2">
-            Apply punctuation and structure to your transcriptions.
+            文字起こしに句読点や構造を適用します。
           </p>
         </div>
         <Tooltip delayDuration={100}>
@@ -57,8 +57,7 @@ export function FormattingSettings() {
           </TooltipTrigger>
           {disableFormattingToggle && (
             <TooltipContent className="max-w-sm text-center">
-              Sync a language model or select Amical Cloud transcription to
-              enable formatting.
+              フォーマットを有効にするには、言語モデルを同期するか、Amical Cloudの文字起こしを選択してください。
             </TooltipContent>
           )}
         </Tooltip>
@@ -71,7 +70,7 @@ export function FormattingSettings() {
       >
         <Button variant="link" className="text-xs px-0">
           <Plus className="w-4 h-4" />
-          Manage language models
+          言語モデルを管理
         </Button>
       </Link>
 
@@ -80,10 +79,10 @@ export function FormattingSettings() {
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium text-foreground mb-2 block">
-                Formatting model
+                フォーマットモデル
               </Label>
               <p className="text-xs text-muted-foreground mb-4">
-                Choose the model used to format your transcription.
+                文字起こしのフォーマットに使用するモデルを選択してください。
               </p>
             </div>
             <div className="space-y-3">
@@ -91,46 +90,46 @@ export function FormattingSettings() {
                 options={formattingOptions}
                 value={selectedModelId}
                 onChange={handleFormattingModelChange}
-                placeholder="Select a model..."
+                placeholder="モデルを選択..."
                 disabled={!hasFormattingOptions}
               />
               {showCloudRequiresSpeech && (
                 <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <span>Requires Amical Cloud transcription.</span>
+                  <span>Amical Cloudの文字起こしが必要です。</span>
                   <Link to="/settings/ai-models" search={{ tab: "speech" }}>
                     <Button variant="outline" size="sm">
-                      Switch speech model
+                      音声モデルを変更
                     </Button>
                   </Link>
                 </div>
               )}
               {showCloudRequiresAuth && (
                 <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <span>Sign in to use Amical Cloud formatting.</span>
+                  <span>Amical Cloudのフォーマットを使用するにはサインインが必要です。</span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleCloudLogin}
                     disabled={isLoginPending}
                   >
-                    Sign in
+                    サインイン
                   </Button>
                 </div>
               )}
               {showCloudReady && (
                 <p className="text-xs text-muted-foreground">
-                  Using Amical Cloud formatting.
+                  Amical Cloudのフォーマットを使用中です。
                 </p>
               )}
               {showNoLanguageModels && (
                 <div className="flex items-center justify-between rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-xs text-muted-foreground">
                   <span>
-                    Formatting won't run — no language model available.
+                    フォーマットが実行されません — 言語モデルがありません。
                   </span>
                   <Link to="/settings/ai-models" search={{ tab: "language" }}>
                     <Button variant="outline" size="sm">
                       <Plus className="w-4 h-4 mr-1" />
-                      Sync language models
+                      言語モデルを同期
                     </Button>
                   </Link>
                 </div>

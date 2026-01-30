@@ -36,12 +36,12 @@ export function MicrophoneSettings() {
 
       toast.success(
         actualDeviceName
-          ? `Microphone changed to ${deviceName}`
-          : "Using system default microphone",
+          ? `マイクを${deviceName}に変更しました`
+          : "システムのデフォルトマイクを使用します",
       );
     } catch (error) {
       console.error("Failed to set preferred microphone:", error);
-      toast.error("Failed to change microphone");
+      toast.error("マイクの変更に失敗しました");
     }
   };
 
@@ -56,10 +56,10 @@ export function MicrophoneSettings() {
     <div className="flex items-center justify-between">
       <div>
         <Label className="text-base font-semibold text-foreground">
-          Microphone
+          マイク
         </Label>
         <p className="text-xs text-muted-foreground mb-2">
-          Choose your preferred microphone.
+          使用するマイクを選択してください。
         </p>
       </div>
       <div className="min-w-[200px]">
@@ -68,12 +68,12 @@ export function MicrophoneSettings() {
           onValueChange={handleMicrophoneChange}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a microphone" />
+            <SelectValue placeholder="マイクを選択" />
           </SelectTrigger>
           <SelectContent>
             {audioDevices.length === 0 ? (
               <SelectItem value="no-devices" disabled>
-                No microphones available
+                マイクがありません
               </SelectItem>
             ) : (
               audioDevices.map((device) => (
@@ -89,7 +89,7 @@ export function MicrophoneSettings() {
         </Select>
         {audioDevices.length === 0 && (
           <p className="text-sm text-muted-foreground mt-1">
-            No microphones detected. Please check your audio devices.
+            マイクが検出されませんでした。オーディオデバイスを確認してください。
           </p>
         )}
       </div>

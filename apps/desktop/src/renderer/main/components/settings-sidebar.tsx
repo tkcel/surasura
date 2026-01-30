@@ -31,13 +31,13 @@ const data = {
   })),
   navSecondary: [
     {
-      title: "Docs",
+      title: "ドキュメント",
       url: "https://amical.ai/docs",
       icon: IconBookFilled,
       external: true,
     },
     {
-      title: "Community",
+      title: "コミュニティ",
       url: "https://amical.ai/community",
       icon: DiscordIcon,
       external: true,

@@ -25,16 +25,16 @@ export function NotesList() {
         to: "/settings/notes/$noteId",
         params: { noteId: String(newNote.id) },
       });
-      toast.success("Note created");
+      toast.success("ノートを作成しました");
     },
     onError: (error) => {
-      toast.error("Failed to create note: " + error.message);
+      toast.error("ノートの作成に失敗しました: " + error.message);
     },
   });
 
   const onCreateNote = () => {
     createNoteMutation.mutate({
-      title: "Untitled Note",
+      title: "無題のノート",
       initialContent: "",
     });
   };
@@ -55,7 +55,7 @@ export function NotesList() {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-muted-foreground">
           <NotebookText className="w-4 h-4" />
-          <h2 className="text-sm font-medium">Notes</h2>
+          <h2 className="text-sm font-medium">ノート</h2>
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
@@ -78,7 +78,7 @@ export function NotesList() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-muted-foreground">
           <NotebookText className="w-4 h-4" />
-          <h2 className="text-sm font-medium">Notes</h2>
+          <h2 className="text-sm font-medium">ノート</h2>
         </div>
         <Button
           size="sm"
@@ -87,7 +87,7 @@ export function NotesList() {
           disabled={createNoteMutation.isPending}
         >
           <Plus className="w-4 h-4" />
-          Create note
+          ノートを作成
         </Button>
       </div>
 
@@ -103,9 +103,9 @@ export function NotesList() {
         <div className="border border-dashed rounded-lg p-6 text-center space-y-4">
           <NotebookText className="w-8 h-8 text-muted-foreground mx-auto" />
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">No notes yet</p>
+            <p className="text-sm text-muted-foreground">まだノートがありません</p>
             <p className="text-xs text-muted-foreground">
-              Create your first note to get started
+              最初のノートを作成して始めましょう
             </p>
             <Button
               className="mt-4"
@@ -114,7 +114,7 @@ export function NotesList() {
               onClick={onCreateNote}
             >
               <Plus className="w-4 h-4" />
-              Create note
+              ノートを作成
             </Button>
           </div>
         </div>

@@ -143,7 +143,7 @@ const defaultSettings: AppSettingsData = {
     showInDock: true,
   },
   transcription: {
-    language: "en",
+    language: "ja",
     autoTranscribe: true,
     confidenceThreshold: 0.8,
     enablePunctuation: true,

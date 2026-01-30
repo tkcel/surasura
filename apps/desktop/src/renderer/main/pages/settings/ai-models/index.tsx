@@ -13,7 +13,7 @@ export default function AIModelsSettingsPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">
-      <h1 className="text-xl font-bold mb-6">AI Models</h1>
+      <h1 className="text-xl font-bold mb-6">AIモデル</h1>
       <Tabs
         value={tab}
         onValueChange={(newTab) => {
@@ -26,10 +26,10 @@ export default function AIModelsSettingsPage() {
       >
         <TabsList className="mb-6">
           <TabsTrigger value="speech" className="text-base">
-            Speech
+            音声認識
           </TabsTrigger>
           <TabsTrigger value="language" className="text-base">
-            Language
+            言語モデル
           </TabsTrigger>
         </TabsList>
         <TabsContent value="speech">
