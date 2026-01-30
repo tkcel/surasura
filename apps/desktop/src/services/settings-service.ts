@@ -1,0 +1,327 @@
+import { app } from "electron";
+import { EventEmitter } from "events";
+import { FormatterConfig } from "../types/formatter";
+import {
+  getSettingsSection,
+  updateSettingsSection,
+  getAppSettings,
+  updateAppSettings,
+} from "../db/app-settings";
+import type { AppSettingsData } from "../db/schema";
+
+/**
+ * Database-backed settings service with typed configuration
+ */
+export interface ShortcutsConfig {
+  pushToTalk: string[];
+  toggleRecording: string[];
+}
+
+export interface AppPreferences {
+  launchAtLogin: boolean;
+  minimizeToTray: boolean;
+  showWidgetWhileInactive: boolean;
+  showInDock: boolean;
+}
+
+export class SettingsService extends EventEmitter {
+  constructor() {
+    super();
+  }
+
+  /**
+   * Get formatter configuration
+   */
+  async getFormatterConfig(): Promise<FormatterConfig | null> {
+    const formatterConfig = await getSettingsSection("formatterConfig");
+    return formatterConfig || null;
+  }
+
+  /**
+   * Set formatter configuration
+   */
+  async setFormatterConfig(config: FormatterConfig): Promise<void> {
+    await updateSettingsSection("formatterConfig", config);
+  }
+
+  /**
+   * Get all app settings
+   */
+  async getAllSettings(): Promise<AppSettingsData> {
+    return await getAppSettings();
+  }
+
+  /**
+   * Update multiple settings at once
+   */
+  async updateSettings(
+    settings: Partial<AppSettingsData>,
+  ): Promise<AppSettingsData> {
+    return await updateAppSettings(settings);
+  }
+
+  /**
+   * Get UI settings
+   */
+  async getUISettings(): Promise<AppSettingsData["ui"]> {
+    return (
+      (await getSettingsSection("ui")) ?? {
+        theme: "system",
+      }
+    );
+  }
+
+  /**
+   * Update UI settings
+   */
+  async setUISettings(uiSettings: AppSettingsData["ui"]): Promise<void> {
+    await updateSettingsSection("ui", uiSettings);
+
+    // Emit event if theme changed (AppManager will handle window updates)
+    if (uiSettings?.theme !== undefined) {
+      this.emit("theme-changed", { theme: uiSettings.theme });
+    }
+  }
+
+  /**
+   * Get transcription settings
+   */
+  async getTranscriptionSettings(): Promise<AppSettingsData["transcription"]> {
+    return await getSettingsSection("transcription");
+  }
+
+  /**
+   * Update transcription settings
+   */
+  async setTranscriptionSettings(
+    transcriptionSettings: AppSettingsData["transcription"],
+  ): Promise<void> {
+    await updateSettingsSection("transcription", transcriptionSettings);
+  }
+
+  /**
+   * Get recording settings
+   */
+  async getRecordingSettings(): Promise<AppSettingsData["recording"]> {
+    return await getSettingsSection("recording");
+  }
+
+  /**
+   * Update recording settings
+   */
+  async setRecordingSettings(
+    recordingSettings: AppSettingsData["recording"],
+  ): Promise<void> {
+    await updateSettingsSection("recording", recordingSettings);
+  }
+
+  /**
+   * Get dictation settings
+   */
+  async getDictationSettings(): Promise<AppSettingsData["dictation"]> {
+    return await getSettingsSection("dictation");
+  }
+
+  /**
+   * Update dictation settings
+   */
+  async setDictationSettings(
+    dictationSettings: AppSettingsData["dictation"],
+  ): Promise<void> {
+    await updateSettingsSection("dictation", dictationSettings);
+  }
+
+  /**
+   * Get shortcuts configuration
+   * Defaults are handled by app-settings.ts during initialization/migration
+   */
+  async getShortcuts(): Promise<ShortcutsConfig> {
+    const shortcuts = await getSettingsSection("shortcuts");
+    return {
+      pushToTalk: shortcuts?.pushToTalk ?? [],
+      toggleRecording: shortcuts?.toggleRecording ?? [],
+    };
+  }
+
+  /**
+   * Update shortcuts configuration
+   */
+  async setShortcuts(shortcuts: ShortcutsConfig): Promise<void> {
+    // Store empty arrays as undefined to clear shortcuts
+    const dataToStore = {
+      pushToTalk: shortcuts.pushToTalk?.length
+        ? shortcuts.pushToTalk
+        : undefined,
+      toggleRecording: shortcuts.toggleRecording?.length
+        ? shortcuts.toggleRecording
+        : undefined,
+    };
+    await updateSettingsSection("shortcuts", dataToStore);
+  }
+
+  /**
+   * Get model providers configuration
+   */
+  async getModelProvidersConfig(): Promise<
+    AppSettingsData["modelProvidersConfig"]
+  > {
+    return await getSettingsSection("modelProvidersConfig");
+  }
+
+  /**
+   * Update model providers configuration
+   */
+  async setModelProvidersConfig(
+    config: AppSettingsData["modelProvidersConfig"],
+  ): Promise<void> {
+    await updateSettingsSection("modelProvidersConfig", config);
+  }
+
+  /**
+   * Get OpenAI configuration
+   */
+  async getOpenAIConfig(): Promise<{ apiKey: string } | undefined> {
+    const config = await this.getModelProvidersConfig();
+    return config?.openai;
+  }
+
+  /**
+   * Update OpenAI configuration
+   */
+  async setOpenAIConfig(config: { apiKey: string }): Promise<void> {
+    const currentConfig = await this.getModelProvidersConfig();
+    await this.setModelProvidersConfig({
+      ...currentConfig,
+      openai: config,
+    });
+  }
+
+  /**
+   * Get default speech model (Whisper)
+   */
+  async getDefaultSpeechModel(): Promise<string | undefined> {
+    const config = await this.getModelProvidersConfig();
+    return config?.defaultSpeechModel;
+  }
+
+  /**
+   * Set default speech model (Whisper)
+   */
+  async setDefaultSpeechModel(modelId: string | undefined): Promise<void> {
+    const currentConfig = await this.getModelProvidersConfig();
+    await this.setModelProvidersConfig({
+      ...currentConfig,
+      defaultSpeechModel: modelId,
+    });
+  }
+
+  /**
+   * Get default language model
+   */
+  async getDefaultLanguageModel(): Promise<string | undefined> {
+    const config = await this.getModelProvidersConfig();
+    return config?.defaultLanguageModel;
+  }
+
+  /**
+   * Set default language model
+   */
+  async setDefaultLanguageModel(modelId: string | undefined): Promise<void> {
+    const currentConfig = await this.getModelProvidersConfig();
+    await this.setModelProvidersConfig({
+      ...currentConfig,
+      defaultLanguageModel: modelId,
+    });
+  }
+
+  /**
+   * Get app preferences (launch at login, minimize to tray, etc.)
+   */
+  async getPreferences(): Promise<AppPreferences> {
+    const preferences = await getSettingsSection("preferences");
+    return {
+      launchAtLogin: preferences?.launchAtLogin ?? true,
+      minimizeToTray: preferences?.minimizeToTray ?? true,
+      showWidgetWhileInactive: preferences?.showWidgetWhileInactive ?? true,
+      showInDock: preferences?.showInDock ?? true,
+    };
+  }
+
+  /**
+   * Set app preferences and handle side effects
+   */
+  async setPreferences(preferences: Partial<AppPreferences>): Promise<void> {
+    const currentPreferences = await this.getPreferences();
+    const newPreferences = { ...currentPreferences, ...preferences };
+
+    // Save to database
+    await updateSettingsSection("preferences", newPreferences);
+
+    // Handle launch at login change
+    if (
+      preferences.launchAtLogin !== undefined &&
+      preferences.launchAtLogin !== currentPreferences.launchAtLogin
+    ) {
+      this.syncAutoLaunch();
+    }
+
+    // Emit event for listeners (AppManager will handle window updates)
+    this.emit("preferences-changed", {
+      changes: preferences,
+      showWidgetWhileInactiveChanged:
+        preferences.showWidgetWhileInactive !== undefined,
+      showInDockChanged: preferences.showInDock !== undefined,
+    });
+  }
+
+  /**
+   * Sync the auto-launch setting with the OS
+   * This ensures the OS setting matches our stored preference
+   */
+  syncAutoLaunch(): void {
+    // Get the current preference asynchronously and apply it
+    this.getPreferences().then((preferences) => {
+      app.setLoginItemSettings({
+        openAtLogin: preferences.launchAtLogin,
+        openAsHidden: false,
+      });
+    });
+  }
+
+  /**
+   * Sync the dock visibility setting with macOS
+   * This ensures the dock visibility matches our stored preference
+   */
+  syncDockVisibility(): void {
+    // Only applicable on macOS where app.dock exists
+    if (!app.dock) {
+      return;
+    }
+
+    // Get the current preference asynchronously and apply it
+    this.getPreferences().then((preferences) => {
+      if (preferences.showInDock) {
+        app.dock?.show();
+      } else {
+        app.dock?.hide();
+      }
+    });
+  }
+
+  /**
+   * Get telemetry settings
+   */
+  async getTelemetrySettings(): Promise<AppSettingsData["telemetry"]> {
+    const telemetry = await getSettingsSection("telemetry");
+    return telemetry ?? { enabled: true }; // Default to enabled
+  }
+
+  /**
+   * Update telemetry settings
+   */
+  async setTelemetrySettings(
+    telemetrySettings: AppSettingsData["telemetry"],
+  ): Promise<void> {
+    await updateSettingsSection("telemetry", telemetrySettings);
+  }
+}

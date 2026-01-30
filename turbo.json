@@ -1,0 +1,79 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalEnv": [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_REGION",
+    "S3_BUCKET_NAME",
+    "S3_ENDPOINT"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "bin/**",
+        "out/**",
+        "dist/**",
+        "build/**"
+      ],
+      "env": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "AWS_REGION",
+        "S3_BUCKET_NAME",
+        "S3_ENDPOINT",
+        "POSTHOG_API_KEY",
+        "POSTHOG_HOST",
+        "TELEMETRY_ENABLED",
+        "AUTH_CLIENT_ID",
+        "AUTHORIZATION_ENDPOINT",
+        "AUTH_TOKEN_ENDPOINT",
+        "API_ENDPOINT"
+      ]
+    },
+    "build:native": {
+      "dependsOn": [],
+      "inputs": [
+        "Sources/**",
+        "Package.swift",
+        "main.swift",
+        "scripts/**",
+        "src/binding/**",
+        "binding.gyp",
+        "whisper.cpp/**"
+      ],
+      "outputs": ["bin/**", "build/**"],
+      "cache": true
+    },
+    "format:check": {},
+    "lint": {
+      "dependsOn": ["format:check"]
+    },
+    "type:check": {
+      "dependsOn": ["^type:check"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": [],
+      "cache": false
+    },
+    "test:watch": {
+      "dependsOn": [],
+      "cache": false,
+      "persistent": true
+    },
+    "test:ui": {
+      "dependsOn": [],
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
