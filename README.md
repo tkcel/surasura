@@ -1,36 +1,116 @@
 # surasura
 
-Local-first AI Dictation app.
+AI音声入力アプリ
 
-surasura is an open source AI-powered dictation and note-taking app that runs entirely on your machine.
-Powered by [Whisper](https://github.com/openai/whisper) for speech-to-text and open source LLMs for intelligent processing, surasura gives you the power of AI dictation with complete privacy.
+surasuraは、お好みのAIモデルを使って音声入力ができるデスクトップアプリです。
+OpenAI、Grokなど、様々なAIプロバイダーに対応しており、高精度な音声認識とインテリジェントなテキスト整形機能を提供します。
 
-Context-aware dictation that adapts to what you're doing: drafting an email, chatting on Discord, writing prompts in your IDE, or messaging friends. surasura detects the active app and formats your speech accordingly.
+## ベースプロジェクト
 
-## Features
+本プロジェクトは [Amical](https://github.com/amicalhq/amical) をベースに開発されています。
 
-> ✔︎ - Done, ◑ - In Progress, ◯ - Planned
+Amicalは Naomi Chopra 氏と Haritabh Singh 氏によって開発された、ローカルファーストのAI音声入力アプリです。優れたアーキテクチャと機能を持つAmicalを基盤として、surasuraでは以下の方向性で独自の拡張を行っています：
 
-- 🚀 Super-fast dictation with AI-enhanced accuracy ✔︎
-- 🧠 Context-aware speech-to-text based on the active app ✔︎
-- 📒 Smart voice notes → summaries, tasks, structured notes ◑
-- 🔌 MCP integration → voice commands that control your apps ◯
-- 🎙️ Real-time meeting transcription (mic + system audio) ◯
-- 🔧 Extensible via hotkeys, voice macros, custom workflows ✔︎
-- 🔐 Privacy-first: works offline, one click setup of local models in-app ✔︎
-- 🪟 Floating widget for frictionless start/stop with custom hotkeys ✔︎
+- **マルチプロバイダー対応** - OpenAI、Grokなど複数のAIプロバイダーを選択可能
+- **日本語環境への最適化** - UIの日本語化、日本語音声認識の改善
+- **独自機能の追加** - 辞書機能、フォーマットプリセットなど
 
-## Tech Stack
+Amicalの開発者の皆様に深く感謝いたします。
 
-- 🎤 [Whisper](https://github.com/openai/whisper)
-- 🦙 [Ollama](https://ollama.ai)
-- 🧑‍💻 [Typescript](https://www.typescriptlang.org/)
-- 🖥️ [Electron](https://electronjs.org/)
-- 🎨 [TailwindCSS](https://tailwindcss.com/)
-- 🧑🏼‍🎨 [Shadcn](https://ui.shadcn.com/)
-- 🧘‍♂️ [Zod](https://zod.dev/)
-- 🌀 [Turborepo](https://turbo.build/)
+## 主な機能
 
-## License
+### 音声入力
 
-Released under MIT License.
+- **プッシュトゥトーク** - キーを押している間だけ録音
+- **ハンズフリーモード** - 1回押すと開始、もう1回押すと停止
+- **履歴ペースト** - 直前の文字起こし結果を再度ペースト
+- **録音キャンセル** - 録音中にキャンセル可能
+
+### AIフォーマット
+
+- 文字起こし結果をGPTで自動整形
+- ビジネスメール、議事録、カジュアルな文体など、用途に応じたフォーマット
+
+### 辞書機能
+
+- カスタム単語の登録で認識精度を向上
+- 置換ルールの設定（例：「すらすら」→「surasura」）
+
+### カスタマイズ
+
+- すべてのショートカットキーをカスタマイズ可能
+- フローティングウィジェットで素早く録音開始
+- ライト/ダーク/システムテーマに対応
+
+## 対応プラットフォーム
+
+- macOS (Apple Silicon / Intel)
+- Windows
+
+## 必要なもの
+
+- AIプロバイダーのAPIキー（OpenAI、Grokなど、お好みのプロバイダー）
+
+## インストール
+
+[Releases](https://github.com/surasura/surasura/releases)ページから最新版をダウンロードしてください。
+
+## コミュニティ
+
+ご意見・ご要望・バグ報告などは [Discord サーバー](https://discord.gg/ffpmWv5d) までお気軽にどうぞ。
+
+## 開発
+
+### 必要環境
+
+- Node.js 24以上
+- pnpm 10以上
+
+### セットアップ
+
+```bash
+# 依存関係のインストール
+pnpm install
+
+# 開発サーバーの起動
+pnpm dev
+```
+
+### ビルド
+
+```bash
+# macOS (arm64)
+pnpm --filter @surasura/desktop make:dmg:arm64
+
+# macOS (x64)
+pnpm --filter @surasura/desktop make:dmg:x64
+
+# Windows
+pnpm --filter @surasura/desktop make:windows
+```
+
+## 技術スタック
+
+- [Electron](https://electronjs.org/) - デスクトップアプリフレームワーク
+- [React](https://react.dev/) - UIライブラリ
+- [TypeScript](https://www.typescriptlang.org/) - 型安全なJavaScript
+- [TailwindCSS](https://tailwindcss.com/) - CSSフレームワーク
+- [shadcn/ui](https://ui.shadcn.com/) - UIコンポーネント
+- [tRPC](https://trpc.io/) - 型安全なAPI
+- [Drizzle ORM](https://orm.drizzle.team/) - データベースORM
+- [Turborepo](https://turbo.build/) - モノレポ管理
+
+## ライセンス
+
+surasura 非商用ライセンス
+
+本ソフトウェアは個人利用、教育目的、研究目的、非営利団体による非商用目的での使用が許可されています。商用利用は禁止されています。
+
+商用利用をご希望の場合は、別途商用ライセンスをお問い合わせください。
+
+詳細は [LICENSE](./LICENSE) をご確認ください。
+
+---
+
+本プロジェクトは [Amical](https://github.com/amicalhq/amical)（MITライセンス）をベースに開発されています。
+オリジナルのライセンスについては [LICENSE_ORIGINAL_AMICAL](./LICENSE_ORIGINAL_AMICAL) を参照してください。
