@@ -1,6 +1,6 @@
 import { app } from "electron";
 import { EventEmitter } from "events";
-import { FormatterConfig } from "../types/formatter";
+import { FormatterConfig, FormatPreset } from "../types/formatter";
 import {
   getSettingsSection,
   updateSettingsSection,
@@ -337,5 +337,143 @@ export class SettingsService extends EventEmitter {
     telemetrySettings: AppSettingsData["telemetry"],
   ): Promise<void> {
     await updateSettingsSection("telemetry", telemetrySettings);
+  }
+
+  // ==================== Format Preset Methods ====================
+
+  /**
+   * Create a new format preset (max 5 presets allowed)
+   */
+  async createFormatPreset(
+    preset: Omit<FormatPreset, "id" | "createdAt" | "updatedAt">,
+  ): Promise<FormatPreset> {
+    const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
+
+    if (presets.length >= 5) {
+      throw new Error("Maximum number of presets (5) reached");
+    }
+
+    if (preset.name.length > 20) {
+      throw new Error("Preset name must be 20 characters or less");
+    }
+
+    if (preset.instructions.length > 2000) {
+      throw new Error("Instructions must be 2000 characters or less");
+    }
+
+    const now = new Date().toISOString();
+    const newPreset: FormatPreset = {
+      ...preset,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const updatedPresets = [...presets, newPreset];
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      presets: updatedPresets,
+    });
+
+    return newPreset;
+  }
+
+  /**
+   * Update an existing format preset
+   */
+  async updateFormatPreset(
+    id: string,
+    updates: Partial<Omit<FormatPreset, "id" | "createdAt" | "updatedAt">>,
+  ): Promise<FormatPreset> {
+    const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
+
+    const presetIndex = presets.findIndex((p) => p.id === id);
+    if (presetIndex === -1) {
+      throw new Error("Preset not found");
+    }
+
+    if (updates.name !== undefined && updates.name.length > 20) {
+      throw new Error("Preset name must be 20 characters or less");
+    }
+
+    if (updates.instructions !== undefined && updates.instructions.length > 2000) {
+      throw new Error("Instructions must be 2000 characters or less");
+    }
+
+    const updatedPreset: FormatPreset = {
+      ...presets[presetIndex],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updatedPresets = [...presets];
+    updatedPresets[presetIndex] = updatedPreset;
+
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      presets: updatedPresets,
+    });
+
+    return updatedPreset;
+  }
+
+  /**
+   * Delete a format preset
+   */
+  async deleteFormatPreset(id: string): Promise<void> {
+    const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
+
+    const updatedPresets = presets.filter((p) => p.id !== id);
+
+    // If the deleted preset was active, clear activePresetId
+    const activePresetId =
+      config?.activePresetId === id ? null : config?.activePresetId;
+
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      presets: updatedPresets,
+      activePresetId,
+    });
+  }
+
+  /**
+   * Set the active preset
+   */
+  async setActivePreset(presetId: string | null): Promise<void> {
+    const config = await this.getFormatterConfig();
+
+    // If setting a preset, verify it exists
+    if (presetId !== null) {
+      const presets = config?.presets ?? [];
+      const exists = presets.some((p) => p.id === presetId);
+      if (!exists) {
+        throw new Error("Preset not found");
+      }
+    }
+
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      activePresetId: presetId,
+    });
+  }
+
+  /**
+   * Get the currently active preset
+   */
+  async getActivePreset(): Promise<FormatPreset | null> {
+    const config = await this.getFormatterConfig();
+    if (!config?.activePresetId) {
+      return null;
+    }
+
+    const presets = config.presets ?? [];
+    return presets.find((p) => p.id === config.activePresetId) ?? null;
   }
 }

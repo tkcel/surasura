@@ -333,8 +333,12 @@ export class TranscriptionService {
           "Formatting skipped: OpenAI API key missing",
         );
       } else {
-        // Get language model (default to gpt-4o-mini)
+        // Get active preset to determine model
+        const activePreset = await this.settingsService.getActivePreset();
+
+        // Use preset's model if available, otherwise fall back to default
         const modelId =
+          activePreset?.modelId ||
           formatterConfig.modelId ||
           (await this.settingsService.getDefaultLanguageModel()) ||
           "gpt-4o-mini";
@@ -343,6 +347,7 @@ export class TranscriptionService {
           sessionId,
           provider: "OpenAI",
           model: modelId,
+          presetName: activePreset?.name,
         });
 
         const provider = new OpenAIFormatter(openaiConfig.apiKey, modelId);
@@ -559,6 +564,9 @@ export class TranscriptionService {
     const startTime = performance.now();
     const style = session.context.sharedData.userPreferences?.formattingStyle;
 
+    // Get active preset for custom formatting instructions
+    const activePreset = await this.settingsService.getActivePreset();
+
     try {
       const formattedText = await provider.format({
         text,
@@ -573,6 +581,7 @@ export class TranscriptionService {
                 ]
               : undefined,
           aggregatedTranscription: text,
+          preset: activePreset,
         },
       });
 

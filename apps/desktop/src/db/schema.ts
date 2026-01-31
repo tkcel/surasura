@@ -112,6 +112,16 @@ export interface AppSettingsData {
     enabled: boolean;
     modelId?: string; // Formatting model selection (language model ID or "surasura-cloud")
     fallbackModelId?: string; // Last non-cloud formatting model for auto-restore
+    presets?: Array<{
+      id: string;
+      name: string; // 最大20文字
+      modelId: "gpt-4o-mini" | "gpt-4o";
+      instructions: string; // 最大2000文字
+      isDefault: boolean;
+      createdAt: string; // ISO 8601
+      updatedAt: string;
+    }>; // 最大5つ
+    activePresetId?: string | null;
   };
   ui?: {
     theme: "light" | "dark" | "system";

@@ -5,6 +5,7 @@
 // Re-export context types from dedicated file
 import { PipelineContext } from "./context";
 import { GetAccessibilityContextResult } from "@surasura/types";
+import { FormatPreset } from "../../types/formatter";
 export { PipelineContext, SharedPipelineData } from "./context";
 
 // Context for transcription operations (shared between transcribe and flush)
@@ -34,6 +35,7 @@ export interface FormatParams {
     accessibilityContext?: GetAccessibilityContextResult | null;
     previousChunk?: string;
     aggregatedTranscription?: string;
+    preset?: FormatPreset | null;
   };
 }
 

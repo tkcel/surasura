@@ -7,11 +7,41 @@ import { createRouter, procedure } from "../trpc";
 import { dbPath, closeDatabase } from "../../db";
 import * as fs from "fs/promises";
 
+// FormatPreset schema
+const FormatPresetSchema = z.object({
+  id: z.string(),
+  name: z.string().max(20),
+  modelId: z.enum(["gpt-4o-mini", "gpt-4o"]),
+  instructions: z.string().max(2000),
+  isDefault: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 // FormatterConfig schema
 const FormatterConfigSchema = z.object({
   enabled: z.boolean(),
   modelId: z.string().optional(),
   fallbackModelId: z.string().optional(),
+  presets: z.array(FormatPresetSchema).max(5).optional(),
+  activePresetId: z.string().nullable().optional(),
+});
+
+// Create preset input schema
+const CreateFormatPresetSchema = z.object({
+  name: z.string().min(1).max(20),
+  modelId: z.enum(["gpt-4o-mini", "gpt-4o"]),
+  instructions: z.string().max(2000),
+  isDefault: z.boolean().default(false),
+});
+
+// Update preset input schema
+const UpdateFormatPresetSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1).max(20).optional(),
+  modelId: z.enum(["gpt-4o-mini", "gpt-4o"]).optional(),
+  instructions: z.string().max(2000).optional(),
+  isDefault: z.boolean().optional(),
 });
 
 // Shortcut schema (array of key names)
@@ -132,6 +162,154 @@ export const settingsRouter = createRouter({
       await settingsService.setFormatterConfig(input);
       return true;
     }),
+
+  // Create format preset
+  createFormatPreset: procedure
+    .input(CreateFormatPresetSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService = ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        const preset = await settingsService.createFormatPreset(input);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Format preset created", { presetId: preset.id });
+
+        return preset;
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error creating format preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Update format preset
+  updateFormatPreset: procedure
+    .input(UpdateFormatPresetSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService = ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        const { id, ...updates } = input;
+        const preset = await settingsService.updateFormatPreset(id, updates);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Format preset updated", { presetId: preset.id });
+
+        return preset;
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error updating format preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Delete format preset
+  deleteFormatPreset: procedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService = ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        await settingsService.deleteFormatPreset(input.id);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Format preset deleted", { presetId: input.id });
+
+        return { success: true };
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error deleting format preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Set active preset
+  setActivePreset: procedure
+    .input(z.object({ presetId: z.string().nullable() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService = ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        await settingsService.setActivePreset(input.presetId);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Active preset changed", { presetId: input.presetId });
+
+        return { success: true };
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error setting active preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Get active preset
+  getActivePreset: procedure.query(async ({ ctx }) => {
+    try {
+      const settingsService = ctx.serviceManager.getService("settingsService");
+      if (!settingsService) {
+        throw new Error("SettingsService not available");
+      }
+      return await settingsService.getActivePreset();
+    } catch (error) {
+      const logger = ctx.serviceManager.getLogger();
+      logger?.main.error("Error getting active preset:", error);
+      return null;
+    }
+  }),
   // Get shortcuts configuration
   getShortcuts: procedure.query(async ({ ctx }) => {
     const settingsService = ctx.serviceManager.getService("settingsService");

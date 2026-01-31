@@ -17,7 +17,7 @@ function SettingsLayout() {
       "/settings/dictation": "音声入力",
       "/settings/vocabulary": "辞書機能",
       "/settings/shortcuts": "ショートカット",
-      "/settings/ai-models": "AIモデル設定",
+      "/settings/ai-models": "AIプロバイダー設定",
       "/settings/about": "このアプリについて",
     };
     return routes[pathname] || "設定";

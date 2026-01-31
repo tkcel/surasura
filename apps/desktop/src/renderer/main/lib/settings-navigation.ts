@@ -39,7 +39,7 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     type: "settings",
   },
   {
-    title: "AIモデル設定",
+    title: "AIプロバイダー設定",
     url: "/settings/ai-models",
     description: "AIモデルとプロバイダーを設定",
     icon: IconBrain,
