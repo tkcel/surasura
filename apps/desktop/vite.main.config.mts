@@ -8,8 +8,9 @@ export default defineConfig({
       process.env.POSTHOG_API_KEY || "",
     ),
     __BUNDLED_POSTHOG_HOST: JSON.stringify(process.env.POSTHOG_HOST || ""),
+    // Telemetry disabled by default. Set TELEMETRY_ENABLED=true to enable.
     __BUNDLED_TELEMETRY_ENABLED: JSON.stringify(
-      process.env.TELEMETRY_ENABLED !== "false",
+      process.env.TELEMETRY_ENABLED === "true",
     ),
     __BUNDLED_AUTH_CLIENT_ID: JSON.stringify(process.env.AUTH_CLIENT_ID || ""),
     __BUNDLED_AUTH_AUTHORIZATION_ENDPOINT: JSON.stringify(
