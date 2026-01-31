@@ -31,6 +31,14 @@ export const recordingRouter = createRouter({
     return await recordingManager.signalStop();
   }),
 
+  signalCancel: procedure.mutation(async ({ ctx }) => {
+    const recordingManager = ctx.serviceManager.getService("recordingManager");
+    if (!recordingManager) {
+      throw new Error("Recording manager not available");
+    }
+    return await recordingManager.signalCancel();
+  }),
+
   // Using Observable instead of async generator due to Symbol.asyncDispose conflict
   // Modern Node.js (20+) adds Symbol.asyncDispose to async generators natively,
   // which conflicts with electron-trpc's attempt to add the same symbol.

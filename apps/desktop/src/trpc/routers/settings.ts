@@ -16,7 +16,7 @@ const FormatterConfigSchema = z.object({
 
 // Shortcut schema (array of key names)
 const SetShortcutSchema = z.object({
-  type: z.enum(["pushToTalk", "toggleRecording", "pasteLastTranscription"]),
+  type: z.enum(["pushToTalk", "toggleRecording", "pasteLastTranscription", "cancelRecording"]),
   shortcut: z.array(z.string()),
 });
 

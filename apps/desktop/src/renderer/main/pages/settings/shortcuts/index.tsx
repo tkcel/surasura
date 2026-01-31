@@ -13,8 +13,11 @@ export function ShortcutsSettingsPage() {
   >([]);
   const [pasteLastTranscriptionShortcut, setPasteLastTranscriptionShortcut] =
     useState<string[]>([]);
+  const [cancelRecordingShortcut, setCancelRecordingShortcut] = useState<
+    string[]
+  >([]);
   const [recordingShortcut, setRecordingShortcut] = useState<
-    "pushToTalk" | "toggleRecording" | "pasteLastTranscription" | null
+    "pushToTalk" | "toggleRecording" | "pasteLastTranscription" | "cancelRecording" | null
   >(null);
 
   // tRPC queries and mutations
@@ -34,6 +37,7 @@ export function ShortcutsSettingsPage() {
           toggleRecording: "録音切り替えのショートカットを更新しました",
           pasteLastTranscription:
             "履歴ペーストのショートカットを更新しました",
+          cancelRecording: "録音キャンセルのショートカットを更新しました",
         };
         toast.success(messages[variables.type]);
       }
@@ -53,6 +57,7 @@ export function ShortcutsSettingsPage() {
       setPasteLastTranscriptionShortcut(
         shortcutsQuery.data.pasteLastTranscription,
       );
+      setCancelRecordingShortcut(shortcutsQuery.data.cancelRecording);
     }
   }, [shortcutsQuery.data]);
 
@@ -76,6 +81,14 @@ export function ShortcutsSettingsPage() {
     setPasteLastTranscriptionShortcut(shortcut);
     setShortcutMutation.mutate({
       type: "pasteLastTranscription",
+      shortcut: shortcut,
+    });
+  };
+
+  const handleCancelRecordingChange = (shortcut: string[]) => {
+    setCancelRecordingShortcut(shortcut);
+    setShortcutMutation.mutate({
+      type: "cancelRecording",
       shortcut: shortcut,
     });
   };
@@ -162,6 +175,34 @@ export function ShortcutsSettingsPage() {
                     onRecordingShortcutChange={(recording) =>
                       setRecordingShortcut(
                         recording ? "pasteLastTranscription" : null,
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <Separator className="my-4" />
+            </div>
+
+            <div>
+              <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                <div>
+                  <Label className="text-base font-semibold text-foreground">
+                    録音キャンセル
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-md">
+                    音声入力中に押すと、録音をキャンセルします
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 items-end min-w-[260px]">
+                  <ShortcutInput
+                    value={cancelRecordingShortcut}
+                    onChange={handleCancelRecordingChange}
+                    isRecordingShortcut={
+                      recordingShortcut === "cancelRecording"
+                    }
+                    onRecordingShortcutChange={(recording) =>
+                      setRecordingShortcut(
+                        recording ? "cancelRecording" : null,
                       )
                     }
                   />

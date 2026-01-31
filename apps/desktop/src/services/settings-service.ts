@@ -16,6 +16,7 @@ export interface ShortcutsConfig {
   pushToTalk: string[];
   toggleRecording: string[];
   pasteLastTranscription: string[];
+  cancelRecording: string[];
 }
 
 export interface AppPreferences {
@@ -146,6 +147,7 @@ export class SettingsService extends EventEmitter {
         "Cmd",
         "V",
       ],
+      cancelRecording: shortcuts?.cancelRecording ?? ["Escape"],
     };
   }
 
@@ -163,6 +165,9 @@ export class SettingsService extends EventEmitter {
         : undefined,
       pasteLastTranscription: shortcuts.pasteLastTranscription?.length
         ? shortcuts.pasteLastTranscription
+        : undefined,
+      cancelRecording: shortcuts.cancelRecording?.length
+        ? shortcuts.cancelRecording
         : undefined,
     };
     await updateSettingsSection("shortcuts", dataToStore);

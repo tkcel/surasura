@@ -135,6 +135,7 @@ export interface AppSettingsData {
     pushToTalk?: string[];
     toggleRecording?: string[];
     pasteLastTranscription?: string[];
+    cancelRecording?: string[];
   };
 
   modelProvidersConfig?: {

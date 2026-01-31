@@ -119,12 +119,14 @@ const getDefaultShortcuts = () => {
     return {
       pushToTalk: ["Fn"],
       toggleRecording: ["Fn", "Space"],
+      cancelRecording: ["Escape"],
     };
   } else {
     // Windows and Linux
     return {
       pushToTalk: ["Ctrl", "Win"],
       toggleRecording: ["Ctrl", "Win", "Space"],
+      cancelRecording: ["Escape"],
     };
   }
 };

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Square } from "lucide-react";
+import { Square, X } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useRecording } from "@/hooks/useRecording";
 import { api } from "@/trpc/react";
@@ -13,10 +13,23 @@ const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center justify-center w-[20px] h-[20px]rounded transition-colors"
+    className="flex items-center justify-center w-[20px] h-[20px] rounded transition-colors"
     aria-label="Stop recording"
   >
     <Square className="w-[12px] h-[12px] text-red-500 fill-red-500" />
+  </button>
+);
+
+// Separate component for the cancel button
+const CancelButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
+  onClick,
+}) => (
+  <button
+    onClick={onClick}
+    className="flex items-center justify-center w-[20px] h-[20px] rounded transition-colors hover:bg-white/10"
+    aria-label="Cancel recording"
+  >
+    <X className="w-[12px] h-[12px] text-gray-400" />
   </button>
 );
 
@@ -64,7 +77,7 @@ export const FloatingButton: React.FC = () => {
     };
   }, []);
 
-  const { recordingStatus, stopRecording, voiceDetected, startRecording } =
+  const { recordingStatus, stopRecording, cancelRecording, voiceDetected, startRecording } =
     useRecording();
   const isRecording =
     recordingStatus.state === "recording" ||
@@ -115,6 +128,14 @@ export const FloatingButton: React.FC = () => {
     await stopRecording();
   };
 
+  // Handler for cancel button
+  const handleCancelClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent triggering the main button click
+    console.log("FAB: Cancelling recording");
+    await cancelRecording();
+  };
+
   // Debounced mouse leave handler
   const handleMouseLeave = async () => {
     if (leaveTimeoutRef.current) {
@@ -146,6 +167,13 @@ export const FloatingButton: React.FC = () => {
 
   const expanded = isRecording || isStopping || isHovered;
 
+  // Calculate width based on state
+  const getExpandedWidth = () => {
+    if (!expanded) return "w-[48px]";
+    if (isRecording && isHandsFreeMode) return "w-[120px]"; // Cancel + waveform + stop
+    return "w-[96px]"; // Just waveform (idle/hover/PTT recording)
+  };
+
   // Function to render widget content based on state
   const renderWidgetContent = () => {
     if (!expanded) return null;
@@ -155,10 +183,13 @@ export const FloatingButton: React.FC = () => {
       return <ProcessingIndicator />;
     }
 
-    // Show waveform with stop button when in hands-free mode and recording
-    if (isHandsFreeMode && isRecording) {
+    // Show waveform with cancel and stop buttons in hands-free mode
+    if (isRecording && isHandsFreeMode) {
       return (
         <>
+          <div className="h-full items-center flex ml-2">
+            <CancelButton onClick={handleCancelClick} />
+          </div>
           <div className="justify-center items-center flex flex-1 gap-1">
             <WaveformVisualization
               isRecording={isRecording}
@@ -172,7 +203,19 @@ export const FloatingButton: React.FC = () => {
       );
     }
 
-    // Show waveform visualization for all other states
+    // Show just waveform in PTT mode (user releases key to stop/cancel)
+    if (isRecording) {
+      return (
+        <div className="justify-center items-center flex flex-1 gap-1">
+          <WaveformVisualization
+            isRecording={isRecording}
+            voiceDetected={voiceDetected}
+          />
+        </div>
+      );
+    }
+
+    // Show clickable waveform visualization when idle/hovered
     return (
       <button
         className="justify-center items-center flex flex-1 gap-1 h-full w-full"
@@ -193,7 +236,7 @@ export const FloatingButton: React.FC = () => {
       onMouseLeave={handleMouseLeave}
       className={`
         transition-all duration-200 ease-in-out
-        ${expanded ? "h-[24px] w-[96px]" : "h-[8px] w-[48px]"}
+        ${expanded ? "h-[24px]" : "h-[8px]"} ${getExpandedWidth()}
         bg-black/70 rounded-[24px] backdrop-blur-md ring-[1px] ring-black/60 shadow-[0px_0px_15px_0px_rgba(0,0,0,0.40)]
         before:content-[''] before:absolute before:inset-[1px] before:rounded-[23px] before:outline before:outline-white/15 before:pointer-events-none
         mb-2 cursor-pointer select-none

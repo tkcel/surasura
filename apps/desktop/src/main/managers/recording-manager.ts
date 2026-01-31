@@ -95,6 +95,24 @@ export class RecordingManager extends EventEmitter {
     shortcutManager.on("paste-last-transcription-triggered", async () => {
       await this.pasteLastTranscription();
     });
+
+    // Handle cancel recording
+    shortcutManager.on("cancel-recording-triggered", async () => {
+      await this.cancelRecording();
+    });
+  }
+
+  // Cancel recording (user-triggered via shortcut)
+  private async cancelRecording(): Promise<void> {
+    if (this.recordingState !== "recording") {
+      logger.audio.debug("Cannot cancel - not recording", {
+        state: this.recordingState,
+      });
+      return;
+    }
+
+    logger.audio.info("User cancelled recording via shortcut");
+    await this.endRecording("quick_release");
   }
 
   // Paste the last successful transcription
@@ -780,6 +798,16 @@ export class RecordingManager extends EventEmitter {
   public async signalStop(): Promise<void> {
     if (this.recordingState === "recording") {
       await this.endRecording();
+    }
+  }
+
+  /**
+   * Signal to cancel recording (called from tRPC)
+   */
+  public async signalCancel(): Promise<void> {
+    if (this.recordingState === "recording") {
+      logger.audio.info("User cancelled recording via UI");
+      await this.endRecording("quick_release");
     }
   }
 

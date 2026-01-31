@@ -23,6 +23,7 @@ interface ShortcutConfig {
   pushToTalk: string[];
   toggleRecording: string[];
   pasteLastTranscription: string[];
+  cancelRecording: string[];
 }
 
 // Debounce delay for PTT release (ms)
@@ -35,6 +36,7 @@ export class ShortcutManager extends EventEmitter {
     pushToTalk: [],
     toggleRecording: [],
     pasteLastTranscription: [],
+    cancelRecording: [],
   };
   private settingsService: SettingsService;
   private nativeBridge: NativeBridge | null = null;
@@ -82,6 +84,7 @@ export class ShortcutManager extends EventEmitter {
         pushToTalk: this.shortcuts.pushToTalk,
         toggleRecording: this.shortcuts.toggleRecording,
         pasteLastTranscription: this.shortcuts.pasteLastTranscription,
+        cancelRecording: this.shortcuts.cancelRecording,
       });
       log.info("Shortcuts synced to native helper");
     } catch (error) {
@@ -269,6 +272,11 @@ export class ShortcutManager extends EventEmitter {
     if (this.isPasteLastTranscriptionShortcutPressed()) {
       this.emit("paste-last-transcription-triggered");
     }
+
+    // Check cancel recording shortcut
+    if (this.isCancelRecordingShortcutPressed()) {
+      this.emit("cancel-recording-triggered");
+    }
   }
 
   private isPTTShortcutPressed(): boolean {
@@ -310,6 +318,21 @@ export class ShortcutManager extends EventEmitter {
     return (
       pasteKeys.length === activeKeysList.length &&
       pasteKeys.every((key) => activeKeysList.includes(key))
+    );
+  }
+
+  private isCancelRecordingShortcutPressed(): boolean {
+    const cancelKeys = this.shortcuts.cancelRecording;
+    if (!cancelKeys || cancelKeys.length === 0) {
+      return false;
+    }
+
+    const activeKeysList = this.getActiveKeys();
+
+    // Cancel: exact match - only these keys pressed, no extra keys
+    return (
+      cancelKeys.length === activeKeysList.length &&
+      cancelKeys.every((key) => activeKeysList.includes(key))
     );
   }
 
