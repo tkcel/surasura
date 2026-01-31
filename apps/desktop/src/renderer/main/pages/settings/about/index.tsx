@@ -6,9 +6,9 @@ import { RefreshCw, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
 
-const CHANGELOG_URL = "https://github.com/amicalhq/amical/releases";
-const GITHUB_URL = "https://github.com/amicalhq/amical";
-const CONTACT_EMAIL = "contact@amical.ai";
+const CHANGELOG_URL = "";
+const GITHUB_URL = "";
+const CONTACT_EMAIL = "";
 
 export default function AboutSettingsPage() {
   const [checking, setChecking] = useState(false);

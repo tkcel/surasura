@@ -4,7 +4,7 @@ import { SettingsService } from "@/services/settings-service";
 import { NativeBridge } from "@/services/platform/native-bridge-service";
 import { getKeyNameFromPayload } from "@/utils/keycode-map";
 import { isWindows } from "@/utils/platform";
-import { KeyEventPayload, HelperEvent } from "@amical/types";
+import { KeyEventPayload, HelperEvent } from "@surasura/types";
 import { logger } from "@/main/logger";
 import {
   validateShortcutComprehensive,

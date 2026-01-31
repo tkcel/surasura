@@ -10,7 +10,7 @@ assignees: ""
 A clear and concise description of what the bug is.
 
 **App Version**
-What version of Amical are you using? (e.g., v0.1.1)
+What version of Surasura are you using? (e.g., v0.1.1)
 
 **System Information**
 

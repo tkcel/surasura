@@ -466,8 +466,8 @@ export const settingsRouter = createRouter({
   getLogFilePath: procedure.query(() => {
     const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
     return isDev
-      ? path.join(app.getPath("userData"), "logs", "amical-dev.log")
-      : path.join(app.getPath("logs"), "amical.log");
+      ? path.join(app.getPath("userData"), "logs", "surasura-dev.log")
+      : path.join(app.getPath("logs"), "surasura.log");
   }),
 
   // Get machine ID for display
@@ -494,12 +494,12 @@ export const settingsRouter = createRouter({
     const { dialog, BrowserWindow } = await import("electron");
     const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
     const logPath = isDev
-      ? path.join(app.getPath("userData"), "logs", "amical-dev.log")
-      : path.join(app.getPath("logs"), "amical.log");
+      ? path.join(app.getPath("userData"), "logs", "surasura-dev.log")
+      : path.join(app.getPath("logs"), "surasura.log");
 
     const focusedWindow = BrowserWindow.getFocusedWindow();
     const saveOptions = {
-      defaultPath: `amical-logs-${new Date().toISOString().split("T")[0]}.log`,
+      defaultPath: `surasura-logs-${new Date().toISOString().split("T")[0]}.log`,
       filters: [{ name: "Log Files", extensions: ["log", "txt"] }],
     };
     const { filePath } = focusedWindow
@@ -633,7 +633,7 @@ export const settingsRouter = createRouter({
       const userDataPath = app.getPath("userData");
 
       // Delete database files (main db + WAL/SHM files)
-      const dbFile = path.join(userDataPath, "amical.db");
+      const dbFile = path.join(userDataPath, "surasura.db");
       await fs.rm(dbFile, { force: true }).catch(() => {});
       await fs.rm(`${dbFile}-wal`, { force: true }).catch(() => {});
       await fs.rm(`${dbFile}-shm`, { force: true }).catch(() => {});

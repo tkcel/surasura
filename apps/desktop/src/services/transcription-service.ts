@@ -190,7 +190,7 @@ export class TranscriptionService {
       if (chunkTranscription.trim()) {
         // Cloud provider concatenates previousTranscription with new transcription,
         // so we need to replace the array instead of appending to avoid duplication
-        if (provider.name === "amical-cloud" && aggregatedTranscription) {
+        if (provider.name === "surasura-cloud" && aggregatedTranscription) {
           session.transcriptionResults = [chunkTranscription];
         } else {
           session.transcriptionResults.push(chunkTranscription);

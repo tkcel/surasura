@@ -111,7 +111,7 @@ export const models = sqliteTable(
 export interface AppSettingsData {
   formatterConfig?: {
     enabled: boolean;
-    modelId?: string; // Formatting model selection (language model ID or "amical-cloud")
+    modelId?: string; // Formatting model selection (language model ID or "surasura-cloud")
     fallbackModelId?: string; // Last non-cloud formatting model for auto-restore
   };
   ui?: {
@@ -163,7 +163,7 @@ export interface AppSettingsData {
     lastVisitedScreen?: string; // Last screen user was on (for resume)
     skippedScreens?: string[]; // Screens skipped via feature flags
     featureInterests?: string[]; // Selected features (max 3)
-    discoverySource?: string; // How user found Amical
+    discoverySource?: string; // How user found Surasura
     selectedModelType: "cloud" | "local"; // User's model choice
     modelRecommendation?: {
       suggested: "cloud" | "local"; // System recommendation

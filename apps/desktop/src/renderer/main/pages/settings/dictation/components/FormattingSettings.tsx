@@ -57,7 +57,7 @@ export function FormattingSettings() {
           </TooltipTrigger>
           {disableFormattingToggle && (
             <TooltipContent className="max-w-sm text-center">
-              フォーマットを有効にするには、言語モデルを同期するか、Amical Cloudの文字起こしを選択してください。
+              フォーマットを有効にするには、言語モデルを同期するか、Surasura Cloudの文字起こしを選択してください。
             </TooltipContent>
           )}
         </Tooltip>
@@ -95,7 +95,7 @@ export function FormattingSettings() {
               />
               {showCloudRequiresSpeech && (
                 <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <span>Amical Cloudの文字起こしが必要です。</span>
+                  <span>Surasura Cloudの文字起こしが必要です。</span>
                   <Link to="/settings/ai-models" search={{ tab: "speech" }}>
                     <Button variant="outline" size="sm">
                       音声モデルを変更
@@ -105,7 +105,7 @@ export function FormattingSettings() {
               )}
               {showCloudRequiresAuth && (
                 <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <span>Amical Cloudのフォーマットを使用するにはサインインが必要です。</span>
+                  <span>Surasura Cloudのフォーマットを使用するにはサインインが必要です。</span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -118,7 +118,7 @@ export function FormattingSettings() {
               )}
               {showCloudReady && (
                 <p className="text-xs text-muted-foreground">
-                  Amical Cloudのフォーマットを使用中です。
+                  Surasura Cloudのフォーマットを使用中です。
                 </p>
               )}
               {showNoLanguageModels && (

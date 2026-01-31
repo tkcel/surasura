@@ -1,5 +1,5 @@
 import { FormatParams } from "../../core/pipeline-types";
-import { GetAccessibilityContextResult } from "@amical/types";
+import { GetAccessibilityContextResult } from "@surasura/types";
 
 // Base system prompt
 const SYSTEM_PROMPT = `You are a professional text formatter. Your task is to format transcribed text to be clear, readable, and properly structured.`;

@@ -124,7 +124,7 @@ export default function AdvancedSettingsPage() {
             <div>
               <Label htmlFor="telemetry">Anonymous Telemetry</Label>
               <p className="text-sm text-muted-foreground">
-                Help improve Amical by sharing anonymous usage data.
+                Help improve Surasura by sharing anonymous usage data.
               </p>
             </div>
             <Switch

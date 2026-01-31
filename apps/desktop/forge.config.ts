@@ -8,7 +8,6 @@ import { MakerRpm } from "@electron-forge/maker-rpm";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
-import { PublisherGithub } from "@electron-forge/publisher-github";
 import {
   readdirSync,
   rmdirSync,
@@ -383,10 +382,10 @@ const config: ForgeConfig = {
       unpack:
         "{*.node,*.dylib,*.so,*.dll,*.metal,**/node_modules/jest-worker/**,**/onnxruntime-node/bin/**}",
     },
-    name: "Amical",
-    executableName: "Amical",
+    name: "Surasura",
+    executableName: "Surasura",
     icon: "./assets/logo", // Path to your icon file
-    appBundleId: "com.amical.desktop", // Proper bundle ID
+    appBundleId: "com.surasura.desktop", // Proper bundle ID
     extraResource: [
       `${process.platform === "win32" ? "../../packages/native-helpers/windows-helper/bin" : "../../packages/native-helpers/swift-helper/bin"}`,
       "./src/db/migrations",
@@ -402,15 +401,15 @@ const config: ForgeConfig = {
         "This app needs access to your microphone to record audio for transcription.",
       CFBundleURLTypes: [
         {
-          CFBundleURLSchemes: ["amical"],
-          CFBundleURLName: "com.amical.desktop",
+          CFBundleURLSchemes: ["surasura"],
+          CFBundleURLName: "com.surasura.desktop",
         },
       ],
     },
     protocols: [
       {
-        name: "Amical",
-        schemes: ["amical"],
+        name: "Surasura",
+        schemes: ["surasura"],
       },
     ],
     // Code signing configuration for macOS
@@ -489,7 +488,7 @@ const config: ForgeConfig = {
             if (dep.includes("/") && dep.startsWith("@")) {
               const scopeDir = dep.split("/")[0]; // @libsql/client -> @libsql
               // for workspace packages only keep the actual package
-              if (scopeDir === "@amical") {
+              if (scopeDir === "@surasura") {
                 if (
                   filePath.startsWith(`/node_modules/${dep}`) ||
                   filePath === `/node_modules/${scopeDir}`
@@ -527,12 +526,12 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({
-      name: "Amical",
+      name: "Surasura",
       setupIcon: "./assets/logo.ico",
     }),
     new MakerZIP(
       {
-        // macOS ZIP files will be named like: Amical-darwin-arm64-1.0.0.zip
+        // macOS ZIP files will be named like: Surasura-darwin-arm64-1.0.0.zip
         // The default naming includes platform and arch, which is good for auto-updates
       },
       ["darwin"],
@@ -540,7 +539,7 @@ const config: ForgeConfig = {
     new MakerDMG(
       {
         //! @see https://github.com/electron/forge/issues/3517#issuecomment-2428129194
-        // macOS DMG files will be named like: Amical-0.0.1-arm64.dmg
+        // macOS DMG files will be named like: Surasura-0.0.1-arm64.dmg
         icon: "./assets/logo.icns",
         background: "./assets/dmg_bg.tiff",
       },
@@ -598,16 +597,7 @@ const config: ForgeConfig = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
-  publishers: [
-    new PublisherGithub({
-      repository: {
-        owner: "amicalhq",
-        name: "amical",
-      },
-      prerelease: true,
-      draft: true, // Create draft releases first for review
-    }),
-  ],
+  publishers: [],
 };
 
 export default config;

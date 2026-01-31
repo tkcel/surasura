@@ -135,7 +135,7 @@ export function PermissionsScreen({
   return (
     <OnboardingLayout
       title="アクセス許可の設定"
-      subtitle="Amicalが正しく動作するためにいくつかの許可が必要です"
+      subtitle="Surasuraが正しく動作するためにいくつかの許可が必要です"
       footer={
         <NavigationButtons
           onBack={onBack}
@@ -281,7 +281,7 @@ export function PermissionsScreen({
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          システム環境設定のアクセシビリティにAmicalを追加してください
+                          システム環境設定のアクセシビリティにSurasuraを追加してください
                         </p>
                       </div>
                     )}

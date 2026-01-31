@@ -69,22 +69,22 @@ const migrations: Record<number, MigrationFn> = {
     } as AppSettingsData;
   },
 
-  // v2 -> v3: Auto-enable formatting with amical-cloud for users already on cloud transcription
+  // v2 -> v3: Auto-enable formatting with surasura-cloud for users already on cloud transcription
   3: (data: unknown): AppSettingsData => {
     const oldData = data as AppSettingsData;
     const isCloudSpeech =
-      oldData.modelProvidersConfig?.defaultSpeechModel === "amical-cloud";
+      oldData.modelProvidersConfig?.defaultSpeechModel === "surasura-cloud";
     const hasNoFormattingModel = !oldData.formatterConfig?.modelId;
 
-    // If user is on Amical Cloud transcription and hasn't set a formatting model,
-    // auto-enable formatting with Amical Cloud
+    // If user is on Surasura Cloud transcription and hasn't set a formatting model,
+    // auto-enable formatting with Surasura Cloud
     if (isCloudSpeech && hasNoFormattingModel) {
       return {
         ...oldData,
         formatterConfig: {
           ...oldData.formatterConfig,
           enabled: true,
-          modelId: "amical-cloud",
+          modelId: "surasura-cloud",
         },
       };
     }

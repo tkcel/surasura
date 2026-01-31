@@ -71,7 +71,7 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
   {
     title: "このアプリについて",
     url: "/settings/about",
-    description: "Amicalとバージョン情報",
+    description: "Surasuraとバージョン情報",
     icon: IconInfoCircle,
     type: "settings",
   },

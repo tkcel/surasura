@@ -1,5 +1,5 @@
 {
-  "name": "amical",
+  "name": "surasura",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -35,13 +35,13 @@
       "keytar",
       "protobufjs",
       "sharp",
-      "@amical/whisper-wrapper",
+      "@surasura/whisper-wrapper",
       "drizzle-orm/libsql"
     ],
     "onlyBuiltDependencies": [
       "electron",
       "electron-winstaller",
-      "@amical/whisper-wrapper",
+      "@surasura/whisper-wrapper",
       "drizzle-orm/libsql",
       "@libsql",
       "macos-alias",

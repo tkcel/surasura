@@ -33,7 +33,7 @@ import {
   SetShortcutsParams,
   SetShortcutsResult,
   AppContext,
-} from "@amical/types";
+} from "@surasura/types";
 
 // Define the interface for RPC methods
 interface RPCMethods {

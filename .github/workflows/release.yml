@@ -92,18 +92,18 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build whisper wrapper JS
-        run: pnpm --filter @amical/whisper-wrapper build
+        run: pnpm --filter @surasura/whisper-wrapper build
 
       - name: Build whisper native binaries
         env:
           GGML_NATIVE: OFF # CI mac runners lack i8mm support; keep CPU features conservative here
-        run: pnpm --filter @amical/whisper-wrapper build:native
+        run: pnpm --filter @surasura/whisper-wrapper build:native
 
       - name: Build whisper native binaries (vulkan)
         if: matrix.os == 'windows'
         env:
           GGML_NATIVE: OFF
-        run: pnpm --filter @amical/whisper-wrapper build:native:vulkan
+        run: pnpm --filter @surasura/whisper-wrapper build:native:vulkan
 
       - name: Download Node.js binaries
         working-directory: apps/desktop
@@ -218,9 +218,9 @@ jobs:
           draft: true
           prerelease: true
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          name: Amical Desktop v${{ steps.package_version.outputs.version }}
+          name: Surasura Desktop v${{ steps.package_version.outputs.version }}
           body: |
-            ## Amical Desktop v${{ steps.package_version.outputs.version }}
+            ## Surasura Desktop v${{ steps.package_version.outputs.version }}
             
             ### What's New
             - Please update this section with actual changes
@@ -237,8 +237,8 @@ jobs:
             ### Installation
             
             **macOS**: 
-            - **DMG**: Download and open the DMG file, then drag Amical to your Applications folder
-            - **ZIP**: Download and extract the ZIP file, then drag Amical to your Applications folder
+            - **DMG**: Download and open the DMG file, then drag Surasura to your Applications folder
+            - **ZIP**: Download and extract the ZIP file, then drag Surasura to your Applications folder
             
             **Windows**:
             - Download and run the .exe installer
