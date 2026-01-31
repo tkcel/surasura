@@ -1,7 +1,13 @@
 import React from "react";
 import { Check, Sparkles } from "lucide-react";
 import { api } from "@/trpc/react";
-import type { FormatPreset } from "@/types/formatter";
+import { PRESET_COLORS, type FormatPreset, type PresetColorId } from "@/types/formatter";
+
+// Get the Tailwind class for a preset color
+function getPresetColorClass(colorId: PresetColorId | undefined): string {
+  const color = PRESET_COLORS.find((c) => c.id === colorId);
+  return color?.class ?? "text-yellow-500";
+}
 
 // Format shortcut keys for display
 function formatShortcut(keys: string[] | undefined): string | null {
@@ -81,7 +87,7 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
         }}
       >
         <div className="px-3 py-1.5 text-xs font-medium text-gray-400 flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-yellow-500" />
+          <Sparkles className={`w-3 h-3 ${getPresetColorClass(activePresetId ? presets.find(p => p.id === activePresetId)?.color : undefined)}`} />
           プリセット
         </div>
         <div className="h-px bg-white/10 mx-1 my-1" />
@@ -99,7 +105,7 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
                 {activePresetId === preset.id ? (
                   <Check className="w-3.5 h-3.5 text-blue-400" />
                 ) : (
-                  <span className="w-3.5" />
+                  <Sparkles className={`w-3.5 h-3.5 ${getPresetColorClass(preset.color)}`} />
                 )}
                 <span className="truncate max-w-[100px]">{preset.name}</span>
               </div>

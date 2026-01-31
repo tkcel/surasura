@@ -4,6 +4,13 @@ import { Waveform } from "@/components/Waveform";
 import { useRecording } from "@/hooks/useRecording";
 import { api } from "@/trpc/react";
 import { PresetMenu } from "../../../components/PresetMenu";
+import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
+
+// Get the Tailwind class for a preset color
+function getPresetColorClass(colorId: PresetColorId | undefined): string {
+  const color = PRESET_COLORS.find((c) => c.id === colorId);
+  return color?.class ?? "text-yellow-500";
+}
 
 const NUM_WAVEFORM_BARS = 6; // Fewer bars to make room for stop button
 const DEBOUNCE_DELAY = 100; // milliseconds
@@ -278,7 +285,7 @@ export const FloatingButton: React.FC = () => {
       >
         {isFormatterEnabled && activePreset && (
           <div className="flex items-center gap-1 text-xs text-white/70 shrink-0">
-            <Sparkles className="w-3 h-3 text-yellow-500" />
+            <Sparkles className={`w-3 h-3 ${getPresetColorClass(activePreset.color)}`} />
             <span className="max-w-[60px] truncate">{activePreset.name}</span>
           </div>
         )}

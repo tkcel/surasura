@@ -11,8 +11,15 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
 
 const noDragRegion = { WebkitAppRegion: "no-drag" } as CSSProperties;
+
+// Get the Tailwind class for a preset color
+function getPresetColorClass(colorId: PresetColorId | undefined): string {
+  const color = PRESET_COLORS.find((c) => c.id === colorId);
+  return color?.class ?? "text-yellow-500";
+}
 
 // Format shortcut keys for display
 function formatShortcut(keys: string[] | undefined): string | null {
@@ -73,7 +80,7 @@ export function PresetSelector() {
           className="h-7 gap-1.5 px-2 text-sm font-normal"
           style={noDragRegion}
         >
-          <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
+          <Sparkles className={`h-3.5 w-3.5 ${getPresetColorClass(activePreset?.color)}`} />
           <span className="max-w-[120px] truncate">
             {activePreset?.name ?? "プリセット未選択"}
           </span>
@@ -102,7 +109,7 @@ export function PresetSelector() {
                 {activePreset?.id === preset.id ? (
                   <Check className="h-4 w-4" />
                 ) : (
-                  <span className="w-4" />
+                  <Sparkles className={`h-4 w-4 ${getPresetColorClass(preset.color)}`} />
                 )}
                 <span className="truncate">{preset.name}</span>
               </div>

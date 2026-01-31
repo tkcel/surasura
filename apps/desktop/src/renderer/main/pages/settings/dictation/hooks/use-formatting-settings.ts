@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import type { FormatterConfig, FormatPreset } from "@/types/formatter";
+import type { FormatterConfig, FormatPreset, PresetColorId } from "@/types/formatter";
 
 import type { ComboboxOption } from "@/components/ui/combobox";
 
@@ -28,26 +28,30 @@ const MAX_NAME_LENGTH = 20;
 const MAX_INSTRUCTIONS_LENGTH = 2000;
 
 // Default preset definitions (for "Reset to default" feature)
-const DEFAULT_PRESETS: Record<string, { name: string; modelId: string; instructions: string }> = {
+const DEFAULT_PRESETS: Record<string, { name: string; modelId: string; instructions: string; color: PresetColorId }> = {
   "標準": {
     name: "標準",
     modelId: "gpt-4o-mini",
     instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。",
+    color: "yellow",
   },
   "カジュアル": {
     name: "カジュアル",
     modelId: "gpt-4o-mini",
     instructions: "カジュアルで親しみやすい文体に変換してください。敬語は使わず、友達に話しかけるような口調にしてください。",
+    color: "pink",
   },
   "Markdown": {
     name: "Markdown",
     modelId: "gpt-4o-mini",
     instructions: "Markdown形式で出力してください。適切な見出し、箇条書き、強調などを使って構造化してください。",
+    color: "blue",
   },
   "即時回答": {
     name: "即時回答",
     modelId: "gpt-4o-mini",
     instructions: "音声入力された内容を質問や依頼として解釈し、それに対する回答を直接出力してください。元の発言内容は含めず、回答のみを簡潔に返してください。",
+    color: "green",
   },
 };
 
@@ -67,6 +71,7 @@ interface UseFormattingSettingsReturn {
   editName: string;
   editModelId: string;
   editInstructions: string;
+  editColor: PresetColorId;
 
   // Derived booleans
   disableFormattingToggle: boolean;
@@ -94,6 +99,7 @@ interface UseFormattingSettingsReturn {
   handleEditNameChange: (name: string) => void;
   handleEditModelChange: (modelId: string) => void;
   handleEditInstructionsChange: (instructions: string) => void;
+  handleEditColorChange: (color: PresetColorId) => void;
 }
 
 export function useFormattingSettings(): UseFormattingSettingsReturn {
@@ -116,10 +122,12 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   const [editName, setEditName] = useState("");
   const [editModelId, setEditModelId] = useState("gpt-4o-mini");
   const [editInstructions, setEditInstructions] = useState("");
+  const [editColor, setEditColor] = useState<PresetColorId>("yellow");
   const [initialEditState, setInitialEditState] = useState({
     name: "",
     modelId: "gpt-4o-mini",
     instructions: "",
+    color: "yellow" as PresetColorId,
   });
 
   // Reset edit mode when leaving the page or when data changes
@@ -216,9 +224,10 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     return (
       editName !== initialEditState.name ||
       editModelId !== initialEditState.modelId ||
-      editInstructions !== initialEditState.instructions
+      editInstructions !== initialEditState.instructions ||
+      editColor !== initialEditState.color
     );
-  }, [isEditMode, editName, editModelId, editInstructions, initialEditState]);
+  }, [isEditMode, editName, editModelId, editInstructions, editColor, initialEditState]);
 
   // Check if currently editing a default preset
   const editingPreset = useMemo(() => {
@@ -236,9 +245,10 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     return (
       editName !== defaultValues.name ||
       editModelId !== defaultValues.modelId ||
-      editInstructions !== defaultValues.instructions
+      editInstructions !== defaultValues.instructions ||
+      editColor !== defaultValues.color
     );
-  }, [isEditMode, isCreatingNew, editingPreset, editName, editModelId, editInstructions]);
+  }, [isEditMode, isCreatingNew, editingPreset, editName, editModelId, editInstructions, editColor]);
 
   const isSaving = createPresetMutation.isPending || updatePresetMutation.isPending;
   const isDeleting = deletePresetMutation.isPending;
@@ -287,10 +297,12 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
         setEditName(preset.name);
         setEditModelId(preset.modelId);
         setEditInstructions(preset.instructions);
+        setEditColor(preset.color ?? "yellow");
         setInitialEditState({
           name: preset.name,
           modelId: preset.modelId,
           instructions: preset.instructions,
+          color: preset.color ?? "yellow",
         });
       });
     },
@@ -310,10 +322,12 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       setEditName("");
       setEditModelId("gpt-4o-mini");
       setEditInstructions("");
+      setEditColor("yellow");
       setInitialEditState({
         name: "",
         modelId: "gpt-4o-mini",
         instructions: "",
+        color: "yellow",
       });
     });
   }, [canCreatePreset]);
@@ -351,6 +365,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
         modelId,
         instructions: trimmedInstructions,
         isDefault: false,
+        color: editColor,
       });
     } else if (editingPresetId) {
       updatePresetMutation.mutate({
@@ -358,12 +373,14 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
         name: trimmedName,
         modelId,
         instructions: trimmedInstructions,
+        color: editColor,
       });
     }
   }, [
     editName,
     editModelId,
     editInstructions,
+    editColor,
     isCreatingNew,
     editingPresetId,
     createPresetMutation,
@@ -382,6 +399,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     setEditName(defaultValues.name);
     setEditModelId(defaultValues.modelId);
     setEditInstructions(defaultValues.instructions);
+    setEditColor(defaultValues.color);
   }, [editingPreset]);
 
   const handleEditNameChange = useCallback((name: string) => {
@@ -394,6 +412,10 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
 
   const handleEditInstructionsChange = useCallback((instructions: string) => {
     setEditInstructions(instructions);
+  }, []);
+
+  const handleEditColorChange = useCallback((color: PresetColorId) => {
+    setEditColor(color);
   }, []);
 
   return {
@@ -412,6 +434,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     editName,
     editModelId,
     editInstructions,
+    editColor,
 
     // Derived booleans
     disableFormattingToggle,
@@ -439,5 +462,6 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     handleEditNameChange,
     handleEditModelChange,
     handleEditInstructionsChange,
+    handleEditColorChange,
   };
 }

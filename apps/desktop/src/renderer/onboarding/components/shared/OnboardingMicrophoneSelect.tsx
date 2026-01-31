@@ -47,10 +47,10 @@ export function OnboardingMicrophoneSelect() {
     <div className="flex items-center justify-between">
       <div>
         <Label className="text-base font-semibold text-foreground">
-          Microphone
+          マイク
         </Label>
         <p className="text-xs text-muted-foreground mb-2">
-          Choose your preferred microphone.
+          使用するマイクを選択してください
         </p>
       </div>
       <div className="min-w-[200px]">
@@ -59,12 +59,12 @@ export function OnboardingMicrophoneSelect() {
           onValueChange={handleMicrophoneChange}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a microphone" />
+            <SelectValue placeholder="マイクを選択" />
           </SelectTrigger>
           <SelectContent>
             {audioDevices.length === 0 ? (
               <SelectItem value="no-devices" disabled>
-                No microphones available
+                マイクが見つかりません
               </SelectItem>
             ) : (
               audioDevices.map((device) => (

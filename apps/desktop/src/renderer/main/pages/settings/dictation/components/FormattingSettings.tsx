@@ -12,6 +12,7 @@ import {
   Pencil,
   Check,
   RotateCcw,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -22,6 +23,7 @@ import {
 import { Combobox } from "@/components/ui/combobox";
 import { useFormattingSettings } from "../hooks/use-formatting-settings";
 import { cn } from "@/lib/utils";
+import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
 
 const MODEL_LABELS: Record<string, string> = {
   "gpt-4o-mini": "GPT-4o Mini",
@@ -62,6 +64,8 @@ export function FormattingSettings() {
     handleEditNameChange,
     handleEditModelChange,
     handleEditInstructionsChange,
+    handleEditColorChange,
+    editColor,
   } = useFormattingSettings();
 
   const nameLength = editName.length;
@@ -165,10 +169,12 @@ export function FormattingSettings() {
                         className="flex-1 text-left"
                       >
                         <div className="flex items-center gap-2">
-                          {isActive && (
+                          {isActive ? (
                             <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                          ) : (
+                            <Sparkles className={cn("w-4 h-4 flex-shrink-0", PRESET_COLORS.find(c => c.id === preset.color)?.class ?? "text-yellow-500")} />
                           )}
-                          <div className={cn(!isActive && "ml-6")}>
+                          <div>
                             <div className="flex items-center gap-2">
                               <span
                                 className={cn(
@@ -265,6 +271,33 @@ export function FormattingSettings() {
                     maxLength={maxNameLength + 5}
                     className="h-9"
                   />
+                </div>
+
+                {/* Color Selection */}
+                <div>
+                  <Label className="text-sm mb-1.5 block">アイコンの色</Label>
+                  <div className="flex gap-2">
+                    {PRESET_COLORS.map((color) => (
+                      <Tooltip key={color.id} delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => handleEditColorChange(color.id as PresetColorId)}
+                            className={cn(
+                              "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                              "hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary",
+                              editColor === color.id && "ring-2 ring-offset-2 ring-primary"
+                            )}
+                          >
+                            <Sparkles className={cn("w-5 h-5", color.class)} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {color.label}
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Model Selection */}

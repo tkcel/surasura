@@ -118,6 +118,7 @@ export interface AppSettingsData {
       modelId: "gpt-4o-mini" | "gpt-4o";
       instructions: string; // 最大2000文字
       isDefault: boolean;
+      color: "yellow" | "blue" | "green" | "pink" | "purple" | "orange"; // プリセットの色
       createdAt: string; // ISO 8601
       updatedAt: string;
     }>; // 最大5つ
@@ -186,6 +187,9 @@ export interface AppSettingsData {
       reason: string; // Human-readable explanation
       followed: boolean; // Whether user followed recommendation
     };
+  };
+  guides?: {
+    hasSeenDictationFlow?: boolean; // 音声入力設定画面の処理フローガイドを見たか
   };
 }
 

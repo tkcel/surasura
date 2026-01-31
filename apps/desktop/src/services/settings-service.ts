@@ -140,6 +140,22 @@ export class SettingsService extends EventEmitter {
   }
 
   /**
+   * Get guides state (which guides have been seen)
+   */
+  async getGuidesState(): Promise<AppSettingsData["guides"]> {
+    return await getSettingsSection("guides");
+  }
+
+  /**
+   * Update guides state
+   */
+  async setGuidesState(
+    guidesState: AppSettingsData["guides"],
+  ): Promise<void> {
+    await updateSettingsSection("guides", guidesState);
+  }
+
+  /**
    * Get shortcuts configuration
    * Defaults are handled by app-settings.ts during initialization/migration
    */

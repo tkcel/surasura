@@ -44,10 +44,10 @@ export function OnboardingShortcutInput() {
     <div className="flex items-center justify-between">
       <div>
         <Label className="text-base font-semibold text-foreground">
-          Push to talk
+          Push to Talk
         </Label>
         <p className="text-xs text-muted-foreground mt-1">
-          Hold to dictate while key is pressed
+          キーを押している間、音声入力が有効になります
         </p>
       </div>
       <div className="min-w-[200px] flex justify-end">
