@@ -8,7 +8,7 @@ export function ProcessFlowDiagram({ compact = false }: ProcessFlowDiagramProps)
   const steps = [
     { icon: Mic, label: "話す", description: "音声入力", optional: false },
     { icon: FileText, label: "文字起こし", description: "Speech-to-Text", optional: false },
-    { icon: Sparkles, label: "AI加工", description: "カスタム指示（オプション）", optional: true },
+    { icon: Sparkles, label: "AIフォーマット", description: "カスタム指示（オプション）", optional: true },
     { icon: ClipboardPaste, label: "ペースト", description: "クリップボード", optional: false },
   ];
 

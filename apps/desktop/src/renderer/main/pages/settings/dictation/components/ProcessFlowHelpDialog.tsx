@@ -49,7 +49,7 @@ export function ProcessFlowHelpDialog({ children }: ProcessFlowHelpDialogProps) 
             </div>
 
             <div className="p-3 bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30">
-              <h4 className="font-medium mb-1">3. AI加工（オプション）</h4>
+              <h4 className="font-medium mb-1">3. AIフォーマット（オプション）</h4>
               <p className="text-muted-foreground text-xs">
                 カスタム指示でAIの出力を自由にカスタマイズできます。
               </p>
