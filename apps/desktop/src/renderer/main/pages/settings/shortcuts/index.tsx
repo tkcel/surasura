@@ -342,6 +342,9 @@ export function ShortcutsSettingsPage() {
             <p className="text-xs text-muted-foreground">
               AIフォーマットのプリセットを素早く切り替えるショートカットです
             </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              ※ ウィジェットのウィンドウバーを右クリックしてもプリセットを変更できます
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             {([1, 2, 3, 4, 5] as const).map((num) => {
