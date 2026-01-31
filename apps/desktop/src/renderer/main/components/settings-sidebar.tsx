@@ -9,7 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { CommandSearchButton } from "./command-search-button";
 import { SETTINGS_NAV_ITEMS } from "../lib/settings-navigation";
 
 const data = {
@@ -42,9 +41,6 @@ export function SettingsSidebar({
                 <span className="font-semibold">surasura</span>
               </div>
             </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <CommandSearchButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
