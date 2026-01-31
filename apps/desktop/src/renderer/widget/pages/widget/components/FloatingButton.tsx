@@ -178,6 +178,8 @@ export const FloatingButton: React.FC = () => {
   // Close preset menu
   const handleClosePresetMenu = async () => {
     setShowPresetMenu(false);
+    // Minimize widget after preset selection to avoid obstructing the screen
+    setIsHovered(false);
     // Re-enable mouse event forwarding after menu closes
     try {
       await setIgnoreMouseEvents.mutateAsync({ ignore: true });
