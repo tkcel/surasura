@@ -3,7 +3,6 @@ import {
   IconMicrophone,
   IconBook,
   IconBrain,
-  IconHistory,
   IconInfoCircle,
   IconKeyboard,
   IconAdjustments,
@@ -60,13 +59,6 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     url: "/settings/ai-models",
     description: "AIモデルとプロバイダーを設定",
     icon: IconBrain,
-    type: "settings",
-  },
-  {
-    title: "履歴",
-    url: "/settings/history",
-    description: "文字起こし履歴の表示と管理",
-    icon: IconHistory,
     type: "settings",
   },
   {
