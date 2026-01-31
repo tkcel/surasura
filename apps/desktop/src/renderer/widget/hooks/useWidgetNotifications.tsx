@@ -25,11 +25,9 @@ export const useWidgetNotifications = () => {
     }, 100);
   };
 
-  const handleActionClick = async (action: WidgetNotificationAction) => {
+  const handleActionClick = (action: WidgetNotificationAction) => {
     if (action.navigateTo) {
       navigateMainWindow.mutate({ route: action.navigateTo });
-    } else if (action.externalUrl) {
-      await window.electronAPI.openExternal(action.externalUrl);
     }
     reEnablePassThrough();
   };
@@ -48,7 +46,6 @@ export const useWidgetNotifications = () => {
             title={notification.title}
             description={description}
             primaryAction={notification.primaryAction}
-            secondaryAction={notification.secondaryAction}
             onActionClick={(action) => {
               handleActionClick(action);
               toast.dismiss(toastId);

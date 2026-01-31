@@ -1,19 +1,14 @@
 export type WidgetNotificationType = "no_audio" | "empty_transcript";
 
-export type WidgetNotificationActionIcon = "discord";
-
 export interface WidgetNotificationAction {
   label: string;
-  icon?: WidgetNotificationActionIcon;
   navigateTo?: string; // Route to navigate to in main window
-  externalUrl?: string; // External URL to open
 }
 
 export interface WidgetNotificationConfig {
   title: string;
   description: string;
   primaryAction?: WidgetNotificationAction;
-  secondaryAction?: WidgetNotificationAction;
 }
 
 export interface WidgetNotification {
@@ -21,7 +16,6 @@ export interface WidgetNotification {
   type: WidgetNotificationType;
   title: string;
   primaryAction?: WidgetNotificationAction;
-  secondaryAction?: WidgetNotificationAction;
   timestamp: number;
 }
 
@@ -39,9 +33,6 @@ export const getNotificationDescription = (
   }
 };
 
-// Discord support server URL (same as sidebar Community link)
-export const DISCORD_SUPPORT_URL = "https://amical.ai/community";
-
 export const WIDGET_NOTIFICATION_CONFIG: Record<
   WidgetNotificationType,
   WidgetNotificationConfig
@@ -53,11 +44,6 @@ export const WIDGET_NOTIFICATION_CONFIG: Record<
       label: "Configure Microphone",
       navigateTo: "/settings/dictation",
     },
-    secondaryAction: {
-      label: "Support",
-      icon: "discord",
-      externalUrl: DISCORD_SUPPORT_URL,
-    },
   },
   empty_transcript: {
     title: "No speech detected",
@@ -65,11 +51,6 @@ export const WIDGET_NOTIFICATION_CONFIG: Record<
     primaryAction: {
       label: "Configure Microphone",
       navigateTo: "/settings/dictation",
-    },
-    secondaryAction: {
-      label: "Support",
-      icon: "discord",
-      externalUrl: DISCORD_SUPPORT_URL,
     },
   },
 };

@@ -8,7 +8,6 @@ import { api } from "@/trpc/react";
 
 const CHANGELOG_URL = "https://github.com/amicalhq/amical/releases";
 const GITHUB_URL = "https://github.com/amicalhq/amical";
-const DISCORD_URL = "https://amical.ai/community";
 const CONTACT_EMAIL = "contact@amical.ai";
 
 export default function AboutSettingsPage() {
@@ -94,24 +93,6 @@ export default function AboutSettingsPage() {
                     </div>
                     <div className="text-muted-foreground text-xs">
                       ソースコードと問題追跡
-                    </div>
-                  </div>
-                </div>
-              </ExternalLink>
-              <ExternalLink href={DISCORD_URL}>
-                <div className="flex items-center justify-between py-4 group cursor-pointer">
-                  <div>
-                    <div className="flex items-center gap-2 font-semibold text-base group-hover:underline">
-                      {/* Discord icon as image */}
-                      <img
-                        src="icons/integrations/discord.svg"
-                        alt="Discord"
-                        className="w-5 h-5 inline-block align-middle"
-                      />
-                      Discordコミュニティ
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      コミュニティに参加してサポートや議論に参加
                     </div>
                   </div>
                 </div>

@@ -126,7 +126,6 @@ export const recordingRouter = createRouter({
           title: config.title,
           // Description will be hydrated on frontend with mic name
           primaryAction: config.primaryAction,
-          secondaryAction: config.secondaryAction,
           timestamp: Date.now(),
         });
       };

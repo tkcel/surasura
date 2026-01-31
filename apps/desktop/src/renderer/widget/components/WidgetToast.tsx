@@ -13,7 +13,6 @@ interface WidgetToastProps {
   title: string;
   description: string;
   primaryAction?: WidgetNotificationAction;
-  secondaryAction?: WidgetNotificationAction;
   onActionClick: (action: WidgetNotificationAction) => void;
 }
 
@@ -21,7 +20,6 @@ export const WidgetToast: React.FC<WidgetToastProps> = ({
   title,
   description,
   primaryAction,
-  secondaryAction,
   onActionClick,
 }) => {
   return (
@@ -32,22 +30,6 @@ export const WidgetToast: React.FC<WidgetToastProps> = ({
       </CardHeader>
 
       <CardFooter className="gap-2 px-4 py-0">
-        {secondaryAction && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onActionClick(secondaryAction)}
-          >
-            {secondaryAction.icon === "discord" && (
-              <img
-                src="assets/discord-icon.svg"
-                alt="Discord"
-                className="size-3.5"
-              />
-            )}
-            {secondaryAction.label}
-          </Button>
-        )}
         {primaryAction && (
           <Button
             variant="default"

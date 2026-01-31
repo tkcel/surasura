@@ -1,8 +1,6 @@
 import * as React from "react";
-import { IconBookFilled } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
 import {
   Sidebar,
   SidebarContent,
@@ -14,35 +12,12 @@ import {
 import { CommandSearchButton } from "./command-search-button";
 import { SETTINGS_NAV_ITEMS } from "../lib/settings-navigation";
 
-// Custom Discord icon component
-const DiscordIcon = ({ className }: { className?: string }) => (
-  <img
-    src="assets/discord-icon.svg"
-    alt="Discord"
-    className={`w-4 h-4 ${className || ""}`}
-  />
-);
-
 const data = {
   navMain: SETTINGS_NAV_ITEMS.map(({ title, url, icon }) => ({
     title,
     url,
     icon: typeof icon === "string" ? undefined : icon,
   })),
-  navSecondary: [
-    {
-      title: "ドキュメント",
-      url: "https://amical.ai/docs",
-      icon: IconBookFilled,
-      external: true,
-    },
-    {
-      title: "コミュニティ",
-      url: "https://amical.ai/community",
-      icon: DiscordIcon,
-      external: true,
-    },
-  ],
 };
 
 export function SettingsSidebar({
@@ -75,7 +50,6 @@ export function SettingsSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
     </Sidebar>
   );

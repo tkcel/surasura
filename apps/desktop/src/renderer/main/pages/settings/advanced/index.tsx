@@ -109,9 +109,6 @@ export default function AdvancedSettingsPage() {
     });
   };
 
-  const handleOpenTelemetryDocs = () => {
-    window.electronAPI.openExternal("https://amical.ai/docs/telemetry");
-  };
 
   const handleCopyMachineId = async () => {
     if (machineIdQuery.data) {
@@ -172,13 +169,7 @@ export default function AdvancedSettingsPage() {
             <div>
               <Label htmlFor="telemetry">Anonymous Telemetry</Label>
               <p className="text-sm text-muted-foreground">
-                Help improve Amical by sharing anonymous usage data.{" "}
-                <button
-                  onClick={handleOpenTelemetryDocs}
-                  className="text-primary hover:underline"
-                >
-                  Learn more
-                </button>
+                Help improve Amical by sharing anonymous usage data.
               </p>
             </div>
             <Switch
