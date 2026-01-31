@@ -5,6 +5,7 @@ import { app, shell } from "electron";
 import path from "node:path";
 import { createRouter, procedure } from "../trpc";
 import { dbPath, closeDatabase } from "../../db";
+import { getDefaultShortcuts } from "../../db/app-settings";
 import * as fs from "fs/promises";
 
 // FormatPreset schema
@@ -46,7 +47,17 @@ const UpdateFormatPresetSchema = z.object({
 
 // Shortcut schema (array of key names)
 const SetShortcutSchema = z.object({
-  type: z.enum(["pushToTalk", "toggleRecording", "pasteLastTranscription", "cancelRecording"]),
+  type: z.enum([
+    "pushToTalk",
+    "toggleRecording",
+    "pasteLastTranscription",
+    "cancelRecording",
+    "selectPreset1",
+    "selectPreset2",
+    "selectPreset3",
+    "selectPreset4",
+    "selectPreset5",
+  ]),
   shortcut: z.array(z.string()),
 });
 
@@ -168,7 +179,8 @@ export const settingsRouter = createRouter({
     .input(CreateFormatPresetSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        const settingsService = ctx.serviceManager.getService("settingsService");
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
         if (!settingsService) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -201,7 +213,8 @@ export const settingsRouter = createRouter({
     .input(UpdateFormatPresetSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        const settingsService = ctx.serviceManager.getService("settingsService");
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
         if (!settingsService) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -235,7 +248,8 @@ export const settingsRouter = createRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        const settingsService = ctx.serviceManager.getService("settingsService");
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
         if (!settingsService) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -268,7 +282,8 @@ export const settingsRouter = createRouter({
     .input(z.object({ presetId: z.string().nullable() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        const settingsService = ctx.serviceManager.getService("settingsService");
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
         if (!settingsService) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -279,7 +294,9 @@ export const settingsRouter = createRouter({
         await settingsService.setActivePreset(input.presetId);
 
         const logger = ctx.serviceManager.getLogger();
-        logger?.main.info("Active preset changed", { presetId: input.presetId });
+        logger?.main.info("Active preset changed", {
+          presetId: input.presetId,
+        });
 
         return { success: true };
       } catch (error) {
@@ -310,6 +327,51 @@ export const settingsRouter = createRouter({
       return null;
     }
   }),
+
+  // Select preset by index (0-4)
+  selectPresetByIndex: procedure
+    .input(z.object({ index: z.number().min(0).max(4) }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        const preset = await settingsService.selectPresetByIndex(input.index);
+
+        const logger = ctx.serviceManager.getLogger();
+        if (preset) {
+          logger?.main.info("Preset selected by index", {
+            index: input.index,
+            presetId: preset.id,
+            presetName: preset.name,
+          });
+        } else {
+          logger?.main.info("Preset selection by index skipped", {
+            index: input.index,
+            reason: "Index out of range or formatter disabled",
+          });
+        }
+
+        return preset;
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error selecting preset by index:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
   // Get shortcuts configuration
   getShortcuts: procedure.query(async ({ ctx }) => {
     const settingsService = ctx.serviceManager.getService("settingsService");
@@ -344,6 +406,46 @@ export const settingsRouter = createRouter({
 
       return { success: true, warning: result.warning };
     }),
+
+  // Get default shortcuts for current platform
+  getDefaultShortcuts: procedure.query(() => {
+    return getDefaultShortcuts();
+  }),
+
+  // Reset all shortcuts to default
+  resetShortcuts: procedure.mutation(async ({ ctx }) => {
+    const shortcutManager = ctx.serviceManager.getService("shortcutManager");
+    if (!shortcutManager) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "ShortcutManager not available",
+      });
+    }
+
+    const defaults = getDefaultShortcuts();
+
+    // Reset each shortcut type to default
+    await shortcutManager.setShortcut("pushToTalk", defaults.pushToTalk);
+    await shortcutManager.setShortcut(
+      "toggleRecording",
+      defaults.toggleRecording,
+    );
+    await shortcutManager.setShortcut(
+      "cancelRecording",
+      defaults.cancelRecording,
+    );
+    await shortcutManager.setShortcut("pasteLastTranscription", []);
+    await shortcutManager.setShortcut("selectPreset1", defaults.selectPreset1);
+    await shortcutManager.setShortcut("selectPreset2", defaults.selectPreset2);
+    await shortcutManager.setShortcut("selectPreset3", defaults.selectPreset3);
+    await shortcutManager.setShortcut("selectPreset4", defaults.selectPreset4);
+    await shortcutManager.setShortcut("selectPreset5", defaults.selectPreset5);
+
+    const logger = ctx.serviceManager.getLogger();
+    logger?.main.info("Shortcuts reset to defaults");
+
+    return { success: true };
+  }),
 
   // Set shortcut recording state
   setShortcutRecordingState: procedure

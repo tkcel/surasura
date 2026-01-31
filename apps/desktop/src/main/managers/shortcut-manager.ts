@@ -8,6 +8,7 @@ import { KeyEventPayload, HelperEvent } from "@surasura/types";
 import { logger } from "@/main/logger";
 import {
   validateShortcutComprehensive,
+  checkDuplicateWithAllShortcuts,
   type ShortcutType,
   type ValidationResult,
 } from "@/utils/shortcut-validation";
@@ -24,6 +25,11 @@ interface ShortcutConfig {
   toggleRecording: string[];
   pasteLastTranscription: string[];
   cancelRecording: string[];
+  selectPreset1: string[];
+  selectPreset2: string[];
+  selectPreset3: string[];
+  selectPreset4: string[];
+  selectPreset5: string[];
 }
 
 // Debounce delay for PTT release (ms)
@@ -37,6 +43,11 @@ export class ShortcutManager extends EventEmitter {
     toggleRecording: [],
     pasteLastTranscription: [],
     cancelRecording: [],
+    selectPreset1: [],
+    selectPreset2: [],
+    selectPreset3: [],
+    selectPreset4: [],
+    selectPreset5: [],
   };
   private settingsService: SettingsService;
   private nativeBridge: NativeBridge | null = null;
@@ -105,13 +116,13 @@ export class ShortcutManager extends EventEmitter {
     type: ShortcutType,
     keys: string[],
   ): Promise<ValidationResult> {
-    // Get the other shortcut for cross-validation
+    // Get the other shortcut for PTT/toggle cross-validation (subset warning)
     const otherShortcut =
       type === "pushToTalk"
         ? this.shortcuts.toggleRecording
         : this.shortcuts.pushToTalk;
 
-    // Validate the shortcut
+    // Validate the shortcut (basic validation + subset warning)
     const result = validateShortcutComprehensive({
       currentShortcut: keys,
       otherShortcut,
@@ -121,6 +132,16 @@ export class ShortcutManager extends EventEmitter {
 
     if (!result.valid) {
       return result;
+    }
+
+    // Check for conflicts with ALL other shortcuts
+    const duplicateCheck = checkDuplicateWithAllShortcuts(
+      keys,
+      type,
+      this.shortcuts,
+    );
+    if (!duplicateCheck.valid) {
+      return duplicateCheck;
     }
 
     // Persist to settings
@@ -277,6 +298,45 @@ export class ShortcutManager extends EventEmitter {
     if (this.isCancelRecordingShortcutPressed()) {
       this.emit("cancel-recording-triggered");
     }
+
+    // Check preset selection shortcuts (Cmd/Ctrl + 1-5)
+    const presetIndex = this.getPresetShortcutIndex();
+    if (presetIndex !== null) {
+      this.emit("select-preset-triggered", presetIndex);
+    }
+  }
+
+  /**
+   * Check if a preset selection shortcut is pressed
+   * Returns the preset index (0-4) if pressed, null otherwise
+   */
+  private getPresetShortcutIndex(): number | null {
+    const presetShortcuts = [
+      this.shortcuts.selectPreset1,
+      this.shortcuts.selectPreset2,
+      this.shortcuts.selectPreset3,
+      this.shortcuts.selectPreset4,
+      this.shortcuts.selectPreset5,
+    ];
+
+    const activeKeysList = this.getActiveKeys();
+
+    for (let i = 0; i < presetShortcuts.length; i++) {
+      const shortcutKeys = presetShortcuts[i];
+      if (!shortcutKeys || shortcutKeys.length === 0) {
+        continue;
+      }
+
+      // Exact match - only these keys pressed, no extra keys
+      if (
+        shortcutKeys.length === activeKeysList.length &&
+        shortcutKeys.every((key) => activeKeysList.includes(key))
+      ) {
+        return i;
+      }
+    }
+
+    return null;
   }
 
   private isPTTShortcutPressed(): boolean {

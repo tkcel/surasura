@@ -103,7 +103,8 @@ const migrations: Record<number, MigrationFn> = {
         id: crypto.randomUUID(),
         name: "標準",
         modelId: "gpt-4o-mini" as const,
-        instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
+        instructions:
+          "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -144,7 +145,8 @@ const migrations: Record<number, MigrationFn> = {
   // v4 -> v5: Add instructions to "標準" preset
   5: (data: unknown): AppSettingsData => {
     const oldData = data as AppSettingsData;
-    const standardInstructions = "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
+    const standardInstructions =
+      "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
 
     // Update the "標準" preset if it exists and has empty instructions
     const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
@@ -175,7 +177,7 @@ const migrations: Record<number, MigrationFn> = {
 
     // Check if "即時回答" preset already exists
     const hasInstantAnswer = oldData.formatterConfig?.presets?.some(
-      (preset) => preset.name === "即時回答"
+      (preset) => preset.name === "即時回答",
     );
 
     if (hasInstantAnswer) {
@@ -186,7 +188,8 @@ const migrations: Record<number, MigrationFn> = {
       id: crypto.randomUUID(),
       name: "即時回答",
       modelId: "gpt-4o-mini" as const,
-      instructions: "音声入力された内容を質問や依頼として解釈し、それに対する回答を直接出力してください。元の発言内容は含めず、回答のみを簡潔に返してください。",
+      instructions:
+        "音声入力された内容を質問や依頼として解釈し、それに対する回答を直接出力してください。元の発言内容は含めず、回答のみを簡潔に返してください。",
       isDefault: true,
       createdAt: now,
       updatedAt: now,
@@ -197,7 +200,10 @@ const migrations: Record<number, MigrationFn> = {
       formatterConfig: {
         ...oldData.formatterConfig,
         enabled: oldData.formatterConfig?.enabled ?? false,
-        presets: [...(oldData.formatterConfig?.presets ?? []), instantAnswerPreset],
+        presets: [
+          ...(oldData.formatterConfig?.presets ?? []),
+          instantAnswerPreset,
+        ],
       },
     };
   },
@@ -205,7 +211,8 @@ const migrations: Record<number, MigrationFn> = {
   // v6 -> v7: Update "標準" preset to explicitly not answer questions
   7: (data: unknown): AppSettingsData => {
     const oldData = data as AppSettingsData;
-    const newInstructions = "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
+    const newInstructions =
+      "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
 
     // Update the "標準" preset instructions
     const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
@@ -251,12 +258,17 @@ function migrateSettings(data: unknown, fromVersion: number): AppSettingsData {
 const SETTINGS_ID = 1;
 
 // Platform-specific default shortcuts (array format)
-const getDefaultShortcuts = () => {
+export const getDefaultShortcuts = () => {
   if (isMacOS()) {
     return {
       pushToTalk: ["Fn"],
       toggleRecording: ["Fn", "Space"],
       cancelRecording: ["Escape"],
+      selectPreset1: ["Cmd", "Alt", "1"],
+      selectPreset2: ["Cmd", "Alt", "2"],
+      selectPreset3: ["Cmd", "Alt", "3"],
+      selectPreset4: ["Cmd", "Alt", "4"],
+      selectPreset5: ["Cmd", "Alt", "5"],
     };
   } else {
     // Windows and Linux
@@ -264,6 +276,11 @@ const getDefaultShortcuts = () => {
       pushToTalk: ["Ctrl", "Win"],
       toggleRecording: ["Ctrl", "Win", "Space"],
       cancelRecording: ["Escape"],
+      selectPreset1: ["Ctrl", "Alt", "1"],
+      selectPreset2: ["Ctrl", "Alt", "2"],
+      selectPreset3: ["Ctrl", "Alt", "3"],
+      selectPreset4: ["Ctrl", "Alt", "4"],
+      selectPreset5: ["Ctrl", "Alt", "5"],
     };
   }
 };
@@ -328,7 +345,10 @@ export async function getAppSettings(): Promise<AppSettingsData> {
   }
 
   // Ensure default presets exist (for users who migrated before presets were added)
-  if (!data.formatterConfig?.presets || data.formatterConfig.presets.length === 0) {
+  if (
+    !data.formatterConfig?.presets ||
+    data.formatterConfig.presets.length === 0
+  ) {
     data = {
       ...data,
       formatterConfig: {
@@ -445,7 +465,8 @@ function generateDefaultPresets() {
       id: crypto.randomUUID(),
       name: "標準",
       modelId: "gpt-4o-mini" as const,
-      instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
+      instructions:
+        "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
       isDefault: true,
       createdAt: now,
       updatedAt: now,

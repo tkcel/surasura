@@ -146,6 +146,11 @@ export interface AppSettingsData {
     toggleRecording?: string[];
     pasteLastTranscription?: string[];
     cancelRecording?: string[];
+    selectPreset1?: string[];
+    selectPreset2?: string[];
+    selectPreset3?: string[];
+    selectPreset4?: string[];
+    selectPreset5?: string[];
   };
 
   modelProvidersConfig?: {

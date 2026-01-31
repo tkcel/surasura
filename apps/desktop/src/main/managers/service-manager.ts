@@ -165,7 +165,68 @@ export class ServiceManager {
     // Connect shortcut events to recording manager
     this.recordingManager.setupShortcutListeners(this.shortcutManager);
 
+    // Connect preset selection shortcut events
+    this.setupPresetShortcutListeners(this.shortcutManager);
+
     logger.main.info("Shortcut manager initialized");
+  }
+
+  private setupPresetShortcutListeners(shortcutManager: ShortcutManager): void {
+    // Track last triggered index to avoid repeated triggers while keys are held
+    let lastTriggeredIndex: number | null = null;
+    let lastTriggerTime = 0;
+    const DEBOUNCE_MS = 500;
+
+    shortcutManager.on("select-preset-triggered", async (index: number) => {
+      const now = Date.now();
+
+      // Debounce: ignore if same index triggered within debounce period
+      if (index === lastTriggeredIndex && now - lastTriggerTime < DEBOUNCE_MS) {
+        return;
+      }
+
+      lastTriggeredIndex = index;
+      lastTriggerTime = now;
+
+      try {
+        if (!this.settingsService) {
+          logger.main.warn(
+            "SettingsService not available for preset selection",
+          );
+          return;
+        }
+
+        const preset = await this.settingsService.selectPresetByIndex(index);
+
+        if (preset) {
+          logger.main.info("Preset selected via shortcut", {
+            index,
+            presetId: preset.id,
+            presetName: preset.name,
+          });
+          // IPC notification is handled by AppManager via "active-preset-changed" event
+        } else {
+          logger.main.debug("Preset selection skipped", {
+            index,
+            reason: "Index out of range or formatter disabled",
+          });
+        }
+      } catch (error) {
+        logger.main.error("Failed to select preset via shortcut", {
+          error,
+          index,
+        });
+      }
+    });
+
+    // Reset last triggered index when modifier keys are released
+    shortcutManager.on("activeKeysChanged", (keys: string[]) => {
+      if (!keys.includes("Cmd") && !keys.includes("Ctrl")) {
+        lastTriggeredIndex = null;
+      }
+    });
+
+    logger.main.info("Preset shortcut listeners initialized");
   }
 
   private initializeAutoUpdater(): void {

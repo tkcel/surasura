@@ -176,6 +176,35 @@ export class AppManager {
       await this.windowManager.updateAllWindowThemes();
     });
 
+    // Handle active preset changes (for cross-window synchronization)
+    settingsService.on(
+      "active-preset-changed",
+      ({
+        presetId,
+        presetName,
+      }: {
+        presetId: string | null;
+        presetName: string | null;
+      }) => {
+        const mainWindow = this.windowManager.getMainWindow();
+        const widgetWindow = this.windowManager.getWidgetWindow();
+
+        const message = { type: "preset-changed", presetName };
+
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("preset-notification", message);
+        }
+        if (widgetWindow && !widgetWindow.isDestroyed()) {
+          widgetWindow.webContents.send("preset-notification", message);
+        }
+
+        logger.main.debug("Preset change notification sent to windows", {
+          presetId,
+          presetName,
+        });
+      },
+    );
+
     logger.main.info("Settings event listeners set up");
   }
 

@@ -6,6 +6,7 @@ import {
   updateSettingsSection,
   getAppSettings,
   updateAppSettings,
+  getDefaultShortcuts,
 } from "../db/app-settings";
 import type { AppSettingsData } from "../db/schema";
 
@@ -17,6 +18,11 @@ export interface ShortcutsConfig {
   toggleRecording: string[];
   pasteLastTranscription: string[];
   cancelRecording: string[];
+  selectPreset1: string[];
+  selectPreset2: string[];
+  selectPreset3: string[];
+  selectPreset4: string[];
+  selectPreset5: string[];
 }
 
 export interface AppPreferences {
@@ -139,15 +145,24 @@ export class SettingsService extends EventEmitter {
    */
   async getShortcuts(): Promise<ShortcutsConfig> {
     const shortcuts = await getSettingsSection("shortcuts");
+    const defaults = getDefaultShortcuts();
+
     return {
-      pushToTalk: shortcuts?.pushToTalk ?? [],
-      toggleRecording: shortcuts?.toggleRecording ?? [],
+      pushToTalk: shortcuts?.pushToTalk ?? defaults.pushToTalk ?? [],
+      toggleRecording:
+        shortcuts?.toggleRecording ?? defaults.toggleRecording ?? [],
       pasteLastTranscription: shortcuts?.pasteLastTranscription ?? [
         "Alt",
         "Cmd",
         "V",
       ],
-      cancelRecording: shortcuts?.cancelRecording ?? ["Escape"],
+      cancelRecording: shortcuts?.cancelRecording ??
+        defaults.cancelRecording ?? ["Escape"],
+      selectPreset1: shortcuts?.selectPreset1 ?? defaults.selectPreset1 ?? [],
+      selectPreset2: shortcuts?.selectPreset2 ?? defaults.selectPreset2 ?? [],
+      selectPreset3: shortcuts?.selectPreset3 ?? defaults.selectPreset3 ?? [],
+      selectPreset4: shortcuts?.selectPreset4 ?? defaults.selectPreset4 ?? [],
+      selectPreset5: shortcuts?.selectPreset5 ?? defaults.selectPreset5 ?? [],
     };
   }
 
@@ -168,6 +183,21 @@ export class SettingsService extends EventEmitter {
         : undefined,
       cancelRecording: shortcuts.cancelRecording?.length
         ? shortcuts.cancelRecording
+        : undefined,
+      selectPreset1: shortcuts.selectPreset1?.length
+        ? shortcuts.selectPreset1
+        : undefined,
+      selectPreset2: shortcuts.selectPreset2?.length
+        ? shortcuts.selectPreset2
+        : undefined,
+      selectPreset3: shortcuts.selectPreset3?.length
+        ? shortcuts.selectPreset3
+        : undefined,
+      selectPreset4: shortcuts.selectPreset4?.length
+        ? shortcuts.selectPreset4
+        : undefined,
+      selectPreset5: shortcuts.selectPreset5?.length
+        ? shortcuts.selectPreset5
         : undefined,
     };
     await updateSettingsSection("shortcuts", dataToStore);
@@ -399,7 +429,10 @@ export class SettingsService extends EventEmitter {
       throw new Error("Preset name must be 20 characters or less");
     }
 
-    if (updates.instructions !== undefined && updates.instructions.length > 2000) {
+    if (
+      updates.instructions !== undefined &&
+      updates.instructions.length > 2000
+    ) {
       throw new Error("Instructions must be 2000 characters or less");
     }
 
@@ -447,10 +480,10 @@ export class SettingsService extends EventEmitter {
    */
   async setActivePreset(presetId: string | null): Promise<void> {
     const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
 
     // If setting a preset, verify it exists
     if (presetId !== null) {
-      const presets = config?.presets ?? [];
       const exists = presets.some((p) => p.id === presetId);
       if (!exists) {
         throw new Error("Preset not found");
@@ -461,6 +494,15 @@ export class SettingsService extends EventEmitter {
       ...config,
       enabled: config?.enabled ?? false,
       activePresetId: presetId,
+    });
+
+    // Emit event for cross-window synchronization
+    const selectedPreset = presetId
+      ? presets.find((p) => p.id === presetId)
+      : null;
+    this.emit("active-preset-changed", {
+      presetId,
+      presetName: selectedPreset?.name ?? null,
     });
   }
 
@@ -475,5 +517,30 @@ export class SettingsService extends EventEmitter {
 
     const presets = config.presets ?? [];
     return presets.find((p) => p.id === config.activePresetId) ?? null;
+  }
+
+  /**
+   * Select a preset by index (0-4)
+   * Returns the selected preset, or null if index is out of range or formatter is disabled
+   */
+  async selectPresetByIndex(index: number): Promise<FormatPreset | null> {
+    const config = await this.getFormatterConfig();
+
+    // Return null if formatter is disabled
+    if (!config?.enabled) {
+      return null;
+    }
+
+    const presets = config.presets ?? [];
+
+    // Return null if index is out of range
+    if (index < 0 || index >= presets.length) {
+      return null;
+    }
+
+    const preset = presets[index];
+    await this.setActivePreset(preset.id);
+
+    return preset;
   }
 }

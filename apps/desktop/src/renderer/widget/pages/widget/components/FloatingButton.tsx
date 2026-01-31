@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Square, X } from "lucide-react";
+import { Square, X, Sparkles } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useRecording } from "@/hooks/useRecording";
 import { api } from "@/trpc/react";
+import { PresetMenu } from "../../../components/PresetMenu";
 
 const NUM_WAVEFORM_BARS = 6; // Fewer bars to make room for stop button
 const DEBOUNCE_DELAY = 100; // milliseconds
@@ -63,11 +64,19 @@ const WaveformVisualization: React.FC<{
 
 export const FloatingButton: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
+  const [showPresetMenu, setShowPresetMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
   const clickTimeRef = useRef<number | null>(null); // Track when user clicked
 
   // tRPC mutation to control widget mouse events
   const setIgnoreMouseEvents = api.widget.setIgnoreMouseEvents.useMutation();
+
+  // Formatter config and active preset queries
+  const { data: formatterConfig } = api.settings.getFormatterConfig.useQuery();
+  const { data: activePreset } = api.settings.getActivePreset.useQuery();
+  const isFormatterEnabled = formatterConfig?.enabled ?? false;
+  const presets = formatterConfig?.presets ?? [];
 
   // Log component initialization
   useEffect(() => {
@@ -77,8 +86,13 @@ export const FloatingButton: React.FC = () => {
     };
   }, []);
 
-  const { recordingStatus, stopRecording, cancelRecording, voiceDetected, startRecording } =
-    useRecording();
+  const {
+    recordingStatus,
+    stopRecording,
+    cancelRecording,
+    voiceDetected,
+    startRecording,
+  } = useRecording();
   const isRecording =
     recordingStatus.state === "recording" ||
     recordingStatus.state === "starting";
@@ -136,6 +150,29 @@ export const FloatingButton: React.FC = () => {
     await cancelRecording();
   };
 
+  // Handler for right-click to show preset menu
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Only show menu if formatter is enabled and we have presets
+    if (!isFormatterEnabled || presets.length === 0) {
+      return;
+    }
+
+    // Position menu above the widget
+    setMenuPosition({
+      x: e.clientX,
+      y: e.clientY - 10,
+    });
+    setShowPresetMenu(true);
+  };
+
+  // Close preset menu
+  const handleClosePresetMenu = () => {
+    setShowPresetMenu(false);
+  };
+
   // Debounced mouse leave handler
   const handleMouseLeave = async () => {
     if (leaveTimeoutRef.current) {
@@ -171,7 +208,12 @@ export const FloatingButton: React.FC = () => {
   const getExpandedWidth = () => {
     if (!expanded) return "w-[48px]";
     if (isRecording && isHandsFreeMode) return "w-[120px]"; // Cancel + waveform + stop
-    return "w-[96px]"; // Just waveform (idle/hover/PTT recording)
+    if (isRecording) return "w-[96px]"; // Just waveform (PTT recording)
+    // Idle/hover state: show preset name if formatter is enabled
+    if (isFormatterEnabled && activePreset) {
+      return "w-[140px]"; // Preset name + waveform
+    }
+    return "w-[96px]"; // Just waveform
   };
 
   // Function to render widget content based on state
@@ -216,12 +258,19 @@ export const FloatingButton: React.FC = () => {
     }
 
     // Show clickable waveform visualization when idle/hovered
+    // With preset name if formatter is enabled
     return (
       <button
-        className="justify-center items-center flex flex-1 gap-1 h-full w-full"
+        className="justify-center items-center flex flex-1 gap-1 h-full w-full px-2"
         role="button"
         onClick={handleButtonClick}
       >
+        {isFormatterEnabled && activePreset && (
+          <div className="flex items-center gap-1 text-xs text-white/70 shrink-0">
+            <Sparkles className="w-3 h-3 text-yellow-500" />
+            <span className="max-w-[60px] truncate">{activePreset.name}</span>
+          </div>
+        )}
         <WaveformVisualization
           isRecording={isRecording}
           voiceDetected={voiceDetected}
@@ -231,23 +280,36 @@ export const FloatingButton: React.FC = () => {
   };
 
   return (
-    <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`
-        transition-all duration-200 ease-in-out
-        ${expanded ? "h-[24px]" : "h-[8px]"} ${getExpandedWidth()}
-        bg-black/70 rounded-[24px] backdrop-blur-md ring-[1px] ring-black/60 shadow-[0px_0px_15px_0px_rgba(0,0,0,0.40)]
-        before:content-[''] before:absolute before:inset-[1px] before:rounded-[23px] before:outline before:outline-white/15 before:pointer-events-none
-        mb-2 cursor-pointer select-none
-      `}
-      style={{ pointerEvents: "auto" }}
-    >
-      {expanded && (
-        <div className="flex gap-[2px] h-full w-full justify-between">
-          {renderWidgetContent()}
-        </div>
+    <>
+      <div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onContextMenu={handleContextMenu}
+        className={`
+          transition-all duration-200 ease-in-out
+          ${expanded ? "h-[24px]" : "h-[8px]"} ${getExpandedWidth()}
+          bg-black/70 rounded-[24px] backdrop-blur-md ring-[1px] ring-black/60 shadow-[0px_0px_15px_0px_rgba(0,0,0,0.40)]
+          before:content-[''] before:absolute before:inset-[1px] before:rounded-[23px] before:outline before:outline-white/15 before:pointer-events-none
+          mb-2 cursor-pointer select-none
+        `}
+        style={{ pointerEvents: "auto" }}
+      >
+        {expanded && (
+          <div className="flex gap-[2px] h-full w-full justify-between">
+            {renderWidgetContent()}
+          </div>
+        )}
+      </div>
+
+      {/* Preset selection menu */}
+      {showPresetMenu && presets.length > 0 && (
+        <PresetMenu
+          presets={presets}
+          activePresetId={activePreset?.id ?? null}
+          onClose={handleClosePresetMenu}
+          position={menuPosition}
+        />
       )}
-    </div>
+    </>
   );
 };

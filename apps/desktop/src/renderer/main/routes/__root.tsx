@@ -3,6 +3,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { api, trpcClient } from "@/trpc/react";
 import { usePostHog } from "../lib/posthog";
+import { usePresetNotifications } from "@/hooks/usePresetNotifications";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -21,6 +22,7 @@ export const Route = createRootRoute({
 // Inner component that uses hooks requiring provider context
 function AppShell() {
   usePostHog(); // Initialize and sync telemetry
+  usePresetNotifications(); // Listen for preset change notifications
 
   return (
     <>
