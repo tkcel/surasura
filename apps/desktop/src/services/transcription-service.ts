@@ -6,9 +6,8 @@ import {
   FormattingProvider,
 } from "../pipeline/core/pipeline-types";
 import { createDefaultContext } from "../pipeline/core/context";
-import { WhisperProvider } from "../pipeline/providers/transcription/whisper-provider";
+import { OpenAIWhisperProvider } from "../pipeline/providers/transcription/openai-whisper-provider";
 import { OpenAIFormatter } from "../pipeline/providers/formatting/openai-formatter";
-import { ModelService } from "../services/model-service";
 import { SettingsService } from "../services/settings-service";
 import { TelemetryService } from "../services/telemetry-service";
 import type { NativeBridge } from "./platform/native-bridge-service";
@@ -25,150 +24,69 @@ import { dialog } from "electron";
  * Service for audio transcription and optional formatting
  */
 export class TranscriptionService {
-  private whisperProvider: WhisperProvider;
+  private openaiWhisperProvider: OpenAIWhisperProvider;
   private currentProvider: TranscriptionProvider | null = null;
   private streamingSessions = new Map<string, StreamingSession>();
   private vadService: VADService | null;
   private settingsService: SettingsService;
   private vadMutex: Mutex;
   private transcriptionMutex: Mutex;
-  private modelLoadMutex: Mutex;
   private telemetryService: TelemetryService;
-  private modelService: ModelService;
-  private modelWasPreloaded: boolean = false;
 
   constructor(
-    modelService: ModelService,
     vadService: VADService,
     settingsService: SettingsService,
     telemetryService: TelemetryService,
     private nativeBridge: NativeBridge | null,
     private onboardingService: OnboardingService | null,
   ) {
-    this.whisperProvider = new WhisperProvider(modelService);
+    this.openaiWhisperProvider = new OpenAIWhisperProvider(settingsService);
     this.vadService = vadService;
     this.settingsService = settingsService;
     this.vadMutex = new Mutex();
     this.transcriptionMutex = new Mutex();
-    this.modelLoadMutex = new Mutex();
     this.telemetryService = telemetryService;
-    this.modelService = modelService;
   }
 
   /**
-   * Select the appropriate transcription provider based on the selected model
+   * Select the appropriate transcription provider
    */
   private async selectProvider(): Promise<TranscriptionProvider> {
-    // Always use whisper provider (local only)
-    this.currentProvider = this.whisperProvider;
-    return this.whisperProvider;
+    this.currentProvider = this.openaiWhisperProvider;
+    return this.openaiWhisperProvider;
   }
 
   async initialize(): Promise<void> {
-    // Check if we should preload Whisper model
-    const transcriptionSettings =
-      await this.settingsService.getTranscriptionSettings();
-    const shouldPreload =
-      transcriptionSettings?.preloadWhisperModel !== false; // Default to true
-
-    if (shouldPreload) {
-      // Check if models are available for preloading
-      const hasModels = await this.isModelAvailable();
-      if (hasModels) {
-        logger.transcription.info("Preloading Whisper model...");
-        await this.preloadWhisperModel();
-        this.modelWasPreloaded = true;
-        logger.transcription.info("Whisper model preloaded successfully");
-      } else {
-        logger.transcription.info(
-          "Whisper model preloading skipped - no models available",
-        );
-        setTimeout(async () => {
-          const onboardingCheck =
-            await this.onboardingService?.checkNeedsOnboarding();
-          if (!onboardingCheck?.needed) {
-            dialog.showMessageBox({
-              type: "warning",
-              title: "No Transcription Models",
-              message: "No transcription models are available.",
-              detail:
-                "To use voice transcription, please download a model from Speech Models.",
-              buttons: ["OK"],
-            });
-          }
-        }, 2000); // Delay to ensure windows are ready
-      }
-    } else {
-      logger.transcription.info("Whisper model preloading disabled");
+    // Check if OpenAI API is configured
+    const isApiConfigured = await this.isApiConfigured();
+    if (!isApiConfigured) {
+      logger.transcription.info(
+        "OpenAI API key not configured - transcription will require API key setup",
+      );
+      setTimeout(async () => {
+        const onboardingCheck =
+          await this.onboardingService?.checkNeedsOnboarding();
+        if (!onboardingCheck?.needed) {
+          dialog.showMessageBox({
+            type: "warning",
+            title: "API Key Required",
+            message: "OpenAI API key is not configured.",
+            detail:
+              "To use voice transcription, please configure your OpenAI API key in Settings.",
+            buttons: ["OK"],
+          });
+        }
+      }, 2000); // Delay to ensure windows are ready
     }
 
     logger.transcription.info("Transcription service initialized");
   }
 
   /**
-   * Preload Whisper model into memory
+   * Check if OpenAI API is configured
    */
-  async preloadWhisperModel(): Promise<void> {
-    try {
-      // This will trigger the model initialization in WhisperProvider
-      await this.whisperProvider.preloadModel();
-      logger.transcription.info("Whisper model preloaded successfully");
-    } catch (error) {
-      logger.transcription.error("Failed to preload Whisper model:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check if transcription models are available (real-time check)
-   */
-  public async isModelAvailable(): Promise<boolean> {
-    try {
-      // Check if any local models are downloaded
-      const modelService = this.whisperProvider["modelService"];
-      const availableModels = await modelService.getValidDownloadedModels();
-      return Object.keys(availableModels).length > 0;
-    } catch (error) {
-      logger.transcription.error("Failed to check model availability:", error);
-      return false;
-    }
-  }
-
-  /**
-   * Handle model change - load new model if preloading is enabled
-   * Uses mutex to serialize concurrent model loads
-   */
-  async handleModelChange(): Promise<void> {
-    this.modelLoadMutex.runExclusive(async () => {
-      try {
-        this.modelWasPreloaded = false;
-
-        // Check if preloading is enabled and models are available
-        if (this.settingsService) {
-          const transcriptionSettings =
-            await this.settingsService.getTranscriptionSettings();
-          const shouldPreload =
-            transcriptionSettings?.preloadWhisperModel !== false;
-
-          if (shouldPreload) {
-            const hasModels = await this.isModelAvailable();
-            if (hasModels) {
-              logger.transcription.info(
-                "Loading Whisper model after model change...",
-              );
-              await this.whisperProvider.preloadModel();
-              this.modelWasPreloaded = true;
-              logger.transcription.info("Whisper model loaded successfully");
-            } else {
-              logger.transcription.info("No models available to preload");
-            }
-          }
-        }
-      } catch (error) {
-        logger.transcription.error("Failed to handle model change:", error);
-        // Don't throw - model will be loaded on first use
-      }
-    });
+  public async isApiConfigured(): Promise<boolean> {
+    return this.openaiWhisperProvider.isApiConfigured();
   }
 
   /**
@@ -501,26 +419,14 @@ export class TranscriptionService {
       ? completionTime - session.recordingStartedAt
       : undefined;
 
-    const selectedModel = await this.modelService.getSelectedModel();
     const audioDurationSeconds =
       session.context.sharedData.audioMetadata?.duration;
 
-    // Get native binding info if using local whisper
-    let whisperNativeBinding: string | undefined;
-    if (this.whisperProvider && "getBindingInfo" in this.whisperProvider) {
-      const bindingInfo = await this.whisperProvider.getBindingInfo();
-      whisperNativeBinding = bindingInfo?.type;
-      logger.transcription.info(
-        "whisper native binding used",
-        whisperNativeBinding,
-      );
-    }
-
     this.telemetryService.trackTranscriptionCompleted({
       session_id: sessionId,
-      model_id: selectedModel!,
-      model_preloaded: this.modelWasPreloaded,
-      whisper_native_binding: whisperNativeBinding,
+      model_id: "openai-whisper-1",
+      model_preloaded: false,
+      whisper_native_binding: undefined,
       total_duration_ms: totalDuration || 0,
       recording_duration_ms: recordingDuration,
       processing_duration_ms: processingDuration,
@@ -554,9 +460,7 @@ export class TranscriptionService {
     const dictationSettings = await this.settingsService.getDictationSettings();
     if (dictationSettings) {
       context.sharedData.userPreferences.language =
-        dictationSettings.autoDetectEnabled
-          ? undefined
-          : dictationSettings.selectedLanguage || "en";
+        dictationSettings.selectedLanguage || "ja";
     }
 
     // Load vocabulary and replacements
@@ -682,7 +586,7 @@ export class TranscriptionService {
    * Cleanup method
    */
   async dispose(): Promise<void> {
-    await this.whisperProvider.dispose();
+    await this.openaiWhisperProvider.dispose();
     // VAD service is managed by ServiceManager
     logger.transcription.info("Transcription service disposed");
   }

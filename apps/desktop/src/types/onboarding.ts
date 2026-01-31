@@ -13,7 +13,7 @@ export enum OnboardingScreen {
   Welcome = "welcome",
   Permissions = "permissions",
   DiscoverySource = "discovery",
-  ModelSelection = "models",
+  APIKeySetup = "api-key-setup",
   Completion = "completion",
 }
 
@@ -30,37 +30,10 @@ export enum DiscoverySource {
   Other = "other",
 }
 
-export enum ModelType {
-  Cloud = "cloud",
-  Local = "local",
-}
-
-// ============================================================================
-// Data Types
-// ============================================================================
-
-export interface SystemSpecs {
-  cpu_model?: string;
-  cpu_cores: number;
-  cpu_threads: number;
-  cpu_speed_ghz: number;
-  memory_total_gb: number;
-  gpu_model?: string;
-  gpu_vendor?: string;
-}
-
-export interface ModelRecommendation {
-  suggested: ModelType;
-  reason: string;
-  systemSpecs?: Partial<SystemSpecs>;
-}
-
 export interface OnboardingPreferences {
   featureInterests?: FeatureInterest[];
   discoverySource?: DiscoverySource;
   discoveryDetails?: string;
-  selectedModelType?: ModelType;
-  modelRecommendation?: ModelRecommendation & { followed: boolean };
   lastVisitedScreen?: OnboardingScreen;
 }
 
@@ -71,12 +44,6 @@ export interface OnboardingState {
   skippedScreens?: OnboardingScreen[];
   featureInterests?: FeatureInterest[];
   discoverySource?: DiscoverySource;
-  selectedModelType: ModelType;
-  modelRecommendation?: {
-    suggested: ModelType;
-    reason: string;
-    followed: boolean;
-  };
 }
 
 // ============================================================================
@@ -98,8 +65,6 @@ export const FeatureInterestSchema = z.nativeEnum(FeatureInterest);
 
 export const DiscoverySourceSchema = z.nativeEnum(DiscoverySource);
 
-export const ModelTypeSchema = z.nativeEnum(ModelType);
-
 export const OnboardingScreenSchema = z.nativeEnum(OnboardingScreen);
 
 export const OnboardingStateSchema = z.object({
@@ -108,27 +73,11 @@ export const OnboardingStateSchema = z.object({
   skippedScreens: z.array(OnboardingScreenSchema).optional(),
   featureInterests: z.array(FeatureInterestSchema).optional(),
   discoverySource: DiscoverySourceSchema.optional(),
-  selectedModelType: ModelTypeSchema,
-  modelRecommendation: z
-    .object({
-      suggested: ModelTypeSchema,
-      reason: z.string().min(1),
-      followed: z.boolean(),
-    })
-    .optional(),
 });
 
 export const OnboardingPreferencesSchema = z.object({
   featureInterests: z.array(FeatureInterestSchema).optional(),
   discoverySource: DiscoverySourceSchema.optional(),
   discoveryDetails: z.string().max(200).optional(),
-  selectedModelType: ModelTypeSchema.optional(),
-  modelRecommendation: z
-    .object({
-      suggested: ModelTypeSchema,
-      reason: z.string(),
-      followed: z.boolean(),
-    })
-    .optional(),
   lastVisitedScreen: OnboardingScreenSchema.optional(),
 });

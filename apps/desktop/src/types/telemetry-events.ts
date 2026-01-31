@@ -62,8 +62,6 @@ export interface OnboardingCompletedEvent {
   version: number;
   features_selected: string[];
   discovery_source?: string;
-  model_type: string;
-  recommendation_followed: boolean;
   skipped_screens?: string[];
 }
 

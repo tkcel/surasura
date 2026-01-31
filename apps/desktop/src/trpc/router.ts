@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { vocabularyRouter } from "./routers/vocabulary";
 import { transcriptionsRouter } from "./routers/transcriptions";
-import { modelsRouter } from "./routers/models";
 import { settingsRouter } from "./routers/settings";
 import { updaterRouter } from "./routers/updater";
 import { recordingRouter } from "./routers/recording";
@@ -40,9 +39,6 @@ export const router = createRouter({
 
   // Transcriptions router
   transcriptions: transcriptionsRouter,
-
-  // Models router
-  models: modelsRouter,
 
   // Settings router
   settings: settingsRouter,

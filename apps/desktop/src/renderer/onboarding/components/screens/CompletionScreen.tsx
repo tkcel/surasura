@@ -6,14 +6,13 @@ import { NavigationButtons } from "../shared/NavigationButtons";
 import { OnboardingMicrophoneSelect } from "../shared/OnboardingMicrophoneSelect";
 import { OnboardingShortcutInput } from "../shared/OnboardingShortcutInput";
 import { CheckCircle, Settings, Info } from "lucide-react";
-import { FeatureInterest, ModelType } from "../../../../types/onboarding";
+import { FeatureInterest } from "../../../../types/onboarding";
 
 interface CompletionScreenProps {
   onComplete: () => void;
   onBack: () => void;
   preferences: {
     featureInterests?: FeatureInterest[];
-    modelType?: ModelType;
   };
 }
 
@@ -84,8 +83,6 @@ export function CompletionScreen({
           <Info className="mt-0.5 h-4 w-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             すべての設定はアプリケーションの設定からいつでも変更できます。
-            {preferences.modelType === ModelType.Local &&
-              " 選択したローカルモデルはオフラインで使用できます。"}
           </p>
         </div>
       </div>

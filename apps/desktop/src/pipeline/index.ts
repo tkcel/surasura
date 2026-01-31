@@ -20,5 +20,5 @@ export type { PipelineContext, SharedPipelineData } from "./core/context";
 export { TranscriptionService } from "../services/transcription-service";
 
 // Providers (if needed externally)
-export { WhisperProvider } from "./providers/transcription/whisper-provider";
+export { OpenAIWhisperProvider } from "./providers/transcription/openai-whisper-provider";
 export { OpenAIFormatter } from "./providers/formatting/openai-formatter";

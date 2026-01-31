@@ -30,8 +30,7 @@ const ModelProvidersConfigSchema = z.object({
 });
 
 const DictationSettingsSchema = z.object({
-  autoDetectEnabled: z.boolean(),
-  selectedLanguage: z.string().min(1), // Must be valid when autoDetectEnabled is false
+  selectedLanguage: z.string().min(1),
 });
 
 const AppPreferencesSchema = z.object({
@@ -72,7 +71,6 @@ export const settingsRouter = createRouter({
         confidenceThreshold: z.number().optional(),
         enablePunctuation: z.boolean().optional(),
         enableTimestamps: z.boolean().optional(),
-        preloadWhisperModel: z.boolean().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -83,13 +81,8 @@ export const settingsRouter = createRouter({
           throw new Error("SettingsService not available");
         }
 
-        // Check if preloadWhisperModel setting is changing
         const currentSettings =
           await settingsService.getTranscriptionSettings();
-        const preloadChanged =
-          input.preloadWhisperModel !== undefined &&
-          currentSettings &&
-          input.preloadWhisperModel !== currentSettings.preloadWhisperModel;
 
         // Merge with existing settings to provide all required fields
         const mergedSettings = {
@@ -103,19 +96,6 @@ export const settingsRouter = createRouter({
         };
 
         await settingsService.setTranscriptionSettings(mergedSettings);
-
-        // Handle model preloading change (fire-and-forget to avoid blocking UI)
-        if (preloadChanged) {
-          const transcriptionService = ctx.serviceManager.getService(
-            "transcriptionService",
-          );
-          if (transcriptionService) {
-            transcriptionService.handleModelChange().catch((err) => {
-              const logger = ctx.serviceManager.getLogger();
-              logger?.main.error("Failed to handle model change:", err);
-            });
-          }
-        }
 
         return true;
       } catch (error) {
@@ -310,8 +290,7 @@ export const settingsRouter = createRouter({
       const allSettings = await settingsService.getAllSettings();
       return (
         allSettings.dictation || {
-          autoDetectEnabled: true,
-          selectedLanguage: "en",
+          selectedLanguage: "ja",
         }
       );
     } catch (error) {
@@ -320,8 +299,7 @@ export const settingsRouter = createRouter({
         logger.main.error("Error getting dictation settings:", error);
       }
       return {
-        autoDetectEnabled: true,
-        selectedLanguage: "en",
+        selectedLanguage: "ja",
       };
     }
   }),
@@ -337,28 +315,8 @@ export const settingsRouter = createRouter({
           throw new Error("SettingsService not available");
         }
 
-        // Validation: if autoDetectEnabled is false, ensure selectedLanguage is valid
-        if (
-          !input.autoDetectEnabled &&
-          (!input.selectedLanguage || input.selectedLanguage === "auto")
-        ) {
-          throw new Error(
-            "Selected language must be specified when auto-detect is disabled",
-          );
-        }
-
-        // Set default to "en" if switching from auto-detect enabled to disabled with invalid language
-        let selectedLanguage = input.selectedLanguage;
-        if (
-          !input.autoDetectEnabled &&
-          (!selectedLanguage || selectedLanguage === "auto")
-        ) {
-          selectedLanguage = "en";
-        }
-
         const dictationSettings = {
-          autoDetectEnabled: input.autoDetectEnabled,
-          selectedLanguage,
+          selectedLanguage: input.selectedLanguage,
         };
 
         await settingsService.setDictationSettings(dictationSettings);
@@ -465,6 +423,39 @@ export const settingsRouter = createRouter({
       return undefined;
     }
   }),
+
+  // Validate OpenAI API connection
+  validateOpenAIConnection: procedure
+    .input(z.object({ apiKey: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const response = await fetch("https://api.openai.com/v1/models", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${input.apiKey}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage =
+            (errorData as { error?: { message?: string } })?.error?.message ||
+            `HTTP ${response.status}: ${response.statusText}`;
+          return {
+            success: false as const,
+            error: errorMessage,
+          };
+        }
+
+        return { success: true as const };
+      } catch (error) {
+        return {
+          success: false as const,
+          error: error instanceof Error ? error.message : "Connection failed",
+        };
+      }
+    }),
 
   // Get data path
   getDataPath: procedure.query(() => {

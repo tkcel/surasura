@@ -26,7 +26,7 @@ export default function LanguageTab() {
 
   // Mutations
   const setOpenAIConfig = trpc.settings.setOpenAIConfig.useMutation();
-  const validateConnection = trpc.models.validateOpenAIConnection.useMutation();
+  const validateConnection = trpc.settings.validateOpenAIConnection.useMutation();
   const setFormatterConfig = trpc.settings.setFormatterConfig.useMutation();
 
   // Initialize from stored config

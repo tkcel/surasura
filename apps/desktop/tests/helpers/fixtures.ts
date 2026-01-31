@@ -26,7 +26,6 @@ export const defaultAppSettings: AppSettingsData = {
     confidenceThreshold: 0.7,
     enablePunctuation: true,
     enableTimestamps: false,
-    preloadWhisperModel: false,
   },
   recording: {
     defaultFormat: "wav",
@@ -41,11 +40,10 @@ export const defaultAppSettings: AppSettingsData = {
     toggleWindow: "CommandOrControl+Shift+W",
   },
   modelProvidersConfig: {
-    defaultSpeechModel: "local-whisper:ggml-base.en",
+    defaultSpeechModel: "openai-whisper:whisper-1",
   },
   dictation: {
-    autoDetectEnabled: true,
-    selectedLanguage: "en",
+    selectedLanguage: "ja",
   },
   preferences: {
     launchAtLogin: false,
@@ -72,7 +70,7 @@ export const sampleTranscriptions: NewTranscription[] = [
     language: "en",
     confidence: 0.95,
     duration: 5,
-    speechModel: "whisper-base",
+    speechModel: "openai-whisper-1",
     formattingModel: null,
   },
   {
@@ -80,7 +78,7 @@ export const sampleTranscriptions: NewTranscription[] = [
     language: "en",
     confidence: 0.88,
     duration: 8,
-    speechModel: "whisper-base",
+    speechModel: "openai-whisper-1",
     formattingModel: "gpt-4o-mini",
   },
   {
@@ -88,7 +86,7 @@ export const sampleTranscriptions: NewTranscription[] = [
     language: "en",
     confidence: 0.92,
     duration: 6,
-    speechModel: "whisper-large",
+    speechModel: "openai-whisper-1",
     formattingModel: null,
   },
 ];
@@ -121,20 +119,6 @@ export const sampleVocabulary: NewVocabulary[] = [
  * Sample models for testing
  */
 export const sampleModels: NewModel[] = [
-  {
-    id: "ggml-base.en",
-    provider: "local-whisper",
-    name: "Whisper Base English",
-    type: "speech",
-    size: "~147 MB",
-    description: "Optimized for English transcription",
-    localPath: "/test/models/ggml-base.en.bin",
-    sizeBytes: 147964211,
-    checksum: "test-checksum-base",
-    downloadedAt: new Date(),
-    speed: 4,
-    accuracy: 3,
-  },
   {
     id: "gpt-4o-mini",
     provider: "openrouter",

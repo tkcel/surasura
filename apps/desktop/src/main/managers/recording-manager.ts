@@ -687,7 +687,7 @@ export class RecordingManager extends EventEmitter {
       });
 
       if (nativeBridge) {
-        nativeBridge.call("pasteText", {
+        await nativeBridge.call("pasteText", {
           transcript: transcription,
         });
       }

@@ -27,16 +27,11 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "src/main/main.ts"),
-        "whisper-worker-fork": resolve(
-          __dirname,
-          "src/pipeline/providers/transcription/whisper-worker-fork.ts",
-        ),
       },
       output: {
         entryFileNames: "[name].js",
       },
       external: [
-        "@amical/whisper-wrapper",
         "@libsql/client",
         "@libsql/darwin-arm64",
         "@libsql/darwin-x64",
@@ -56,11 +51,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: [
-      "better-sqlite3",
-      "@amical/whisper-wrapper",
-      "drizzle-orm",
-      "@libsql/client",
-    ],
+    exclude: ["better-sqlite3", "drizzle-orm", "@libsql/client"],
   },
 });

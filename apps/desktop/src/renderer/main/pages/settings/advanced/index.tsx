@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -25,28 +24,14 @@ import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
 export default function AdvancedSettingsPage() {
-  const [preloadWhisperModel, setPreloadWhisperModel] = useState(true);
   const [isResetting, setIsResetting] = useState(false);
 
   // tRPC queries and mutations
-  const settingsQuery = api.settings.getSettings.useQuery();
   const telemetryQuery = api.settings.getTelemetrySettings.useQuery();
   const dataPathQuery = api.settings.getDataPath.useQuery();
   const logFilePathQuery = api.settings.getLogFilePath.useQuery();
   const machineIdQuery = api.settings.getMachineId.useQuery();
   const utils = api.useUtils();
-
-  const updateTranscriptionSettingsMutation =
-    api.settings.updateTranscriptionSettings.useMutation({
-      onSuccess: () => {
-        utils.settings.getSettings.invalidate();
-        toast.success("Settings updated");
-      },
-      onError: (error) => {
-        console.error("Failed to update transcription settings:", error);
-        toast.error("Failed to update settings. Please try again.");
-      },
-    });
 
   const updateTelemetrySettingsMutation =
     api.settings.updateTelemetrySettings.useMutation({
@@ -87,22 +72,6 @@ export default function AdvancedSettingsPage() {
     },
   });
 
-  // Load settings when query data is available
-  useEffect(() => {
-    if (settingsQuery.data?.transcription) {
-      setPreloadWhisperModel(
-        settingsQuery.data.transcription.preloadWhisperModel !== false,
-      );
-    }
-  }, [settingsQuery.data]);
-
-  const handlePreloadWhisperModelChange = (checked: boolean) => {
-    setPreloadWhisperModel(checked);
-    updateTranscriptionSettingsMutation.mutate({
-      preloadWhisperModel: checked,
-    });
-  };
-
   const handleTelemetryChange = (checked: boolean) => {
     updateTelemetrySettingsMutation.mutate({
       enabled: checked,
@@ -131,20 +100,6 @@ export default function AdvancedSettingsPage() {
           <CardDescription>Advanced configuration options</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="preload-whisper">Preload Whisper Model</Label>
-              <p className="text-sm text-muted-foreground">
-                Load AI model at startup for faster transcription
-              </p>
-            </div>
-            <Switch
-              id="preload-whisper"
-              checked={preloadWhisperModel}
-              onCheckedChange={handlePreloadWhisperModelChange}
-            />
-          </div>
-
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="debug-mode">Debug Mode</Label>
@@ -268,7 +223,6 @@ export default function AdvancedSettingsPage() {
                         <li>All your notes</li>
                         <li>Your vocabulary</li>
                         <li>All settings and preferences</li>
-                        <li>Downloaded models</li>
                       </ul>
                       <br />
                       The app will restart with a fresh installation.

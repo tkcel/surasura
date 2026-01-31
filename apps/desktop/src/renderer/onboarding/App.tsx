@@ -8,13 +8,12 @@ import { OnboardingErrorBoundary } from "./components/ErrorBoundary";
 import { WelcomeScreen } from "./components/screens/WelcomeScreen";
 import { PermissionsScreen } from "./components/screens/PermissionsScreen";
 import { DiscoverySourceScreen } from "./components/screens/DiscoverySourceScreen";
-import { ModelSelectionScreen } from "./components/screens/ModelSelectionScreen";
+import { APIKeySetupScreen } from "./components/screens/APIKeySetupScreen";
 import { CompletionScreen } from "./components/screens/CompletionScreen";
 
 // Types
 import {
   OnboardingScreen,
-  ModelType,
   type OnboardingState,
   type OnboardingPreferences,
   type FeatureInterest,
@@ -66,7 +65,7 @@ export function App() {
     OnboardingScreen.Welcome,
     OnboardingScreen.Permissions,
     OnboardingScreen.DiscoverySource,
-    OnboardingScreen.ModelSelection,
+    OnboardingScreen.APIKeySetup,
     OnboardingScreen.Completion,
   ];
 
@@ -85,7 +84,7 @@ export function App() {
           return false;
         if (screen === OnboardingScreen.DiscoverySource && flags.skipDiscovery)
           return false;
-        if (screen === OnboardingScreen.ModelSelection && flags.skipModels)
+        if (screen === OnboardingScreen.APIKeySetup && flags.skipModels)
           return false;
       }
 
@@ -242,17 +241,9 @@ export function App() {
     });
   };
 
-  // Handle model selection (telemetry tracked in backend)
-  const handleModelSelection = (
-    modelType: ModelType,
-    recommendationFollowed: boolean,
-  ) => {
-    handleSaveAndContinue({
-      selectedModelType: modelType,
-      modelRecommendation: state?.modelRecommendation
-        ? { ...state.modelRecommendation, followed: recommendationFollowed }
-        : undefined,
-    });
+  // Handle API key setup completion (telemetry tracked in backend)
+  const handleAPIKeySetup = () => {
+    navigateNext();
   };
 
   // Handle completion (T039)
@@ -265,8 +256,6 @@ export function App() {
         skippedScreens: skippedScreensQuery.data || [],
         featureInterests: preferences.featureInterests,
         discoverySource: preferences.discoverySource,
-        selectedModelType: preferences.selectedModelType || ModelType.Cloud,
-        modelRecommendation: preferences.modelRecommendation,
       };
 
       // Complete onboarding (will also track completion event)
@@ -324,12 +313,11 @@ export function App() {
           />
         );
 
-      case OnboardingScreen.ModelSelection:
+      case OnboardingScreen.APIKeySetup:
         return (
-          <ModelSelectionScreen
-            onNext={handleModelSelection}
+          <APIKeySetupScreen
+            onNext={handleAPIKeySetup}
             onBack={navigateBack}
-            initialSelection={preferences.selectedModelType}
           />
         );
 

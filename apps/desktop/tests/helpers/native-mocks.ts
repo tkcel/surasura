@@ -25,27 +25,6 @@ export const mockOnnxRuntime = {
   },
 };
 
-// Mock @amical/whisper-wrapper
-export const mockWhisperWrapper = {
-  WhisperModel: vi.fn().mockImplementation(() => ({
-    transcribe: vi.fn(() =>
-      Promise.resolve({
-        text: "Test transcription",
-        segments: [
-          {
-            start: 0,
-            end: 1.5,
-            text: "Test transcription",
-          },
-        ],
-      }),
-    ),
-    dispose: vi.fn(),
-  })),
-  downloadModel: vi.fn(() => Promise.resolve()),
-  getModelPath: vi.fn(() => "/mock/model/path"),
-};
-
 // Mock keytar (credential storage)
 export const mockKeytar = {
   getPassword: vi.fn((service: string, account: string) =>
@@ -159,7 +138,6 @@ export const mockUpdateElectronApp = vi.fn();
 export function createNativeMocks() {
   return {
     "onnxruntime-node": mockOnnxRuntime,
-    "@amical/whisper-wrapper": mockWhisperWrapper,
     keytar: mockKeytar,
     libsql: mockLibsql,
     "@amical/swift-helper": mockSwiftHelper,

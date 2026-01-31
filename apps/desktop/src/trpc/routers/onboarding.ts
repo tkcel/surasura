@@ -4,7 +4,6 @@ import { createRouter, procedure } from "../trpc";
 import {
   OnboardingPreferencesSchema,
   OnboardingStateSchema,
-  type ModelRecommendation,
   type OnboardingFeatureFlags,
 } from "../../types/onboarding";
 import { logger } from "../../main/logger";
@@ -37,47 +36,6 @@ export const onboardingRouter = createRouter({
       logger.main.error("Failed to get onboarding state:", error);
       throw error;
     }
-  }),
-
-  /**
-   * Get system recommendation for model selection
-   */
-  getSystemRecommendation: procedure.query(
-    async ({ ctx }): Promise<ModelRecommendation> => {
-      try {
-        const { serviceManager } = ctx;
-        if (!serviceManager) {
-          throw new Error("ServiceManager not available");
-        }
-        const onboardingService = serviceManager.getOnboardingService();
-
-        if (!onboardingService) {
-          throw new Error("OnboardingService not available");
-        }
-
-        const recommendation =
-          await onboardingService.getSystemRecommendation();
-        return recommendation;
-      } catch (error) {
-        logger.main.error("Failed to get system recommendation:", error);
-        throw error;
-      }
-    },
-  ),
-
-  /**
-   * Get recommended local model ID based on hardware
-   */
-  getRecommendedLocalModel: procedure.query(({ ctx }): string => {
-    const { serviceManager } = ctx;
-    if (!serviceManager) {
-      return "whisper-base";
-    }
-    const onboardingService = serviceManager.getOnboardingService();
-    if (!onboardingService) {
-      return "whisper-base";
-    }
-    return onboardingService.getRecommendedLocalModelId();
   }),
 
   /**

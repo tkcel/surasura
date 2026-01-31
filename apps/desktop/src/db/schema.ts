@@ -123,7 +123,6 @@ export interface AppSettingsData {
     confidenceThreshold: number;
     enablePunctuation: boolean;
     enableTimestamps: boolean;
-    preloadWhisperModel?: boolean;
   };
   recording?: {
     defaultFormat: "wav" | "mp3" | "flac";
@@ -147,8 +146,7 @@ export interface AppSettingsData {
   };
 
   dictation?: {
-    autoDetectEnabled: boolean;
-    selectedLanguage: string; // Required when autoDetectEnabled is false, defaults to "en"
+    selectedLanguage: string; // Language code (e.g., "ja", "en")
   };
   preferences?: {
     launchAtLogin?: boolean;

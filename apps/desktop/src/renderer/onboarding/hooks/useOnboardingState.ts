@@ -66,12 +66,6 @@ export function useOnboardingState(): UseOnboardingStateReturn {
           if (preferences.discoverySource !== undefined) {
             updated.discoverySource = preferences.discoverySource;
           }
-          if (preferences.selectedModelType !== undefined) {
-            updated.selectedModelType = preferences.selectedModelType;
-          }
-          if (preferences.modelRecommendation !== undefined) {
-            updated.modelRecommendation = preferences.modelRecommendation;
-          }
 
           return updated;
         });

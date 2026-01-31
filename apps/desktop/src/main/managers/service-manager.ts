@@ -1,5 +1,4 @@
 import { logger } from "../logger";
-import { ModelService } from "../../services/model-service";
 import { TranscriptionService } from "../../services/transcription-service";
 import { SettingsService } from "../../services/settings-service";
 import { NativeBridge } from "../../services/platform/native-bridge-service";
@@ -17,7 +16,6 @@ import { OnboardingService } from "../../services/onboarding-service";
  */
 export interface ServiceMap {
   telemetryService: TelemetryService;
-  modelService: ModelService;
   transcriptionService: TranscriptionService;
   settingsService: SettingsService;
   vadService: VADService;
@@ -37,7 +35,6 @@ export class ServiceManager {
   private isInitialized = false;
 
   private telemetryService: TelemetryService | null = null;
-  private modelService: ModelService | null = null;
   private transcriptionService: TranscriptionService | null = null;
   private settingsService: SettingsService | null = null;
   private vadService: VADService | null = null;
@@ -60,7 +57,6 @@ export class ServiceManager {
     try {
       this.initializeSettingsService();
       await this.initializeTelemetryService();
-      await this.initializeModelServices();
       await this.initializeOnboardingService();
       this.initializePlatformServices();
       await this.initializeVADService();
@@ -90,9 +86,9 @@ export class ServiceManager {
   }
 
   private async initializeOnboardingService(): Promise<void> {
-    if (!this.settingsService || !this.telemetryService || !this.modelService) {
+    if (!this.settingsService || !this.telemetryService) {
       logger.main.warn(
-        "Settings, telemetry, or model service not available for onboarding",
+        "Settings or telemetry service not available for onboarding",
       );
       return;
     }
@@ -100,18 +96,8 @@ export class ServiceManager {
     this.onboardingService = OnboardingService.getInstance(
       this.settingsService,
       this.telemetryService,
-      this.modelService,
     );
     logger.main.info("Onboarding service initialized");
-  }
-
-  private async initializeModelServices(): Promise<void> {
-    // Initialize Model Manager Service
-    if (!this.settingsService) {
-      throw new Error("Settings service not initialized");
-    }
-    this.modelService = new ModelService(this.settingsService);
-    await this.modelService.initialize();
   }
 
   private async initializeVADService(): Promise<void> {
@@ -127,16 +113,11 @@ export class ServiceManager {
 
   private async initializeAIServices(): Promise<void> {
     try {
-      if (!this.modelService) {
-        throw new Error("Model manager service not initialized");
-      }
-
       if (!this.settingsService) {
         throw new Error("Settings service not initialized");
       }
 
       this.transcriptionService = new TranscriptionService(
-        this.modelService,
         this.vadService!,
         this.settingsService,
         this.telemetryService!,
@@ -146,7 +127,7 @@ export class ServiceManager {
       await this.transcriptionService.initialize();
 
       logger.transcription.info("Transcription Service initialized", {
-        client: "Pipeline with Whisper",
+        client: "OpenAI Whisper API",
       });
     } catch (error) {
       logger.transcription.error(
@@ -204,7 +185,6 @@ export class ServiceManager {
 
     const services: ServiceMap = {
       telemetryService: this.telemetryService!,
-      modelService: this.modelService!,
       transcriptionService: this.transcriptionService!,
       settingsService: this.settingsService!,
       vadService: this.vadService!,
@@ -227,10 +207,6 @@ export class ServiceManager {
     if (this.recordingManager) {
       logger.main.info("Cleaning up recording manager...");
       await this.recordingManager.cleanup();
-    }
-    if (this.modelService) {
-      logger.main.info("Cleaning up model downloads...");
-      this.modelService.cleanup();
     }
 
     if (this.vadService) {

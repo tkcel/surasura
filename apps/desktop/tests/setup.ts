@@ -68,32 +68,6 @@ vi.mock("onnxruntime-node", () => ({
   },
 }));
 
-vi.mock("@amical/whisper-wrapper", () => ({
-  WhisperModel: vi.fn().mockImplementation(function () {
-    return {
-      transcribe: vi.fn(function () {
-        return Promise.resolve({
-          text: "Test transcription",
-          segments: [
-            {
-              start: 0,
-              end: 1.5,
-              text: "Test transcription",
-            },
-          ],
-        });
-      }),
-      dispose: vi.fn(),
-    };
-  }),
-  downloadModel: vi.fn(function () {
-    return Promise.resolve();
-  }),
-  getModelPath: vi.fn(function () {
-    return "/mock/model/path";
-  }),
-}));
-
 vi.mock("keytar", () => ({
   getPassword: vi.fn(function (service: string, account: string) {
     return Promise.resolve(null);
