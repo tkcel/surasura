@@ -96,7 +96,7 @@ export const sampleTranscriptions: NewTranscription[] = [
  */
 export const sampleVocabulary: NewVocabulary[] = [
   {
-    word: "Surasura",
+    word: "surasura",
     replacementWord: null,
     isReplacement: false,
     usageCount: 5,

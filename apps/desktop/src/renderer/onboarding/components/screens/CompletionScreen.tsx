@@ -35,7 +35,7 @@ export function CompletionScreen({
           showBack={true}
           showNext={false}
           showComplete={true}
-          completeLabel="Surasuraを使い始める"
+          completeLabel="surasuraを使い始める"
         />
       }
     >

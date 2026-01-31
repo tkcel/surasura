@@ -382,8 +382,8 @@ const config: ForgeConfig = {
       unpack:
         "{*.node,*.dylib,*.so,*.dll,*.metal,**/node_modules/jest-worker/**,**/onnxruntime-node/bin/**}",
     },
-    name: "Surasura",
-    executableName: "Surasura",
+    name: "surasura",
+    executableName: "surasura",
     icon: "./assets/logo", // Path to your icon file
     appBundleId: "com.surasura.desktop", // Proper bundle ID
     extraResource: [
@@ -411,7 +411,7 @@ const config: ForgeConfig = {
     },
     protocols: [
       {
-        name: "Surasura",
+        name: "surasura",
         schemes: ["surasura"],
       },
     ],
@@ -529,12 +529,12 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({
-      name: "Surasura",
+      name: "surasura",
       setupIcon: "./assets/logo.ico",
     }),
     new MakerZIP(
       {
-        // macOS ZIP files will be named like: Surasura-darwin-arm64-1.0.0.zip
+        // macOS ZIP files will be named like: surasura-darwin-arm64-1.0.0.zip
         // The default naming includes platform and arch, which is good for auto-updates
       },
       ["darwin"]
@@ -542,7 +542,7 @@ const config: ForgeConfig = {
     new MakerDMG(
       {
         //! @see https://github.com/electron/forge/issues/3517#issuecomment-2428129194
-        // macOS DMG files will be named like: Surasura-0.0.1-arm64.dmg
+        // macOS DMG files will be named like: surasura-0.0.1-arm64.dmg
         icon: "./assets/logo.icns",
         background: "./assets/dmg_bg.tiff",
       },

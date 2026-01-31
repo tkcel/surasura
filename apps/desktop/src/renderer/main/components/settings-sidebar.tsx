@@ -36,10 +36,10 @@ export function SettingsSidebar({
               <div className="inline-flex items-center gap-2.5 font-semibold w-full">
                 <img
                   src="assets/logo.svg"
-                  alt="Surasura Logo"
+                  alt="surasura Logo"
                   className="!size-7"
                 />
-                <span className="font-semibold">Surasura</span>
+                <span className="font-semibold">surasura</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

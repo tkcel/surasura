@@ -1,8 +1,8 @@
-# Surasura リリース手順
+# surasura リリース手順
 
 ## 概要
 
-Surasuraのリリースは GitHub Actions を利用して自動化されています。
+surasuraのリリースは GitHub Actions を利用して自動化されています。
 タグをプッシュするか、手動でワークフローを実行することでビルド・リリースが行われます。
 
 ## 対応プラットフォーム
@@ -124,14 +124,14 @@ SKIP_CODESIGNING=true SKIP_NOTARIZATION=true pnpm make:arm64
 
 ```
 apps/desktop/out/make/
-├── Surasura-{version}-arm64.dmg      # macOS arm64 DMG
-├── Surasura-{version}-x64.dmg        # macOS x64 DMG
+├── surasura-{version}-arm64.dmg      # macOS arm64 DMG
+├── surasura-{version}-x64.dmg        # macOS x64 DMG
 ├── zip/darwin/
-│   ├── arm64/Surasura-darwin-arm64-{version}.zip
-│   └── x64/Surasura-darwin-x64-{version}.zip
+│   ├── arm64/surasura-darwin-arm64-{version}.zip
+│   └── x64/surasura-darwin-x64-{version}.zip
 └── squirrel.windows/x64/
-    ├── SurasuraSetup.exe             # Windows インストーラー
-    ├── Surasura-{version}-full.nupkg # Squirrel 更新パッケージ
+    ├── surasuraSetup.exe             # Windows インストーラー
+    ├── surasura-{version}-full.nupkg # Squirrel 更新パッケージ
     └── RELEASES                       # 更新メタデータ
 ```
 

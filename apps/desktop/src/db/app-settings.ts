@@ -76,8 +76,8 @@ const migrations: Record<number, MigrationFn> = {
       oldData.modelProvidersConfig?.defaultSpeechModel === "surasura-cloud";
     const hasNoFormattingModel = !oldData.formatterConfig?.modelId;
 
-    // If user is on Surasura Cloud transcription and hasn't set a formatting model,
-    // auto-enable formatting with Surasura Cloud
+    // If user is on surasura Cloud transcription and hasn't set a formatting model,
+    // auto-enable formatting with surasura Cloud
     if (isCloudSpeech && hasNoFormattingModel) {
       return {
         ...oldData,

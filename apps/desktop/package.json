@@ -1,11 +1,11 @@
 {
   "name": "@surasura/desktop",
   "version": "0.1.17",
-  "description": "Surasura Desktop app",
+  "description": "surasura Desktop app",
   "main": ".vite/build/main.js",
-  "productName": "Surasura",
+  "productName": "surasura",
   "author": {
-    "name": "Surasura"
+    "name": "surasura"
   },
   "scripts": {
     "start": "pnpm build:deps && electron-forge start",

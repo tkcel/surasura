@@ -14,7 +14,7 @@ import { api } from "@/trpc/react";
 
 const DISCORD_URL = "https://discord.gg/ffpmWv5d";
 
-const SURASURA_LICENSE = `Surasura 非商用ライセンス
+const SURASURA_LICENSE = `surasura 非商用ライセンス
 
 Copyright (c) 2026 Takashi Nemoto, KyoToku Inc.
 
@@ -117,7 +117,7 @@ export default function AboutSettingsPage() {
             </DialogHeader>
             <Tabs defaultValue="surasura" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="surasura">Surasura</TabsTrigger>
+                <TabsTrigger value="surasura">surasura</TabsTrigger>
                 <TabsTrigger value="thirdparty">サードパーティ</TabsTrigger>
               </TabsList>
               <TabsContent value="surasura">

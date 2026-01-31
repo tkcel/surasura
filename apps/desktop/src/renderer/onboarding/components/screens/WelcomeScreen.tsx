@@ -16,7 +16,7 @@ interface WelcomeScreenProps {
 
 /**
  * Welcome screen - first screen users see in onboarding
- * Introduces Surasura and allows users to select features they're interested in
+ * Introduces surasura and allows users to select features they're interested in
  */
 export function WelcomeScreen({
   onNext,
@@ -78,7 +78,7 @@ export function WelcomeScreen({
 
   return (
     <OnboardingLayout
-      title="Surasuraへようこそ"
+      title="surasuraへようこそ"
       subtitle="興味のある機能を選択して、体験をカスタマイズしましょう"
       footer={
         <div className="space-y-4">

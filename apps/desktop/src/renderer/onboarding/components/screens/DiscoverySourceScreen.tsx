@@ -15,7 +15,7 @@ interface DiscoverySourceScreenProps {
 }
 
 /**
- * Discovery source screen - asks how users found Surasura
+ * Discovery source screen - asks how users found surasura
  */
 export function DiscoverySourceScreen({
   onNext,
@@ -49,7 +49,7 @@ export function DiscoverySourceScreen({
 
   const handleContinue = () => {
     if (!selectedSource) {
-      toast.error("Surasuraをどこで知ったか選択してください");
+      toast.error("surasuraをどこで知ったか選択してください");
       return;
     }
 
@@ -66,7 +66,7 @@ export function DiscoverySourceScreen({
 
   return (
     <OnboardingLayout
-      title="Surasuraをどこで知りましたか？"
+      title="surasuraをどこで知りましたか？"
       subtitle="ユーザーの皆様がどこから来ているか把握するのに役立ちます"
       footer={
         <NavigationButtons

@@ -264,7 +264,7 @@ export default function PreferencesSettingsPage() {
               <div>
                 <Label htmlFor="telemetry">改善のために匿名で情報を提供する</Label>
                 <p className="text-sm text-muted-foreground">
-                  匿名の使用状況データを共有してSurasuraの改善に協力する
+                  匿名の使用状況データを共有してsurasuraの改善に協力する
                 </p>
               </div>
               <Switch

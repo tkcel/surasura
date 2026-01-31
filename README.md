@@ -1,11 +1,11 @@
-# Surasura
+# surasura
 
 Local-first AI Dictation app.
 
-Surasura is an open source AI-powered dictation and note-taking app that runs entirely on your machine.
-Powered by [Whisper](https://github.com/openai/whisper) for speech-to-text and open source LLMs for intelligent processing, Surasura gives you the power of AI dictation with complete privacy.
+surasura is an open source AI-powered dictation and note-taking app that runs entirely on your machine.
+Powered by [Whisper](https://github.com/openai/whisper) for speech-to-text and open source LLMs for intelligent processing, surasura gives you the power of AI dictation with complete privacy.
 
-Context-aware dictation that adapts to what you're doing: drafting an email, chatting on Discord, writing prompts in your IDE, or messaging friends. Surasura detects the active app and formats your speech accordingly.
+Context-aware dictation that adapts to what you're doing: drafting an email, chatting on Discord, writing prompts in your IDE, or messaging friends. surasura detects the active app and formats your speech accordingly.
 
 ## Features
 
