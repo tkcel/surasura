@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/trpc/react";
 
 const DISCORD_URL = "https://discord.gg/ffpmWv5d";
+const AMICAL_URL = "https://github.com/amicalhq/amical";
 
 const SURASURA_LICENSE = `surasura 非商用ライセンス
 
@@ -65,6 +66,12 @@ export default function AboutSettingsPage() {
     }
   };
 
+  const handleOpenAmical = async () => {
+    if (window.electronAPI?.openExternal) {
+      await window.electronAPI.openExternal(AMICAL_URL);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-5xl">
       {/* Header Section */}
@@ -105,6 +112,16 @@ export default function AboutSettingsPage() {
 
       {/* Footer with license link */}
       <div className="mt-8 pt-4 border-t text-center">
+        <p className="text-xs text-muted-foreground mb-2">
+          このアプリは{" "}
+          <button
+            onClick={handleOpenAmical}
+            className="font-medium hover:text-foreground hover:underline"
+          >
+            Amical
+          </button>{" "}
+          を参考に多くの機能を実装しています。開発者の皆様に感謝いたします。
+        </p>
         <Dialog>
           <DialogTrigger asChild>
             <button className="text-xs text-muted-foreground hover:text-foreground hover:underline">
