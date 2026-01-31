@@ -20,7 +20,6 @@ export enum OnboardingScreen {
 export enum FeatureInterest {
   ContextualDictation = "contextual_dictation",
   NoteTaking = "note_taking",
-  MeetingTranscriptions = "meeting_transcriptions",
   VoiceCommands = "voice_commands",
 }
 
@@ -28,10 +27,6 @@ export enum DiscoverySource {
   SearchEngine = "search_engine",
   SocialMedia = "social_media",
   WordOfMouth = "word_of_mouth",
-  Advertisement = "advertisement",
-  GitHub = "github",
-  AIAssistant = "ai_assistant",
-  BlogArticle = "blog_article",
   Other = "other",
 }
 

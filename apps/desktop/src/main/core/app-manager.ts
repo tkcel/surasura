@@ -8,6 +8,7 @@ import { TrayManager } from "../managers/tray-manager";
 import { createIPCHandler } from "electron-trpc-experimental/main";
 import { router } from "../../trpc/router";
 import { createContext } from "../../trpc/context";
+import { cleanupAudioFiles } from "../../utils/audio-file-cleanup";
 import type { OnboardingService } from "../../services/onboarding-service";
 import type { RecordingManager } from "../managers/recording-manager";
 import type { RecordingState } from "../../types/recording";
@@ -27,6 +28,10 @@ export class AppManager {
 
   async initialize(): Promise<void> {
     await this.initializeDatabase();
+
+    // Clean up old audio files on startup
+    await cleanupAudioFiles();
+    logger.main.info("Audio file cleanup completed");
 
     await this.serviceManager.initialize();
 

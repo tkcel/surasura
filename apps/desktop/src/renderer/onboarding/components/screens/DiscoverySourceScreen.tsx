@@ -42,18 +42,6 @@ export function DiscoverySourceScreen({
       label: "友人や同僚からの紹介",
     },
     {
-      id: DiscoverySource.BlogArticle,
-      label: "ブログ記事やニュース",
-    },
-    {
-      id: DiscoverySource.GitHub,
-      label: "GitHub",
-    },
-    {
-      id: DiscoverySource.AIAssistant,
-      label: "AIアシスタント（ChatGPT、Claudeなど）",
-    },
-    {
       id: DiscoverySource.Other,
       label: "その他",
     },

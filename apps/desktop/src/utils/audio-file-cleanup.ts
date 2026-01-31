@@ -4,8 +4,8 @@ import * as path from "node:path";
 import { logger } from "../main/logger";
 
 /**
- * Clean up old audio files from the temporary directory
- * @param maxAgeMs Maximum age of files to keep in milliseconds (default: 24 hours)
+ * Clean up old audio files from the audio directory
+ * @param maxAgeMs Maximum age of files to keep in milliseconds (default: 7 days)
  * @param maxSizeBytes Maximum total size of audio files in bytes (default: 500MB)
  */
 export async function cleanupAudioFiles(options?: {
@@ -15,7 +15,7 @@ export async function cleanupAudioFiles(options?: {
   const maxAgeMs = options?.maxAgeMs ?? 7 * 24 * 60 * 60 * 1000; // 7 days
   const maxSizeBytes = options?.maxSizeBytes ?? 500 * 1024 * 1024; // 500MB
 
-  const audioDir = path.join(app.getPath("temp"), "amical-audio");
+  const audioDir = path.join(app.getPath("userData"), "audio");
 
   try {
     // Check if directory exists
@@ -107,7 +107,7 @@ export async function cleanupAudioFiles(options?: {
 export async function deleteAudioFile(filePath: string): Promise<void> {
   try {
     // Ensure the file is in the audio directory
-    const audioDir = path.join(app.getPath("temp"), "amical-audio");
+    const audioDir = path.join(app.getPath("userData"), "audio");
     if (!filePath.startsWith(audioDir)) {
       throw new Error("File is not in the audio directory");
     }
