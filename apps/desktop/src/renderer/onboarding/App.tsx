@@ -5,9 +5,7 @@ import { ProgressIndicator } from "./components/shared/ProgressIndicator";
 import { OnboardingErrorBoundary } from "./components/ErrorBoundary";
 
 // Screens
-import { WelcomeScreen } from "./components/screens/WelcomeScreen";
 import { PermissionsScreen } from "./components/screens/PermissionsScreen";
-import { DiscoverySourceScreen } from "./components/screens/DiscoverySourceScreen";
 import { APIKeySetupScreen } from "./components/screens/APIKeySetupScreen";
 import { CompletionScreen } from "./components/screens/CompletionScreen";
 
@@ -16,8 +14,6 @@ import {
   OnboardingScreen,
   type OnboardingState,
   type OnboardingPreferences,
-  type FeatureInterest,
-  type DiscoverySource,
 } from "../../types/onboarding";
 
 interface PermissionStatus {
@@ -32,7 +28,7 @@ interface PermissionStatus {
 export function App() {
   // State management
   const [currentScreen, setCurrentScreen] = useState<OnboardingScreen>(
-    OnboardingScreen.Welcome,
+    OnboardingScreen.Permissions,
   );
   const [permissions, setPermissions] = useState<PermissionStatus>({
     microphone: "not-determined",
@@ -42,7 +38,6 @@ export function App() {
   const [preferences, setPreferences] = useState<
     Partial<OnboardingPreferences>
   >({});
-  const [discoveryDetails, setDiscoveryDetails] = useState<string>("");
 
   // Hooks
   const { state, isLoading, savePreferences, completeOnboarding } =
@@ -62,9 +57,7 @@ export function App() {
 
   // Screen order - can be modified based on feature flags
   const screenOrder: OnboardingScreen[] = [
-    OnboardingScreen.Welcome,
     OnboardingScreen.Permissions,
-    OnboardingScreen.DiscoverySource,
     OnboardingScreen.APIKeySetup,
     OnboardingScreen.Completion,
   ];
@@ -81,8 +74,6 @@ export function App() {
       // Check feature flags
       if (flags) {
         if (screen === OnboardingScreen.Welcome && flags.skipWelcome)
-          return false;
-        if (screen === OnboardingScreen.DiscoverySource && flags.skipDiscovery)
           return false;
         if (screen === OnboardingScreen.APIKeySetup && flags.skipModels)
           return false;
@@ -179,8 +170,8 @@ export function App() {
 
   // Save current screen for resume capability (telemetry tracked in backend)
   useEffect(() => {
-    if (currentScreen !== OnboardingScreen.Welcome) {
-      // Don't save Welcome screen, start from there if no progress
+    if (currentScreen !== OnboardingScreen.Permissions) {
+      // Don't save first screen, start from there if no progress
       // Use ref to avoid dependency on savePreferences which changes identity on mutation state
       savePreferencesRef.current({
         lastVisitedScreen: currentScreen,
@@ -208,39 +199,6 @@ export function App() {
     }
   }, [currentScreen, getActiveScreens]);
 
-  // Save preferences and navigate
-  const handleSaveAndContinue = (
-    newPreferences: Partial<OnboardingPreferences>,
-  ) => {
-    // Merge with existing preferences
-    const updatedPreferences = { ...preferences, ...newPreferences };
-    setPreferences(updatedPreferences);
-
-    // Navigate immediately for responsive UX
-    navigateNext();
-
-    // Save to backend in background (non-blocking)
-    // Preferences are already in React state, final completion will persist everything
-    savePreferences(newPreferences).catch((error) => {
-      console.error("Failed to save preferences:", error);
-      // Error is already handled by the hook with toast
-    });
-  };
-
-  // Handle feature interests selection (telemetry tracked in backend)
-  const handleFeatureInterests = (interests: FeatureInterest[]) => {
-    handleSaveAndContinue({ featureInterests: interests });
-  };
-
-  // Handle discovery source selection (telemetry tracked in backend)
-  const handleDiscoverySource = (source: DiscoverySource, details?: string) => {
-    setDiscoveryDetails(details || "");
-    handleSaveAndContinue({
-      discoverySource: source,
-      discoveryDetails: details,
-    });
-  };
-
   // Handle API key setup completion (telemetry tracked in backend)
   const handleAPIKeySetup = () => {
     navigateNext();
@@ -255,10 +213,9 @@ export function App() {
         completedAt: new Date().toISOString(),
         skippedScreens: skippedScreensQuery.data || [],
         featureInterests: preferences.featureInterests,
-        discoverySource: preferences.discoverySource,
       };
 
-      // Complete onboarding (will also track completion event)
+      // Complete onboarding
       await completeOnboarding(finalState);
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
@@ -284,14 +241,6 @@ export function App() {
   // Render current screen
   const renderScreen = () => {
     switch (currentScreen) {
-      case OnboardingScreen.Welcome:
-        return (
-          <WelcomeScreen
-            onNext={handleFeatureInterests}
-            initialInterests={preferences.featureInterests}
-          />
-        );
-
       case OnboardingScreen.Permissions:
         return (
           <PermissionsScreen
@@ -300,16 +249,6 @@ export function App() {
             permissions={permissions}
             platform={platform}
             checkPermissions={checkPermissions}
-          />
-        );
-
-      case OnboardingScreen.DiscoverySource:
-        return (
-          <DiscoverySourceScreen
-            onNext={handleDiscoverySource}
-            onBack={navigateBack}
-            initialSource={preferences.discoverySource}
-            initialDetails={discoveryDetails}
           />
         );
 

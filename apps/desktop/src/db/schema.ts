@@ -6,7 +6,6 @@ import {
   real,
   index,
   primaryKey,
-  blob,
 } from "drizzle-orm/sqlite-core";
 
 // Transcriptions table
@@ -113,6 +112,17 @@ export interface AppSettingsData {
     enabled: boolean;
     modelId?: string; // Formatting model selection (language model ID or "surasura-cloud")
     fallbackModelId?: string; // Last non-cloud formatting model for auto-restore
+    presets?: Array<{
+      id: string;
+      name: string; // 最大20文字
+      modelId: "gpt-4o-mini" | "gpt-4o";
+      instructions: string; // 最大2000文字
+      isDefault: boolean;
+      color: "yellow" | "blue" | "green" | "pink" | "purple" | "orange"; // プリセットの色
+      createdAt: string; // ISO 8601
+      updatedAt: string;
+    }>; // 最大5つ
+    activePresetId?: string | null;
   };
   ui?: {
     theme: "light" | "dark" | "system";
@@ -136,6 +146,12 @@ export interface AppSettingsData {
     pushToTalk?: string[];
     toggleRecording?: string[];
     pasteLastTranscription?: string[];
+    cancelRecording?: string[];
+    selectPreset1?: string[];
+    selectPreset2?: string[];
+    selectPreset3?: string[];
+    selectPreset4?: string[];
+    selectPreset5?: string[];
   };
 
   modelProvidersConfig?: {
@@ -164,7 +180,7 @@ export interface AppSettingsData {
     lastVisitedScreen?: string; // Last screen user was on (for resume)
     skippedScreens?: string[]; // Screens skipped via feature flags
     featureInterests?: string[]; // Selected features (max 3)
-    discoverySource?: string; // How user found Surasura
+    discoverySource?: string; // How user found surasura
     selectedModelType: "cloud" | "local"; // User's model choice
     modelRecommendation?: {
       suggested: "cloud" | "local"; // System recommendation
@@ -172,40 +188,10 @@ export interface AppSettingsData {
       followed: boolean; // Whether user followed recommendation
     };
   };
+  guides?: {
+    hasSeenDictationFlow?: boolean; // 音声入力設定画面の処理フローガイドを見たか
+  };
 }
-
-// Notes table
-export const notes = sqliteTable("notes", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  title: text("title").notNull(),
-  content: text("content").default(""), // Store the actual text content
-  icon: text("icon"), // Store the icon (emoji) associated with the note
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
-});
-
-// Yjs updates table for persistence
-export const yjsUpdates = sqliteTable(
-  "yjs_updates",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    noteId: integer("note_id")
-      .notNull()
-      .references(() => notes.id, { onDelete: "cascade" }),
-    updateData: blob("update_data", { mode: "buffer" }).notNull(), // Binary data stored as Buffer
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
-  },
-  (table) => [
-    // Index for efficient foreign key lookups
-    index("yjs_updates_note_id_idx").on(table.noteId),
-  ],
-);
 
 // Export types for TypeScript
 export type Transcription = typeof transcriptions.$inferSelect;
@@ -216,7 +202,3 @@ export type Model = typeof models.$inferSelect;
 export type NewModel = typeof models.$inferInsert;
 export type AppSettings = typeof appSettings.$inferSelect;
 export type NewAppSettings = typeof appSettings.$inferInsert;
-export type Note = typeof notes.$inferSelect;
-export type NewNote = typeof notes.$inferInsert;
-export type YjsUpdate = typeof yjsUpdates.$inferSelect;
-export type NewYjsUpdate = typeof yjsUpdates.$inferInsert;

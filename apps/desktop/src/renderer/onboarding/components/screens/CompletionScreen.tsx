@@ -35,7 +35,7 @@ export function CompletionScreen({
           showBack={true}
           showNext={false}
           showComplete={true}
-          completeLabel="Surasuraを使い始める"
+          completeLabel="surasuraを使い始める"
         />
       }
     >
@@ -60,7 +60,7 @@ export function CompletionScreen({
             <div className="flex items-start gap-2">
               <span className="text-sm font-medium text-primary">•</span>
               <p className="text-sm">
-                プッシュトゥトークのショートカットを使って文字起こしを開始
+                Push to Talkのショートカットを使って文字起こしを開始
               </p>
             </div>
             <div className="flex items-start gap-2">

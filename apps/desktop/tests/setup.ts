@@ -135,19 +135,6 @@ vi.mock("systeminformation", () => ({
   }),
 }));
 
-vi.mock("posthog-node", () => ({
-  PostHog: vi.fn().mockImplementation(function () {
-    return {
-      capture: vi.fn(),
-      identify: vi.fn(),
-      alias: vi.fn(),
-      shutdown: vi.fn(function () {
-        return Promise.resolve();
-      }),
-    };
-  }),
-}));
-
 vi.mock("update-electron-app", () => ({
   default: vi.fn(),
 }));

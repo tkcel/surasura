@@ -1,8 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Square } from "lucide-react";
+import { Square, X, Sparkles } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useRecording } from "@/hooks/useRecording";
 import { api } from "@/trpc/react";
+import { PresetMenu } from "../../../components/PresetMenu";
+import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
+
+// Get the Tailwind class for a preset color
+function getPresetColorClass(colorId: PresetColorId | undefined): string {
+  const color = PRESET_COLORS.find((c) => c.id === colorId);
+  return color?.class ?? "text-yellow-500";
+}
 
 const NUM_WAVEFORM_BARS = 6; // Fewer bars to make room for stop button
 const DEBOUNCE_DELAY = 100; // milliseconds
@@ -13,10 +21,23 @@ const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center justify-center w-[20px] h-[20px]rounded transition-colors"
+    className="flex items-center justify-center w-[20px] h-[20px] rounded transition-colors"
     aria-label="Stop recording"
   >
     <Square className="w-[12px] h-[12px] text-red-500 fill-red-500" />
+  </button>
+);
+
+// Separate component for the cancel button
+const CancelButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
+  onClick,
+}) => (
+  <button
+    onClick={onClick}
+    className="flex items-center justify-center w-[20px] h-[20px] rounded transition-colors hover:bg-white/10"
+    aria-label="Cancel recording"
+  >
+    <X className="w-[12px] h-[12px] text-gray-400" />
   </button>
 );
 
@@ -50,11 +71,19 @@ const WaveformVisualization: React.FC<{
 
 export const FloatingButton: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
+  const [showPresetMenu, setShowPresetMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
   const clickTimeRef = useRef<number | null>(null); // Track when user clicked
 
   // tRPC mutation to control widget mouse events
   const setIgnoreMouseEvents = api.widget.setIgnoreMouseEvents.useMutation();
+
+  // Formatter config and active preset queries
+  const { data: formatterConfig } = api.settings.getFormatterConfig.useQuery();
+  const { data: activePreset } = api.settings.getActivePreset.useQuery();
+  const isFormatterEnabled = formatterConfig?.enabled ?? false;
+  const presets = formatterConfig?.presets ?? [];
 
   // Log component initialization
   useEffect(() => {
@@ -64,8 +93,13 @@ export const FloatingButton: React.FC = () => {
     };
   }, []);
 
-  const { recordingStatus, stopRecording, voiceDetected, startRecording } =
-    useRecording();
+  const {
+    recordingStatus,
+    stopRecording,
+    cancelRecording,
+    voiceDetected,
+    startRecording,
+  } = useRecording();
   const isRecording =
     recordingStatus.state === "recording" ||
     recordingStatus.state === "starting";
@@ -115,8 +149,52 @@ export const FloatingButton: React.FC = () => {
     await stopRecording();
   };
 
+  // Handler for cancel button
+  const handleCancelClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent triggering the main button click
+    console.log("FAB: Cancelling recording");
+    await cancelRecording();
+  };
+
+  // Handler for right-click to show preset menu
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Only show menu if formatter is enabled and we have presets
+    if (!isFormatterEnabled || presets.length === 0) {
+      return;
+    }
+
+    // Position menu above the widget
+    setMenuPosition({
+      x: e.clientX,
+      y: e.clientY - 10,
+    });
+    setShowPresetMenu(true);
+  };
+
+  // Close preset menu
+  const handleClosePresetMenu = async () => {
+    setShowPresetMenu(false);
+    // Minimize widget after preset selection to avoid obstructing the screen
+    setIsHovered(false);
+    // Re-enable mouse event forwarding after menu closes
+    try {
+      await setIgnoreMouseEvents.mutateAsync({ ignore: true });
+      console.debug("Re-enabled mouse event forwarding after menu close");
+    } catch (error) {
+      console.error("Failed to re-enable mouse event forwarding:", error);
+    }
+  };
+
   // Debounced mouse leave handler
   const handleMouseLeave = async () => {
+    // Don't disable mouse events while preset menu is open
+    if (showPresetMenu) {
+      return;
+    }
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
     }
@@ -146,6 +224,18 @@ export const FloatingButton: React.FC = () => {
 
   const expanded = isRecording || isStopping || isHovered;
 
+  // Calculate width based on state
+  const getExpandedWidth = () => {
+    if (!expanded) return "w-[48px]";
+    if (isRecording && isHandsFreeMode) return "w-[120px]"; // Cancel + waveform + stop
+    if (isRecording) return "w-[96px]"; // Just waveform (PTT recording)
+    // Idle/hover state: show preset name if formatter is enabled
+    if (isFormatterEnabled && activePreset) {
+      return "w-[140px]"; // Preset name + waveform
+    }
+    return "w-[96px]"; // Just waveform
+  };
+
   // Function to render widget content based on state
   const renderWidgetContent = () => {
     if (!expanded) return null;
@@ -155,10 +245,13 @@ export const FloatingButton: React.FC = () => {
       return <ProcessingIndicator />;
     }
 
-    // Show waveform with stop button when in hands-free mode and recording
-    if (isHandsFreeMode && isRecording) {
+    // Show waveform with cancel and stop buttons in hands-free mode
+    if (isRecording && isHandsFreeMode) {
       return (
         <>
+          <div className="h-full items-center flex ml-2">
+            <CancelButton onClick={handleCancelClick} />
+          </div>
           <div className="justify-center items-center flex flex-1 gap-1">
             <WaveformVisualization
               isRecording={isRecording}
@@ -172,13 +265,32 @@ export const FloatingButton: React.FC = () => {
       );
     }
 
-    // Show waveform visualization for all other states
+    // Show just waveform in PTT mode (user releases key to stop/cancel)
+    if (isRecording) {
+      return (
+        <div className="justify-center items-center flex flex-1 gap-1">
+          <WaveformVisualization
+            isRecording={isRecording}
+            voiceDetected={voiceDetected}
+          />
+        </div>
+      );
+    }
+
+    // Show clickable waveform visualization when idle/hovered
+    // With preset name if formatter is enabled
     return (
       <button
-        className="justify-center items-center flex flex-1 gap-1 h-full w-full"
+        className="justify-center items-center flex flex-1 gap-1 h-full w-full px-2"
         role="button"
         onClick={handleButtonClick}
       >
+        {isFormatterEnabled && activePreset && (
+          <div className="flex items-center gap-1 text-xs text-white/70 shrink-0">
+            <Sparkles className={`w-3 h-3 ${getPresetColorClass(activePreset.color)}`} />
+            <span className="max-w-[60px] truncate">{activePreset.name}</span>
+          </div>
+        )}
         <WaveformVisualization
           isRecording={isRecording}
           voiceDetected={voiceDetected}
@@ -188,23 +300,36 @@ export const FloatingButton: React.FC = () => {
   };
 
   return (
-    <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`
-        transition-all duration-200 ease-in-out
-        ${expanded ? "h-[24px] w-[96px]" : "h-[8px] w-[48px]"}
-        bg-black/70 rounded-[24px] backdrop-blur-md ring-[1px] ring-black/60 shadow-[0px_0px_15px_0px_rgba(0,0,0,0.40)]
-        before:content-[''] before:absolute before:inset-[1px] before:rounded-[23px] before:outline before:outline-white/15 before:pointer-events-none
-        mb-2 cursor-pointer select-none
-      `}
-      style={{ pointerEvents: "auto" }}
-    >
-      {expanded && (
-        <div className="flex gap-[2px] h-full w-full justify-between">
-          {renderWidgetContent()}
-        </div>
+    <>
+      <div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onContextMenu={handleContextMenu}
+        className={`
+          transition-all duration-200 ease-in-out
+          ${expanded ? "h-[24px]" : "h-[8px]"} ${getExpandedWidth()}
+          bg-black/70 rounded-[24px] backdrop-blur-md ring-[1px] ring-black/60 shadow-[0px_0px_15px_0px_rgba(0,0,0,0.40)]
+          before:content-[''] before:absolute before:inset-[1px] before:rounded-[23px] before:outline before:outline-white/15 before:pointer-events-none
+          mb-2 cursor-pointer select-none
+        `}
+        style={{ pointerEvents: "auto" }}
+      >
+        {expanded && (
+          <div className="flex gap-[2px] h-full w-full justify-between">
+            {renderWidgetContent()}
+          </div>
+        )}
+      </div>
+
+      {/* Preset selection menu */}
+      {showPresetMenu && presets.length > 0 && (
+        <PresetMenu
+          presets={presets}
+          activePresetId={activePreset?.id ?? null}
+          onClose={handleClosePresetMenu}
+          position={menuPosition}
+        />
       )}
-    </div>
+    </>
   );
 };

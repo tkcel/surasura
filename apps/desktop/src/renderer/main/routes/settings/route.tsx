@@ -12,21 +12,15 @@ function SettingsLayout() {
   const location = useLocation();
 
   const getSettingsPageTitle = (pathname: string): string => {
-    // Check for dynamic routes first
-    if (pathname.startsWith("/settings/notes")) {
-      return "Notes";
-    }
-
     const routes: Record<string, string> = {
-      "/settings/preferences": "Preferences",
-      "/settings/dictation": "Dictation",
-      "/settings/vocabulary": "Vocabulary",
-      "/settings/shortcuts": "Shortcuts",
-      "/settings/ai-models": "AI Models",
-      "/settings/advanced": "Advanced",
-      "/settings/about": "About",
+      "/settings/preferences": "環境設定",
+      "/settings/dictation": "音声入力",
+      "/settings/vocabulary": "辞書機能",
+      "/settings/shortcuts": "ショートカット",
+      "/settings/ai-models": "AIプロバイダー設定",
+      "/settings/about": "このアプリについて",
     };
-    return routes[pathname] || "Settings";
+    return routes[pathname] || "設定";
   };
 
   return (

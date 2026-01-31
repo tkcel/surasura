@@ -1,6 +1,6 @@
 # Testing Guide
 
-This directory contains the test setup for the Surasura Desktop application's main process.
+This directory contains the test setup for the surasura Desktop application's main process.
 
 ## Overview
 

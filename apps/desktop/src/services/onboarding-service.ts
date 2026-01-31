@@ -2,7 +2,6 @@ import { EventEmitter } from "events";
 import { systemPreferences } from "electron";
 import { logger } from "../main/logger";
 import type { SettingsService } from "./settings-service";
-import type { TelemetryService } from "./telemetry-service";
 import type { AppSettingsData } from "../db/schema";
 import {
   OnboardingScreen,
@@ -10,7 +9,6 @@ import {
   type OnboardingState,
   type OnboardingPreferences,
   type OnboardingFeatureFlags,
-  type DiscoverySource,
 } from "../types/onboarding";
 
 /**
@@ -24,34 +22,22 @@ type OnboardingStateDb = {
   lastVisitedScreen?: string;
   skippedScreens?: string[];
   featureInterests?: string[];
-  discoverySource?: string;
 };
 
 export class OnboardingService extends EventEmitter {
   private static instance: OnboardingService | null = null;
   private settingsService: SettingsService;
-  private telemetryService: TelemetryService;
   private currentState: Partial<OnboardingState> = {};
   private isOnboardingInProgress = false;
 
-  constructor(
-    settingsService: SettingsService,
-    telemetryService: TelemetryService,
-  ) {
+  constructor(settingsService: SettingsService) {
     super();
     this.settingsService = settingsService;
-    this.telemetryService = telemetryService;
   }
 
-  static getInstance(
-    settingsService: SettingsService,
-    telemetryService: TelemetryService,
-  ): OnboardingService {
+  static getInstance(settingsService: SettingsService): OnboardingService {
     if (!OnboardingService.instance) {
-      OnboardingService.instance = new OnboardingService(
-        settingsService,
-        telemetryService,
-      );
+      OnboardingService.instance = new OnboardingService(settingsService);
     }
     return OnboardingService.instance;
   }
@@ -93,9 +79,6 @@ export class OnboardingService extends EventEmitter {
         featureInterests: settings.onboarding.featureInterests as
           | FeatureInterest[]
           | undefined,
-        discoverySource: settings.onboarding.discoverySource as
-          | DiscoverySource
-          | undefined,
       } as OnboardingState;
     } catch (error) {
       logger.main.error("Failed to get onboarding state:", error);
@@ -126,9 +109,6 @@ export class OnboardingService extends EventEmitter {
           (f) => f as string,
         );
       }
-      if (state.discoverySource !== undefined) {
-        stateForDb.discoverySource = state.discoverySource as string;
-      }
       if (state.completedVersion !== undefined) {
         stateForDb.completedVersion = state.completedVersion;
       }
@@ -156,38 +136,17 @@ export class OnboardingService extends EventEmitter {
   /**
    * Save user preferences during onboarding
    * T030, T031 - Implements savePreferences with partial progress saving
-   * Also tracks telemetry for each preference type
    */
   async savePreferences(preferences: OnboardingPreferences): Promise<void> {
     try {
       const updates: Partial<OnboardingState> = {};
 
-      // Track screen view when lastVisitedScreen changes
       if (preferences.lastVisitedScreen !== undefined) {
         updates.lastVisitedScreen = preferences.lastVisitedScreen;
-        this.telemetryService.trackOnboardingScreenViewed({
-          screen: preferences.lastVisitedScreen,
-          index: 0, // Index not available here, but screen name is sufficient
-          total: 5,
-        });
       }
 
-      // Track feature interests selection
       if (preferences.featureInterests !== undefined) {
         updates.featureInterests = preferences.featureInterests;
-        this.telemetryService.trackOnboardingFeaturesSelected({
-          features: preferences.featureInterests,
-          count: preferences.featureInterests.length,
-        });
-      }
-
-      // Track discovery source selection
-      if (preferences.discoverySource !== undefined) {
-        updates.discoverySource = preferences.discoverySource;
-        this.telemetryService.trackOnboardingDiscoverySelected({
-          source: preferences.discoverySource,
-          details: preferences.discoveryDetails,
-        });
       }
 
       // T032 - Save partial progress after each screen
@@ -238,14 +197,6 @@ export class OnboardingService extends EventEmitter {
       };
 
       await this.saveOnboardingState(completeState);
-
-      // Track completion event
-      this.telemetryService.trackOnboardingCompleted({
-        version: completeState.completedVersion,
-        features_selected: completeState.featureInterests || [],
-        discovery_source: completeState.discoverySource,
-        skipped_screens: completeState.skippedScreens,
-      });
 
       logger.main.info("Onboarding completed successfully");
     } catch (error) {
@@ -324,7 +275,7 @@ export class OnboardingService extends EventEmitter {
     return {
       skipWelcome: process.env.ONBOARDING_SKIP_WELCOME === "true",
       skipFeatures: process.env.ONBOARDING_SKIP_FEATURES === "true",
-      skipDiscovery: process.env.ONBOARDING_SKIP_DISCOVERY === "true",
+      skipDiscovery: true, // Discovery source screen is removed
       skipModels: process.env.ONBOARDING_SKIP_MODELS === "true",
     };
   }
@@ -342,27 +293,6 @@ export class OnboardingService extends EventEmitter {
     if (flags.skipModels) skipped.push("api-key-setup" as OnboardingScreen);
 
     return skipped;
-  }
-
-  /**
-   * Track onboarding started event
-   */
-  trackOnboardingStarted(platform: string): void {
-    this.telemetryService.trackOnboardingStarted({
-      platform,
-      resumed: !!this.currentState?.lastVisitedScreen,
-      resumedFrom: this.currentState?.lastVisitedScreen,
-    });
-  }
-
-  /**
-   * Track onboarding abandoned event
-   */
-  trackOnboardingAbandoned(lastScreen: string): void {
-    this.telemetryService.trackOnboardingAbandoned({
-      last_screen: lastScreen,
-      timestamp: new Date().toISOString(),
-    });
   }
 
   /**
@@ -404,9 +334,6 @@ export class OnboardingService extends EventEmitter {
 
     this.isOnboardingInProgress = true;
     logger.main.info("Starting onboarding flow");
-
-    // Track onboarding started event
-    this.trackOnboardingStarted(process.platform);
   }
 
   /**
@@ -440,14 +367,6 @@ export class OnboardingService extends EventEmitter {
     logger.main.info("Onboarding cancelled");
 
     this.isOnboardingInProgress = false;
-
-    // Track abandonment event
-    const currentState = await this.getOnboardingState();
-    const lastScreen =
-      currentState?.lastVisitedScreen ||
-      currentState?.skippedScreens?.[currentState.skippedScreens.length - 1] ||
-      "unknown";
-    this.trackOnboardingAbandoned(lastScreen);
 
     // Emit event - AppManager listens and handles window close + app quit
     this.emit("cancelled");

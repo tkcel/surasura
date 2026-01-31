@@ -63,9 +63,6 @@ export function useOnboardingState(): UseOnboardingStateReturn {
           if (preferences.featureInterests !== undefined) {
             updated.featureInterests = preferences.featureInterests;
           }
-          if (preferences.discoverySource !== undefined) {
-            updated.discoverySource = preferences.discoverySource;
-          }
 
           return updated;
         });

@@ -295,6 +295,9 @@ namespace WindowsHelper.Models
 
     public partial class SetShortcutsParams
     {
+        [JsonPropertyName("cancelRecording")]
+        public List<string> CancelRecording { get; set; }
+
         [JsonPropertyName("pasteLastTranscription")]
         public List<string> PasteLastTranscription { get; set; }
 

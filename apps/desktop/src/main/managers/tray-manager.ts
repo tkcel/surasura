@@ -40,7 +40,7 @@ export class TrayManager {
     this.tray = new Tray(icon);
 
     // Set tooltip
-    this.tray.setToolTip("Surasura");
+    this.tray.setToolTip("surasura");
 
     // Create context menu
     const contextMenu = Menu.buildFromTemplate([

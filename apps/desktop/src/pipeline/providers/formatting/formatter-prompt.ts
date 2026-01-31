@@ -1,5 +1,6 @@
 import { FormatParams } from "../../core/pipeline-types";
 import { GetAccessibilityContextResult } from "@surasura/types";
+import { FormatPreset } from "../../../types/formatter";
 
 // Base system prompt
 const SYSTEM_PROMPT = `You are a professional text formatter. Your task is to format transcribed text to be clear, readable, and properly structured.`;
@@ -116,7 +117,10 @@ const URL_PATTERNS: Partial<Record<AppType, RegExp[]>> = {
   ],
 };
 
-export function constructFormatterPrompt(context: FormatParams["context"]): {
+export function constructFormatterPrompt(
+  context: FormatParams["context"],
+  preset?: FormatPreset | null,
+): {
   systemPrompt: string;
 } {
   const { accessibilityContext, vocabulary } = context;
@@ -137,6 +141,11 @@ export function constructFormatterPrompt(context: FormatParams["context"]): {
   if (vocabulary && vocabulary.length > 0) {
     const vocabTerms = vocabulary.join(", ");
     parts.push(`\nCustom vocabulary to use for corrections: ${vocabTerms}`);
+  }
+
+  // Add custom instructions from preset if available
+  if (preset?.instructions && preset.instructions.trim().length > 0) {
+    parts.push(`\nCustom formatting instructions from user:\n${preset.instructions}`);
   }
 
   // Add numbered instructions

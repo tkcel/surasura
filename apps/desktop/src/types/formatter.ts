@@ -1,5 +1,30 @@
+// 使用可能な色（Tailwindクラス名と表示名）
+export const PRESET_COLORS = [
+  { id: "yellow", label: "イエロー", class: "text-yellow-500" },
+  { id: "blue", label: "ブルー", class: "text-blue-500" },
+  { id: "green", label: "グリーン", class: "text-green-500" },
+  { id: "pink", label: "ピンク", class: "text-pink-500" },
+  { id: "purple", label: "パープル", class: "text-purple-500" },
+  { id: "orange", label: "オレンジ", class: "text-orange-500" },
+] as const;
+
+export type PresetColorId = (typeof PRESET_COLORS)[number]["id"];
+
+export interface FormatPreset {
+  id: string;
+  name: string; // 最大20文字
+  modelId: "gpt-4o-mini" | "gpt-4o";
+  instructions: string; // 最大2000文字
+  isDefault: boolean;
+  color: PresetColorId; // プリセットの色
+  createdAt: string; // ISO 8601
+  updatedAt: string;
+}
+
 export interface FormatterConfig {
   enabled: boolean;
   modelId?: string;
   fallbackModelId?: string;
+  presets?: FormatPreset[]; // 最大5つ
+  activePresetId?: string | null;
 }

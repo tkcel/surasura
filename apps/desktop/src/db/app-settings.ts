@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 3;
+const CURRENT_SETTINGS_VERSION = 8;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -76,8 +76,8 @@ const migrations: Record<number, MigrationFn> = {
       oldData.modelProvidersConfig?.defaultSpeechModel === "surasura-cloud";
     const hasNoFormattingModel = !oldData.formatterConfig?.modelId;
 
-    // If user is on Surasura Cloud transcription and hasn't set a formatting model,
-    // auto-enable formatting with Surasura Cloud
+    // If user is on surasura Cloud transcription and hasn't set a formatting model,
+    // auto-enable formatting with surasura Cloud
     if (isCloudSpeech && hasNoFormattingModel) {
       return {
         ...oldData,
@@ -90,6 +90,187 @@ const migrations: Record<number, MigrationFn> = {
     }
 
     return oldData;
+  },
+
+  // v3 -> v4: Add presets and activePresetId to formatterConfig with default presets
+  4: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // Default presets (color will be added in v8 migration)
+    const defaultPresets = [
+      {
+        id: crypto.randomUUID(),
+        name: "標準",
+        modelId: "gpt-4o-mini" as const,
+        instructions:
+          "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
+        isDefault: true,
+        color: "yellow" as const,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: crypto.randomUUID(),
+        name: "カジュアル",
+        modelId: "gpt-4o-mini" as const,
+        instructions:
+          "カジュアルで親しみやすい文体に変換してください。敬語は使わず、友達に話しかけるような口調にしてください。",
+        isDefault: true,
+        color: "pink" as const,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: crypto.randomUUID(),
+        name: "Markdown",
+        modelId: "gpt-4o-mini" as const,
+        instructions:
+          "Markdown形式で出力してください。適切な見出し、箇条書き、強調などを使って構造化してください。",
+        isDefault: true,
+        color: "blue" as const,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: defaultPresets,
+        activePresetId: null,
+      },
+    };
+  },
+
+  // v4 -> v5: Add instructions to "標準" preset
+  5: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const standardInstructions =
+      "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
+
+    // Update the "標準" preset if it exists and has empty instructions
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.name === "標準" && preset.isDefault && !preset.instructions) {
+        return {
+          ...preset,
+          instructions: standardInstructions,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
+
+  // v5 -> v6: Add "即時回答" preset
+  6: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // Check if "即時回答" preset already exists
+    const hasInstantAnswer = oldData.formatterConfig?.presets?.some(
+      (preset) => preset.name === "即時回答",
+    );
+
+    if (hasInstantAnswer) {
+      return oldData;
+    }
+
+    const instantAnswerPreset = {
+      id: crypto.randomUUID(),
+      name: "即時回答",
+      modelId: "gpt-4o-mini" as const,
+      instructions:
+        "音声入力された内容を質問や依頼として解釈し、それに対する回答を直接出力してください。元の発言内容は含めず、回答のみを簡潔に返してください。",
+      isDefault: true,
+      color: "green" as const,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: [
+          ...(oldData.formatterConfig?.presets ?? []),
+          instantAnswerPreset,
+        ],
+      },
+    };
+  },
+
+  // v6 -> v7: Update "標準" preset to explicitly not answer questions
+  7: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const newInstructions =
+      "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
+
+    // Update the "標準" preset instructions
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.name === "標準" && preset.isDefault) {
+        return {
+          ...preset,
+          instructions: newInstructions,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
+
+  // v7 -> v8: Add color field to presets
+  8: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+
+    // Default colors for existing presets
+    const presetColorMap: Record<string, "yellow" | "blue" | "green" | "pink" | "purple" | "orange"> = {
+      "標準": "yellow",
+      "カジュアル": "pink",
+      "Markdown": "blue",
+      "即時回答": "green",
+    };
+
+    // Add color to all presets
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      // Use mapped color for known presets, or yellow as default
+      const color = presetColorMap[preset.name] ?? "yellow";
+      return {
+        ...preset,
+        color,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
   },
 };
 
@@ -114,17 +295,29 @@ function migrateSettings(data: unknown, fromVersion: number): AppSettingsData {
 const SETTINGS_ID = 1;
 
 // Platform-specific default shortcuts (array format)
-const getDefaultShortcuts = () => {
+export const getDefaultShortcuts = () => {
   if (isMacOS()) {
     return {
       pushToTalk: ["Fn"],
       toggleRecording: ["Fn", "Space"],
+      cancelRecording: ["Escape"],
+      selectPreset1: ["Cmd", "Alt", "1"],
+      selectPreset2: ["Cmd", "Alt", "2"],
+      selectPreset3: ["Cmd", "Alt", "3"],
+      selectPreset4: ["Cmd", "Alt", "4"],
+      selectPreset5: ["Cmd", "Alt", "5"],
     };
   } else {
     // Windows and Linux
     return {
       pushToTalk: ["Ctrl", "Win"],
       toggleRecording: ["Ctrl", "Win", "Space"],
+      cancelRecording: ["Escape"],
+      selectPreset1: ["Ctrl", "Alt", "1"],
+      selectPreset2: ["Ctrl", "Alt", "2"],
+      selectPreset3: ["Ctrl", "Alt", "3"],
+      selectPreset4: ["Ctrl", "Alt", "4"],
+      selectPreset5: ["Ctrl", "Alt", "5"],
     };
   }
 };
@@ -132,7 +325,7 @@ const getDefaultShortcuts = () => {
 // Default settings
 const defaultSettings: AppSettingsData = {
   formatterConfig: {
-    enabled: false,
+    enabled: true,
   },
   ui: {
     theme: "system",
@@ -171,35 +364,55 @@ export async function getAppSettings(): Promise<AppSettingsData> {
     .where(eq(appSettings.id, SETTINGS_ID));
 
   if (result.length === 0) {
-    // Create default settings if none exist
-    await createDefaultSettings();
-    return defaultSettings;
+    // Create default settings if none exist (includes default presets)
+    return await createDefaultSettings();
   }
 
   const record = result[0];
+  let data = record.data;
+  let needsUpdate = false;
 
   // Check if migration is needed
   if (record.version < CURRENT_SETTINGS_VERSION) {
-    const migratedData = migrateSettings(record.data, record.version);
+    data = migrateSettings(data, record.version);
+    needsUpdate = true;
+    console.log(
+      `[Settings] Migration complete: v${record.version} -> v${CURRENT_SETTINGS_VERSION}`,
+    );
+  }
 
-    // Save migrated data with new version
+  // Ensure default presets exist (for users who migrated before presets were added)
+  if (
+    !data.formatterConfig?.presets ||
+    data.formatterConfig.presets.length === 0
+  ) {
+    data = {
+      ...data,
+      formatterConfig: {
+        ...data.formatterConfig,
+        enabled: data.formatterConfig?.enabled ?? false,
+        presets: generateDefaultPresets(),
+        activePresetId: data.formatterConfig?.activePresetId ?? null,
+      },
+    };
+    needsUpdate = true;
+    console.log("[Settings] Added default format presets");
+  }
+
+  // Save if any changes were made
+  if (needsUpdate) {
     const now = new Date();
     await db
       .update(appSettings)
       .set({
-        data: migratedData,
+        data: data,
         version: CURRENT_SETTINGS_VERSION,
         updatedAt: now,
       })
       .where(eq(appSettings.id, SETTINGS_ID));
-
-    console.log(
-      `[Settings] Migration complete: v${record.version} -> v${CURRENT_SETTINGS_VERSION}`,
-    );
-    return migratedData;
   }
 
-  return record.data;
+  return data;
 }
 
 // Update app settings (shallow merge at top level only)
@@ -268,22 +481,101 @@ export async function updateSettingsSection<K extends keyof AppSettingsData>(
 
 // Reset settings to defaults
 export async function resetAppSettings(): Promise<AppSettingsData> {
-  return await replaceAppSettings(defaultSettings);
+  // Generate presets first so we can set the first one as active
+  const presets = generateDefaultPresets();
+
+  // Generate settings with default presets
+  const settingsWithPresets: AppSettingsData = {
+    ...defaultSettings,
+    formatterConfig: {
+      ...defaultSettings.formatterConfig,
+      enabled: true,
+      presets: presets,
+      activePresetId: presets[0]?.id ?? null, // 最初のプリセット（標準）を選択
+    },
+  };
+  return await replaceAppSettings(settingsWithPresets);
+}
+
+// Generate default format presets
+function generateDefaultPresets() {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: crypto.randomUUID(),
+      name: "標準",
+      modelId: "gpt-4o-mini" as const,
+      instructions:
+        "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
+      isDefault: true,
+      color: "yellow" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: crypto.randomUUID(),
+      name: "カジュアル",
+      modelId: "gpt-4o-mini" as const,
+      instructions:
+        "カジュアルで親しみやすい文体に変換してください。敬語は使わず、友達に話しかけるような口調にしてください。",
+      isDefault: true,
+      color: "pink" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: crypto.randomUUID(),
+      name: "Markdown",
+      modelId: "gpt-4o-mini" as const,
+      instructions:
+        "Markdown形式で出力してください。適切な見出し、箇条書き、強調などを使って構造化してください。",
+      isDefault: true,
+      color: "blue" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: crypto.randomUUID(),
+      name: "即時回答",
+      modelId: "gpt-4o-mini" as const,
+      instructions:
+        "音声入力された内容を質問や依頼として解釈し、それに対する回答を直接出力してください。元の発言内容は含めず、回答のみを簡潔に返してください。",
+      isDefault: true,
+      color: "green" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
 }
 
 // Create default settings (internal helper)
-async function createDefaultSettings(): Promise<void> {
+async function createDefaultSettings(): Promise<AppSettingsData> {
   const now = new Date();
+
+  // Generate presets first so we can set the first one as active
+  const presets = generateDefaultPresets();
+
+  // Generate settings with default presets
+  const settingsWithPresets: AppSettingsData = {
+    ...defaultSettings,
+    formatterConfig: {
+      ...defaultSettings.formatterConfig,
+      enabled: true,
+      presets: presets,
+      activePresetId: presets[0]?.id ?? null, // 最初のプリセット（標準）を選択
+    },
+  };
 
   const newSettings: NewAppSettings = {
     id: SETTINGS_ID,
-    data: defaultSettings,
+    data: settingsWithPresets,
     version: CURRENT_SETTINGS_VERSION,
     createdAt: now,
     updatedAt: now,
   };
 
   await db.insert(appSettings).values(newSettings);
+  return settingsWithPresets;
 }
 
 // Export default settings for reference

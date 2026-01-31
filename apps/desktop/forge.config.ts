@@ -55,7 +55,7 @@ const config: ForgeConfig = {
         projectRoot,
         "node-binaries",
         `${platform}-${arch}`,
-        platform === "win32" ? "node.exe" : "node",
+        platform === "win32" ? "node.exe" : "node"
       );
 
       // Check if the binary exists
@@ -63,17 +63,17 @@ const config: ForgeConfig = {
         console.log(`✓ Node.js binary found for ${platform}-${arch}`);
       } else {
         console.error(
-          `✗ Node.js binary not found for ${platform}-${arch} at ${nodeBinarySource}`,
+          `✗ Node.js binary not found for ${platform}-${arch} at ${nodeBinarySource}`
         );
         console.error(
-          `  Please run 'pnpm download-node' or 'pnpm download-node:all' first`,
+          `  Please run 'pnpm download-node' or 'pnpm download-node:all' first`
         );
         throw new Error(`Missing Node.js binary for ${platform}-${arch}`);
       }
 
       const getExternalNestedDependencies = async (
         nodeModuleNames: string[],
-        includeNestedDeps = true,
+        includeNestedDeps = true
       ) => {
         const foundModules = new Set(nodeModuleNames);
         if (includeNestedDeps) {
@@ -85,20 +85,20 @@ const config: ForgeConfig = {
               modules: Module[];
               walkDependenciesForModule: (
                 moduleRoot: string,
-                depType: DepType,
+                depType: DepType
               ) => Promise<void>;
             };
             const moduleRoot = join(monorepoRoot, "node_modules", external);
             console.log("moduleRoot", moduleRoot);
             // Initialize Walker with monorepo root as base path
             const walker = new Walker(
-              monorepoRoot,
+              monorepoRoot
             ) as unknown as MyPublicWalker;
             walker.modules = [];
             await walker.walkDependenciesForModule(moduleRoot, DepType.PROD);
             walker.modules
               .filter(
-                (dep) => (dep.nativeModuleType as number) === DepType.PROD,
+                (dep) => (dep.nativeModuleType as number) === DepType.PROD
               )
               // Remove the problematic name splitting that breaks scoped packages
               .map((dep) => dep.name)
@@ -109,7 +109,7 @@ const config: ForgeConfig = {
       };
 
       const nativeModuleDependencies = await getExternalNestedDependencies(
-        EXTERNAL_DEPENDENCIES,
+        EXTERNAL_DEPENDENCIES
       );
       nativeModuleDependenciesToPackage = Array.from(nativeModuleDependencies);
 
@@ -124,7 +124,7 @@ const config: ForgeConfig = {
       }
 
       console.log(
-        `Found ${nativeModuleDependenciesToPackage.length} dependencies to copy`,
+        `Found ${nativeModuleDependenciesToPackage.length} dependencies to copy`
       );
 
       // Copy all required dependencies
@@ -168,7 +168,7 @@ const config: ForgeConfig = {
             const stats = lstatSync(localDepPath);
             if (stats.isSymbolicLink()) {
               console.log(
-                `Found symlink for ${dep}, replacing with dereferenced copy...`,
+                `Found symlink for ${dep}, replacing with dereferenced copy...`
               );
 
               // Read where the symlink points to
@@ -192,7 +192,7 @@ const config: ForgeConfig = {
               });
 
               console.log(
-                `✓ Successfully replaced symlink for ${dep} with actual content`,
+                `✓ Successfully replaced symlink for ${dep} with actual content`
               );
             }
           }
@@ -206,7 +206,7 @@ const config: ForgeConfig = {
       const targetArch = arch;
 
       console.log(
-        `Pruning onnxruntime-node binaries for ${targetPlatform}/${targetArch}...`,
+        `Pruning onnxruntime-node binaries for ${targetPlatform}/${targetArch}...`
       );
       const onnxBinRoot = join(localNodeModules, "onnxruntime-node", "bin");
       if (existsSync(onnxBinRoot)) {
@@ -242,7 +242,7 @@ const config: ForgeConfig = {
         console.log("✓ Finished pruning onnxruntime-node.");
       } else {
         console.log(
-          "Skipping onnxruntime-node pruning, bin directory not found.",
+          "Skipping onnxruntime-node pruning, bin directory not found."
         );
       }
     },
@@ -253,7 +253,7 @@ const config: ForgeConfig = {
       _forgeConfig,
       buildPath,
       _electronVersion,
-      _platform,
+      _platform
     ) => {
       try {
         function getItemsFromFolder(
@@ -262,7 +262,7 @@ const config: ForgeConfig = {
             path: string;
             type: "directory" | "file";
             empty: boolean;
-          }[] = [],
+          }[] = []
         ) {
           try {
             const normalizedPath = normalize(path);
@@ -356,7 +356,7 @@ const config: ForgeConfig = {
 
         for (const outputPath of outputPaths) {
           console.log(
-            `[postPackage] Bundling VC++ runtime DLLs for Windows at ${outputPath}...`,
+            `[postPackage] Bundling VC++ runtime DLLs for Windows at ${outputPath}...`
           );
           for (const dll of vcRuntimeDlls) {
             const src = `C:\\Windows\\System32\\${dll}`;
@@ -368,7 +368,7 @@ const config: ForgeConfig = {
               console.error(`  ✗ Failed to copy ${dll}:`, error);
               throw new Error(
                 `Failed to bundle ${dll}. The build machine must have Visual C++ runtime installed. ` +
-                  `On GitHub Actions, use a Windows runner with Visual Studio (e.g., windows-2025).`,
+                  `On GitHub Actions, use a Windows runner with Visual Studio (e.g., windows-2025).`
               );
             }
           }
@@ -382,8 +382,8 @@ const config: ForgeConfig = {
       unpack:
         "{*.node,*.dylib,*.so,*.dll,*.metal,**/node_modules/jest-worker/**,**/onnxruntime-node/bin/**}",
     },
-    name: "Surasura",
-    executableName: "Surasura",
+    name: "surasura",
+    executableName: "surasura",
     icon: "./assets/logo", // Path to your icon file
     appBundleId: "com.surasura.desktop", // Proper bundle ID
     extraResource: [
@@ -395,6 +395,9 @@ const config: ForgeConfig = {
       }`,
       "./models",
       "./assets",
+      // License files for distribution
+      "./LICENSE",
+      "./LICENSE_ORIGINAL_Amical",
     ],
     extendInfo: {
       NSMicrophoneUsageDescription:
@@ -408,7 +411,7 @@ const config: ForgeConfig = {
     },
     protocols: [
       {
-        name: "Surasura",
+        name: "surasura",
         schemes: ["surasura"],
       },
     ],
@@ -526,24 +529,24 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({
-      name: "Surasura",
+      name: "surasura",
       setupIcon: "./assets/logo.ico",
     }),
     new MakerZIP(
       {
-        // macOS ZIP files will be named like: Surasura-darwin-arm64-1.0.0.zip
+        // macOS ZIP files will be named like: surasura-darwin-arm64-1.0.0.zip
         // The default naming includes platform and arch, which is good for auto-updates
       },
-      ["darwin"],
+      ["darwin"]
     ), // Required for macOS auto-updates
     new MakerDMG(
       {
         //! @see https://github.com/electron/forge/issues/3517#issuecomment-2428129194
-        // macOS DMG files will be named like: Surasura-0.0.1-arm64.dmg
+        // macOS DMG files will be named like: surasura-0.0.1-arm64.dmg
         icon: "./assets/logo.icns",
         background: "./assets/dmg_bg.tiff",
       },
-      ["darwin"],
+      ["darwin"]
     ),
     new MakerRpm({}),
     new MakerDeb({}),

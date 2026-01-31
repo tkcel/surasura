@@ -8,14 +8,12 @@ import { VADService } from "../../services/vad-service";
 import { ShortcutManager } from "./shortcut-manager";
 import { WindowManager } from "../core/window-manager";
 import { isMacOS, isWindows } from "../../utils/platform";
-import { TelemetryService } from "../../services/telemetry-service";
 import { OnboardingService } from "../../services/onboarding-service";
 
 /**
  * Service map for type-safe service access
  */
 export interface ServiceMap {
-  telemetryService: TelemetryService;
   transcriptionService: TranscriptionService;
   settingsService: SettingsService;
   vadService: VADService;
@@ -34,7 +32,6 @@ export class ServiceManager {
   private static instance: ServiceManager | null = null;
   private isInitialized = false;
 
-  private telemetryService: TelemetryService | null = null;
   private transcriptionService: TranscriptionService | null = null;
   private settingsService: SettingsService | null = null;
   private vadService: VADService | null = null;
@@ -56,7 +53,6 @@ export class ServiceManager {
 
     try {
       this.initializeSettingsService();
-      await this.initializeTelemetryService();
       await this.initializeOnboardingService();
       this.initializePlatformServices();
       await this.initializeVADService();
@@ -73,30 +69,18 @@ export class ServiceManager {
     }
   }
 
-  private async initializeTelemetryService(): Promise<void> {
-    this.telemetryService = new TelemetryService(this.settingsService!);
-    // Pass settings service if available for checking user preferences
-    await this.telemetryService.initialize();
-    logger.main.info("Telemetry service initialized");
-  }
-
   private initializeSettingsService(): void {
     this.settingsService = new SettingsService();
     logger.main.info("Settings service initialized");
   }
 
   private async initializeOnboardingService(): Promise<void> {
-    if (!this.settingsService || !this.telemetryService) {
-      logger.main.warn(
-        "Settings or telemetry service not available for onboarding",
-      );
+    if (!this.settingsService) {
+      logger.main.warn("Settings service not available for onboarding");
       return;
     }
 
-    this.onboardingService = OnboardingService.getInstance(
-      this.settingsService,
-      this.telemetryService,
-    );
+    this.onboardingService = OnboardingService.getInstance(this.settingsService);
     logger.main.info("Onboarding service initialized");
   }
 
@@ -120,7 +104,6 @@ export class ServiceManager {
       this.transcriptionService = new TranscriptionService(
         this.vadService!,
         this.settingsService,
-        this.telemetryService!,
         this.nativeBridge,
         this.onboardingService,
       );
@@ -144,7 +127,7 @@ export class ServiceManager {
   private initializePlatformServices(): void {
     // Initialize platform-specific bridge
     if (isMacOS() || isWindows()) {
-      this.nativeBridge = new NativeBridge(this.telemetryService ?? undefined);
+      this.nativeBridge = new NativeBridge();
     }
   }
 
@@ -165,7 +148,68 @@ export class ServiceManager {
     // Connect shortcut events to recording manager
     this.recordingManager.setupShortcutListeners(this.shortcutManager);
 
+    // Connect preset selection shortcut events
+    this.setupPresetShortcutListeners(this.shortcutManager);
+
     logger.main.info("Shortcut manager initialized");
+  }
+
+  private setupPresetShortcutListeners(shortcutManager: ShortcutManager): void {
+    // Track last triggered index to avoid repeated triggers while keys are held
+    let lastTriggeredIndex: number | null = null;
+    let lastTriggerTime = 0;
+    const DEBOUNCE_MS = 500;
+
+    shortcutManager.on("select-preset-triggered", async (index: number) => {
+      const now = Date.now();
+
+      // Debounce: ignore if same index triggered within debounce period
+      if (index === lastTriggeredIndex && now - lastTriggerTime < DEBOUNCE_MS) {
+        return;
+      }
+
+      lastTriggeredIndex = index;
+      lastTriggerTime = now;
+
+      try {
+        if (!this.settingsService) {
+          logger.main.warn(
+            "SettingsService not available for preset selection",
+          );
+          return;
+        }
+
+        const preset = await this.settingsService.selectPresetByIndex(index);
+
+        if (preset) {
+          logger.main.info("Preset selected via shortcut", {
+            index,
+            presetId: preset.id,
+            presetName: preset.name,
+          });
+          // IPC notification is handled by AppManager via "active-preset-changed" event
+        } else {
+          logger.main.debug("Preset selection skipped", {
+            index,
+            reason: "Index out of range or formatter disabled",
+          });
+        }
+      } catch (error) {
+        logger.main.error("Failed to select preset via shortcut", {
+          error,
+          index,
+        });
+      }
+    });
+
+    // Reset last triggered index when modifier keys are released
+    shortcutManager.on("activeKeysChanged", (keys: string[]) => {
+      if (!keys.includes("Cmd") && !keys.includes("Ctrl")) {
+        lastTriggeredIndex = null;
+      }
+    });
+
+    logger.main.info("Preset shortcut listeners initialized");
   }
 
   private initializeAutoUpdater(): void {
@@ -184,7 +228,6 @@ export class ServiceManager {
     }
 
     const services: ServiceMap = {
-      telemetryService: this.telemetryService!,
       transcriptionService: this.transcriptionService!,
       settingsService: this.settingsService!,
       vadService: this.vadService!,
@@ -217,11 +260,6 @@ export class ServiceManager {
     if (this.nativeBridge) {
       logger.main.info("Stopping native helper...");
       this.nativeBridge.stopHelper();
-    }
-
-    if (this.telemetryService) {
-      logger.main.info("Shutting down telemetry service...");
-      await this.telemetryService.shutdown();
     }
   }
 

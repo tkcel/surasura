@@ -205,7 +205,7 @@ const mockApp = {
     };
     return paths[name] || testUserDataPath;
   }),
-  getName: vi.fn(() => "Surasura"),
+  getName: vi.fn(() => "surasura"),
   getVersion: vi.fn(() => "0.1.0-test"),
   isPackaged: false,
   isReady: vi.fn(() => true),

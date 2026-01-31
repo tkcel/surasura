@@ -5,18 +5,62 @@ import { app, shell } from "electron";
 import path from "node:path";
 import { createRouter, procedure } from "../trpc";
 import { dbPath, closeDatabase } from "../../db";
+import { getDefaultShortcuts } from "../../db/app-settings";
 import * as fs from "fs/promises";
+
+// FormatPreset schema
+const FormatPresetSchema = z.object({
+  id: z.string(),
+  name: z.string().max(20),
+  modelId: z.enum(["gpt-4o-mini", "gpt-4o"]),
+  instructions: z.string().max(2000),
+  isDefault: z.boolean(),
+  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
 
 // FormatterConfig schema
 const FormatterConfigSchema = z.object({
   enabled: z.boolean(),
   modelId: z.string().optional(),
   fallbackModelId: z.string().optional(),
+  presets: z.array(FormatPresetSchema).max(5).optional(),
+  activePresetId: z.string().nullable().optional(),
+});
+
+// Create preset input schema
+const CreateFormatPresetSchema = z.object({
+  name: z.string().min(1).max(20),
+  modelId: z.enum(["gpt-4o-mini", "gpt-4o"]),
+  instructions: z.string().max(2000),
+  isDefault: z.boolean().default(false),
+  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]).default("yellow"),
+});
+
+// Update preset input schema
+const UpdateFormatPresetSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1).max(20).optional(),
+  modelId: z.enum(["gpt-4o-mini", "gpt-4o"]).optional(),
+  instructions: z.string().max(2000).optional(),
+  isDefault: z.boolean().optional(),
+  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]).optional(),
 });
 
 // Shortcut schema (array of key names)
 const SetShortcutSchema = z.object({
-  type: z.enum(["pushToTalk", "toggleRecording", "pasteLastTranscription"]),
+  type: z.enum([
+    "pushToTalk",
+    "toggleRecording",
+    "pasteLastTranscription",
+    "cancelRecording",
+    "selectPreset1",
+    "selectPreset2",
+    "selectPreset3",
+    "selectPreset4",
+    "selectPreset5",
+  ]),
   shortcut: z.array(z.string()),
 });
 
@@ -132,6 +176,205 @@ export const settingsRouter = createRouter({
       await settingsService.setFormatterConfig(input);
       return true;
     }),
+
+  // Create format preset
+  createFormatPreset: procedure
+    .input(CreateFormatPresetSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        const preset = await settingsService.createFormatPreset(input);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Format preset created", { presetId: preset.id });
+
+        return preset;
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error creating format preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Update format preset
+  updateFormatPreset: procedure
+    .input(UpdateFormatPresetSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        const { id, ...updates } = input;
+        const preset = await settingsService.updateFormatPreset(id, updates);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Format preset updated", { presetId: preset.id });
+
+        return preset;
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error updating format preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Delete format preset
+  deleteFormatPreset: procedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        await settingsService.deleteFormatPreset(input.id);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Format preset deleted", { presetId: input.id });
+
+        return { success: true };
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error deleting format preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Set active preset
+  setActivePreset: procedure
+    .input(z.object({ presetId: z.string().nullable() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        await settingsService.setActivePreset(input.presetId);
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("Active preset changed", {
+          presetId: input.presetId,
+        });
+
+        return { success: true };
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error setting active preset:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Get active preset
+  getActivePreset: procedure.query(async ({ ctx }) => {
+    try {
+      const settingsService = ctx.serviceManager.getService("settingsService");
+      if (!settingsService) {
+        throw new Error("SettingsService not available");
+      }
+      return await settingsService.getActivePreset();
+    } catch (error) {
+      const logger = ctx.serviceManager.getLogger();
+      logger?.main.error("Error getting active preset:", error);
+      return null;
+    }
+  }),
+
+  // Select preset by index (0-4)
+  selectPresetByIndex: procedure
+    .input(z.object({ index: z.number().min(0).max(4) }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        const preset = await settingsService.selectPresetByIndex(input.index);
+
+        const logger = ctx.serviceManager.getLogger();
+        if (preset) {
+          logger?.main.info("Preset selected by index", {
+            index: input.index,
+            presetId: preset.id,
+            presetName: preset.name,
+          });
+        } else {
+          logger?.main.info("Preset selection by index skipped", {
+            index: input.index,
+            reason: "Index out of range or formatter disabled",
+          });
+        }
+
+        return preset;
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error selecting preset by index:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
   // Get shortcuts configuration
   getShortcuts: procedure.query(async ({ ctx }) => {
     const settingsService = ctx.serviceManager.getService("settingsService");
@@ -166,6 +409,46 @@ export const settingsRouter = createRouter({
 
       return { success: true, warning: result.warning };
     }),
+
+  // Get default shortcuts for current platform
+  getDefaultShortcuts: procedure.query(() => {
+    return getDefaultShortcuts();
+  }),
+
+  // Reset all shortcuts to default
+  resetShortcuts: procedure.mutation(async ({ ctx }) => {
+    const shortcutManager = ctx.serviceManager.getService("shortcutManager");
+    if (!shortcutManager) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "ShortcutManager not available",
+      });
+    }
+
+    const defaults = getDefaultShortcuts();
+
+    // Reset each shortcut type to default
+    await shortcutManager.setShortcut("pushToTalk", defaults.pushToTalk);
+    await shortcutManager.setShortcut(
+      "toggleRecording",
+      defaults.toggleRecording,
+    );
+    await shortcutManager.setShortcut(
+      "cancelRecording",
+      defaults.cancelRecording,
+    );
+    await shortcutManager.setShortcut("pasteLastTranscription", []);
+    await shortcutManager.setShortcut("selectPreset1", defaults.selectPreset1);
+    await shortcutManager.setShortcut("selectPreset2", defaults.selectPreset2);
+    await shortcutManager.setShortcut("selectPreset3", defaults.selectPreset3);
+    await shortcutManager.setShortcut("selectPreset4", defaults.selectPreset4);
+    await shortcutManager.setShortcut("selectPreset5", defaults.selectPreset5);
+
+    const logger = ctx.serviceManager.getLogger();
+    logger?.main.info("Shortcuts reset to defaults");
+
+    return { success: true };
+  }),
 
   // Set shortcut recording state
   setShortcutRecordingState: procedure
@@ -516,25 +799,6 @@ export const settingsRouter = createRouter({
       : path.join(app.getPath("logs"), "surasura.log");
   }),
 
-  // Get machine ID for display
-  getMachineId: procedure.query(async ({ ctx }) => {
-    const telemetryService = ctx.serviceManager.getService("telemetryService");
-    return telemetryService?.getMachineId() ?? "";
-  }),
-
-  // Get telemetry config for renderer (PostHog surveys)
-  getTelemetryConfig: procedure.query(async ({ ctx }) => {
-    const telemetryService = ctx.serviceManager.getService("telemetryService");
-    return {
-      apiKey: process.env.POSTHOG_API_KEY || __BUNDLED_POSTHOG_API_KEY,
-      host: process.env.POSTHOG_HOST || __BUNDLED_POSTHOG_HOST,
-      machineId: telemetryService?.getMachineId() ?? "",
-      enabled: telemetryService?.isEnabled() ?? false,
-      feedbackSurveyId:
-        process.env.FEEDBACK_SURVEY_ID || __BUNDLED_FEEDBACK_SURVEY_ID,
-    };
-  }),
-
   // Download log file via save dialog
   downloadLogFile: procedure.mutation(async () => {
     const { dialog, BrowserWindow } = await import("electron");
@@ -643,58 +907,6 @@ export const settingsRouter = createRouter({
       return true;
     }),
 
-  // Get telemetry settings
-  getTelemetrySettings: procedure.query(async ({ ctx }) => {
-    try {
-      const settingsService = ctx.serviceManager.getService("settingsService");
-      if (!settingsService) {
-        throw new Error("SettingsService not available");
-      }
-      return await settingsService.getTelemetrySettings();
-    } catch (error) {
-      const logger = ctx.serviceManager.getLogger();
-      if (logger) {
-        logger.main.error("Error getting telemetry settings:", error);
-      }
-      return { enabled: true };
-    }
-  }),
-
-  // Update telemetry settings
-  updateTelemetrySettings: procedure
-    .input(
-      z.object({
-        enabled: z.boolean(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const telemetryService =
-          ctx.serviceManager.getService("telemetryService");
-        if (!telemetryService) {
-          throw new Error("TelemetryService not available");
-        }
-
-        // Update the telemetry service state
-        await telemetryService.setEnabled(input.enabled);
-
-        const logger = ctx.serviceManager.getLogger();
-        if (logger) {
-          logger.main.info("Telemetry settings updated", {
-            enabled: input.enabled,
-          });
-        }
-
-        return true;
-      } catch (error) {
-        const logger = ctx.serviceManager.getLogger();
-        if (logger) {
-          logger.main.error("Error updating telemetry settings:", error);
-        }
-        throw error;
-      }
-    }),
-
   // Reset app - deletes database and models, then restarts
   resetApp: procedure.mutation(async ({ ctx }) => {
     try {
@@ -749,5 +961,59 @@ export const settingsRouter = createRouter({
       throw new Error("Failed to reset app");
     }
   }),
+
+  // Get guides state (which guides have been seen)
+  getGuidesState: procedure.query(async ({ ctx }) => {
+    try {
+      const settingsService = ctx.serviceManager.getService("settingsService");
+      if (!settingsService) {
+        throw new Error("SettingsService not available");
+      }
+      const allSettings = await settingsService.getAllSettings();
+      return allSettings.guides ?? {};
+    } catch (error) {
+      const logger = ctx.serviceManager.getLogger();
+      if (logger) {
+        logger.main.error("Error getting guides state:", error);
+      }
+      return {};
+    }
+  }),
+
+  // Mark a guide as seen
+  markGuideSeen: procedure
+    .input(z.object({ guide: z.enum(["dictationFlow"]) }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new Error("SettingsService not available");
+        }
+
+        const allSettings = await settingsService.getAllSettings();
+        const currentGuides = allSettings.guides ?? {};
+
+        const updatedGuides = {
+          ...currentGuides,
+          ...(input.guide === "dictationFlow" && { hasSeenDictationFlow: true }),
+        };
+
+        await settingsService.setGuidesState(updatedGuides);
+
+        const logger = ctx.serviceManager.getLogger();
+        if (logger) {
+          logger.main.info("Guide marked as seen:", { guide: input.guide });
+        }
+
+        return { success: true };
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        if (logger) {
+          logger.main.error("Error marking guide as seen:", error);
+        }
+        throw error;
+      }
+    }),
 });
 // This comment prevents prettier from removing the trailing newline

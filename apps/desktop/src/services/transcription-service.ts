@@ -9,7 +9,6 @@ import { createDefaultContext } from "../pipeline/core/context";
 import { OpenAIWhisperProvider } from "../pipeline/providers/transcription/openai-whisper-provider";
 import { OpenAIFormatter } from "../pipeline/providers/formatting/openai-formatter";
 import { SettingsService } from "../services/settings-service";
-import { TelemetryService } from "../services/telemetry-service";
 import type { NativeBridge } from "./platform/native-bridge-service";
 import type { OnboardingService } from "./onboarding-service";
 import { createTranscription } from "../db/transcriptions";
@@ -31,13 +30,11 @@ export class TranscriptionService {
   private settingsService: SettingsService;
   private vadMutex: Mutex;
   private transcriptionMutex: Mutex;
-  private telemetryService: TelemetryService;
   private lastTranscription: string | null = null;
 
   constructor(
     vadService: VADService,
     settingsService: SettingsService,
-    telemetryService: TelemetryService,
     private nativeBridge: NativeBridge | null,
     private onboardingService: OnboardingService | null,
   ) {
@@ -46,7 +43,6 @@ export class TranscriptionService {
     this.settingsService = settingsService;
     this.vadMutex = new Mutex();
     this.transcriptionMutex = new Mutex();
-    this.telemetryService = telemetryService;
   }
 
   /**
@@ -333,8 +329,12 @@ export class TranscriptionService {
           "Formatting skipped: OpenAI API key missing",
         );
       } else {
-        // Get language model (default to gpt-4o-mini)
+        // Get active preset to determine model
+        const activePreset = await this.settingsService.getActivePreset();
+
+        // Use preset's model if available, otherwise fall back to default
         const modelId =
+          activePreset?.modelId ||
           formatterConfig.modelId ||
           (await this.settingsService.getDefaultLanguageModel()) ||
           "gpt-4o-mini";
@@ -343,6 +343,7 @@ export class TranscriptionService {
           sessionId,
           provider: "OpenAI",
           model: modelId,
+          presetName: activePreset?.name,
         });
 
         const provider = new OpenAIFormatter(openaiConfig.apiKey, modelId);
@@ -400,51 +401,6 @@ export class TranscriptionService {
         formattingStyle:
           session.context.sharedData.userPreferences?.formattingStyle,
       },
-    });
-
-    // Track transcription completion
-    const completionTime = performance.now();
-
-    // Calculate durations:
-    // - Recording duration: from when recording started to when it ended
-    // - Processing duration: from when recording ended to completion
-    // - Total duration: from recording start to completion
-    const recordingDuration =
-      session.recordingStartedAt && session.recordingStoppedAt
-        ? session.recordingStoppedAt - session.recordingStartedAt
-        : undefined;
-    const processingDuration = session.recordingStoppedAt
-      ? completionTime - session.recordingStoppedAt
-      : undefined;
-    const totalDuration = session.recordingStartedAt
-      ? completionTime - session.recordingStartedAt
-      : undefined;
-
-    const audioDurationSeconds =
-      session.context.sharedData.audioMetadata?.duration;
-
-    this.telemetryService.trackTranscriptionCompleted({
-      session_id: sessionId,
-      model_id: "openai-whisper-1",
-      model_preloaded: false,
-      whisper_native_binding: undefined,
-      total_duration_ms: totalDuration || 0,
-      recording_duration_ms: recordingDuration,
-      processing_duration_ms: processingDuration,
-      audio_duration_seconds: audioDurationSeconds,
-      realtime_factor:
-        audioDurationSeconds && totalDuration
-          ? audioDurationSeconds / (totalDuration / 1000)
-          : undefined,
-      text_length: completeTranscription.length,
-      word_count: completeTranscription.trim().split(/\s+/).length,
-      formatting_enabled: formattingUsed,
-      formatting_model: formattingModel,
-      formatting_duration_ms: formattingDuration,
-      vad_enabled: !!this.vadService,
-      session_type: "streaming",
-      language: session.context.sharedData.userPreferences?.language || "en",
-      vocabulary_size: session.context.sharedData.vocabulary?.length || 0,
     });
 
     this.streamingSessions.delete(sessionId);
@@ -559,6 +515,9 @@ export class TranscriptionService {
     const startTime = performance.now();
     const style = session.context.sharedData.userPreferences?.formattingStyle;
 
+    // Get active preset for custom formatting instructions
+    const activePreset = await this.settingsService.getActivePreset();
+
     try {
       const formattedText = await provider.format({
         text,
@@ -573,6 +532,7 @@ export class TranscriptionService {
                 ]
               : undefined,
           aggregatedTranscription: text,
+          preset: activePreset,
         },
       });
 

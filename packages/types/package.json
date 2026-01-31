@@ -1,7 +1,7 @@
 {
   "name": "@surasura/types",
   "version": "1.0.0",
-  "description": "Shared type definitions and schema generation for Surasura",
+  "description": "Shared type definitions and schema generation for surasura",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

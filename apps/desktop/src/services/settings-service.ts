@@ -1,11 +1,12 @@
 import { app } from "electron";
 import { EventEmitter } from "events";
-import { FormatterConfig } from "../types/formatter";
+import { FormatterConfig, FormatPreset } from "../types/formatter";
 import {
   getSettingsSection,
   updateSettingsSection,
   getAppSettings,
   updateAppSettings,
+  getDefaultShortcuts,
 } from "../db/app-settings";
 import type { AppSettingsData } from "../db/schema";
 
@@ -16,6 +17,12 @@ export interface ShortcutsConfig {
   pushToTalk: string[];
   toggleRecording: string[];
   pasteLastTranscription: string[];
+  cancelRecording: string[];
+  selectPreset1: string[];
+  selectPreset2: string[];
+  selectPreset3: string[];
+  selectPreset4: string[];
+  selectPreset5: string[];
 }
 
 export interface AppPreferences {
@@ -133,19 +140,45 @@ export class SettingsService extends EventEmitter {
   }
 
   /**
+   * Get guides state (which guides have been seen)
+   */
+  async getGuidesState(): Promise<AppSettingsData["guides"]> {
+    return await getSettingsSection("guides");
+  }
+
+  /**
+   * Update guides state
+   */
+  async setGuidesState(
+    guidesState: AppSettingsData["guides"],
+  ): Promise<void> {
+    await updateSettingsSection("guides", guidesState);
+  }
+
+  /**
    * Get shortcuts configuration
    * Defaults are handled by app-settings.ts during initialization/migration
    */
   async getShortcuts(): Promise<ShortcutsConfig> {
     const shortcuts = await getSettingsSection("shortcuts");
+    const defaults = getDefaultShortcuts();
+
     return {
-      pushToTalk: shortcuts?.pushToTalk ?? [],
-      toggleRecording: shortcuts?.toggleRecording ?? [],
+      pushToTalk: shortcuts?.pushToTalk ?? defaults.pushToTalk ?? [],
+      toggleRecording:
+        shortcuts?.toggleRecording ?? defaults.toggleRecording ?? [],
       pasteLastTranscription: shortcuts?.pasteLastTranscription ?? [
         "Alt",
         "Cmd",
         "V",
       ],
+      cancelRecording: shortcuts?.cancelRecording ??
+        defaults.cancelRecording ?? ["Escape"],
+      selectPreset1: shortcuts?.selectPreset1 ?? defaults.selectPreset1 ?? [],
+      selectPreset2: shortcuts?.selectPreset2 ?? defaults.selectPreset2 ?? [],
+      selectPreset3: shortcuts?.selectPreset3 ?? defaults.selectPreset3 ?? [],
+      selectPreset4: shortcuts?.selectPreset4 ?? defaults.selectPreset4 ?? [],
+      selectPreset5: shortcuts?.selectPreset5 ?? defaults.selectPreset5 ?? [],
     };
   }
 
@@ -163,6 +196,24 @@ export class SettingsService extends EventEmitter {
         : undefined,
       pasteLastTranscription: shortcuts.pasteLastTranscription?.length
         ? shortcuts.pasteLastTranscription
+        : undefined,
+      cancelRecording: shortcuts.cancelRecording?.length
+        ? shortcuts.cancelRecording
+        : undefined,
+      selectPreset1: shortcuts.selectPreset1?.length
+        ? shortcuts.selectPreset1
+        : undefined,
+      selectPreset2: shortcuts.selectPreset2?.length
+        ? shortcuts.selectPreset2
+        : undefined,
+      selectPreset3: shortcuts.selectPreset3?.length
+        ? shortcuts.selectPreset3
+        : undefined,
+      selectPreset4: shortcuts.selectPreset4?.length
+        ? shortcuts.selectPreset4
+        : undefined,
+      selectPreset5: shortcuts.selectPreset5?.length
+        ? shortcuts.selectPreset5
         : undefined,
     };
     await updateSettingsSection("shortcuts", dataToStore);
@@ -332,5 +383,180 @@ export class SettingsService extends EventEmitter {
     telemetrySettings: AppSettingsData["telemetry"],
   ): Promise<void> {
     await updateSettingsSection("telemetry", telemetrySettings);
+  }
+
+  // ==================== Format Preset Methods ====================
+
+  /**
+   * Create a new format preset (max 5 presets allowed)
+   */
+  async createFormatPreset(
+    preset: Omit<FormatPreset, "id" | "createdAt" | "updatedAt">,
+  ): Promise<FormatPreset> {
+    const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
+
+    if (presets.length >= 5) {
+      throw new Error("Maximum number of presets (5) reached");
+    }
+
+    if (preset.name.length > 20) {
+      throw new Error("Preset name must be 20 characters or less");
+    }
+
+    if (preset.instructions.length > 2000) {
+      throw new Error("Instructions must be 2000 characters or less");
+    }
+
+    const now = new Date().toISOString();
+    const newPreset: FormatPreset = {
+      ...preset,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const updatedPresets = [...presets, newPreset];
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      presets: updatedPresets,
+    });
+
+    return newPreset;
+  }
+
+  /**
+   * Update an existing format preset
+   */
+  async updateFormatPreset(
+    id: string,
+    updates: Partial<Omit<FormatPreset, "id" | "createdAt" | "updatedAt">>,
+  ): Promise<FormatPreset> {
+    const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
+
+    const presetIndex = presets.findIndex((p) => p.id === id);
+    if (presetIndex === -1) {
+      throw new Error("Preset not found");
+    }
+
+    if (updates.name !== undefined && updates.name.length > 20) {
+      throw new Error("Preset name must be 20 characters or less");
+    }
+
+    if (
+      updates.instructions !== undefined &&
+      updates.instructions.length > 2000
+    ) {
+      throw new Error("Instructions must be 2000 characters or less");
+    }
+
+    const updatedPreset: FormatPreset = {
+      ...presets[presetIndex],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updatedPresets = [...presets];
+    updatedPresets[presetIndex] = updatedPreset;
+
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      presets: updatedPresets,
+    });
+
+    return updatedPreset;
+  }
+
+  /**
+   * Delete a format preset
+   */
+  async deleteFormatPreset(id: string): Promise<void> {
+    const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
+
+    const updatedPresets = presets.filter((p) => p.id !== id);
+
+    // If the deleted preset was active, clear activePresetId
+    const activePresetId =
+      config?.activePresetId === id ? null : config?.activePresetId;
+
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      presets: updatedPresets,
+      activePresetId,
+    });
+  }
+
+  /**
+   * Set the active preset
+   */
+  async setActivePreset(presetId: string | null): Promise<void> {
+    const config = await this.getFormatterConfig();
+    const presets = config?.presets ?? [];
+
+    // If setting a preset, verify it exists
+    if (presetId !== null) {
+      const exists = presets.some((p) => p.id === presetId);
+      if (!exists) {
+        throw new Error("Preset not found");
+      }
+    }
+
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      activePresetId: presetId,
+    });
+
+    // Emit event for cross-window synchronization
+    const selectedPreset = presetId
+      ? presets.find((p) => p.id === presetId)
+      : null;
+    this.emit("active-preset-changed", {
+      presetId,
+      presetName: selectedPreset?.name ?? null,
+    });
+  }
+
+  /**
+   * Get the currently active preset
+   */
+  async getActivePreset(): Promise<FormatPreset | null> {
+    const config = await this.getFormatterConfig();
+    if (!config?.activePresetId) {
+      return null;
+    }
+
+    const presets = config.presets ?? [];
+    return presets.find((p) => p.id === config.activePresetId) ?? null;
+  }
+
+  /**
+   * Select a preset by index (0-4)
+   * Returns the selected preset, or null if index is out of range or formatter is disabled
+   */
+  async selectPresetByIndex(index: number): Promise<FormatPreset | null> {
+    const config = await this.getFormatterConfig();
+
+    // Return null if formatter is disabled
+    if (!config?.enabled) {
+      return null;
+    }
+
+    const presets = config.presets ?? [];
+
+    // Return null if index is out of range
+    if (index < 0 || index >= presets.length) {
+      return null;
+    }
+
+    const preset = presets[index];
+    await this.setActivePreset(preset.id);
+
+    return preset;
   }
 }

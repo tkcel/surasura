@@ -3,7 +3,16 @@
  * Provides comprehensive validation for keyboard shortcuts
  */
 
-export type ShortcutType = "pushToTalk" | "toggleRecording" | "pasteLastTranscription";
+export type ShortcutType =
+  | "pushToTalk"
+  | "toggleRecording"
+  | "pasteLastTranscription"
+  | "cancelRecording"
+  | "selectPreset1"
+  | "selectPreset2"
+  | "selectPreset3"
+  | "selectPreset4"
+  | "selectPreset5";
 
 export interface ValidationContext {
   currentShortcut: string[];
@@ -230,12 +239,12 @@ function normalizeKeys(keys: string[]): string[] {
  */
 export function checkMaxKeysLength(keys: string[]): ValidationResult {
   if (keys.length === 0) {
-    return { valid: false, error: "No keys detected" };
+    return { valid: false, error: "キーが検出されませんでした" };
   }
   if (keys.length > MAX_KEY_COMBINATION_LENGTH) {
     return {
       valid: false,
-      error: `Too many keys - use ${MAX_KEY_COMBINATION_LENGTH} or fewer`,
+      error: `キーが多すぎます（${MAX_KEY_COMBINATION_LENGTH}つ以下にしてください）`,
     };
   }
   return { valid: true };
@@ -256,8 +265,51 @@ export function checkDuplicateShortcut(
   if (arraysEqual(currentNormalized, otherNormalized)) {
     return {
       valid: false,
-      error: "Shortcut already assigned to another action",
+      error: "このショートカットは既に他の機能に割り当てられています",
     };
+  }
+  return { valid: true };
+}
+
+/**
+ * Shortcut type display names for error messages
+ */
+const SHORTCUT_TYPE_NAMES: Record<ShortcutType, string> = {
+  pushToTalk: "Push to Talk",
+  toggleRecording: "ハンズフリーモード",
+  pasteLastTranscription: "履歴ペースト",
+  cancelRecording: "録音キャンセル",
+  selectPreset1: "プリセット1",
+  selectPreset2: "プリセット2",
+  selectPreset3: "プリセット3",
+  selectPreset4: "プリセット4",
+  selectPreset5: "プリセット5",
+};
+
+/**
+ * Check if the shortcut conflicts with any other shortcuts
+ */
+export function checkDuplicateWithAllShortcuts(
+  currentKeys: string[],
+  currentType: ShortcutType,
+  allShortcuts: Partial<Record<ShortcutType, string[]>>,
+): ValidationResult {
+  if (currentKeys.length === 0) return { valid: true };
+
+  const currentNormalized = normalizeKeys(currentKeys);
+
+  for (const [type, keys] of Object.entries(allShortcuts)) {
+    // Skip self and empty shortcuts
+    if (type === currentType || !keys || keys.length === 0) continue;
+
+    const otherNormalized = normalizeKeys(keys);
+    if (arraysEqual(currentNormalized, otherNormalized)) {
+      const conflictName = SHORTCUT_TYPE_NAMES[type as ShortcutType] || type;
+      return {
+        valid: false,
+        error: `「${conflictName}」と同じショートカットが設定されています`,
+      };
+    }
   }
   return { valid: true };
 }
@@ -279,10 +331,10 @@ export function checkReservedShortcut(
   for (const reservedShortcut of reserved) {
     const normalizedReserved = normalizeKeys(reservedShortcut);
     if (arraysEqual(normalizedKeys, normalizedReserved)) {
-      const displayShortcut = keys.join("+");
+      const displayShortcut = keys.join(" + ");
       return {
         valid: false,
-        error: `${displayShortcut} conflicts with a system shortcut`,
+        error: `${displayShortcut} はシステムショートカットと競合しています`,
       };
     }
   }
@@ -309,7 +361,7 @@ export function checkAlphanumericOnly(keys: string[]): ValidationResult {
   // All keys are alphanumeric - need a modifier
   return {
     valid: false,
-    error: "Add a modifier key like Cmd, Ctrl, or Fn",
+    error: "Cmd、Ctrl、Fnなどの修飾キーを追加してください",
   };
 }
 
@@ -332,7 +384,7 @@ export function checkDuplicateModifierPairs(
       const baseName = left.substring(1);
       return {
         valid: false,
-        error: `Can't use both left and right ${baseName} together`,
+        error: `左右の${baseName}キーを同時に使用することはできません`,
       };
     }
   }
@@ -365,7 +417,7 @@ export function checkSubsetConflict(
     return {
       valid: true, // Still valid, just warning
       warning:
-        "This overlaps with your Push-to-talk shortcut and may cause issues",
+        "Push to Talkのショートカットと重複しているため、問題が発生する可能性があります",
     };
   }
 
@@ -375,6 +427,7 @@ export function checkSubsetConflict(
 /**
  * Run all validation checks in order
  * Returns first error found, or warning if all pass
+ * Note: Duplicate check with all shortcuts is done separately in ShortcutManager
  */
 export function validateShortcutComprehensive(
   context: ValidationContext,
@@ -385,23 +438,19 @@ export function validateShortcutComprehensive(
   const maxKeysCheck = checkMaxKeysLength(currentShortcut);
   if (!maxKeysCheck.valid) return maxKeysCheck;
 
-  // 2. Duplicate shortcut check
-  const duplicateCheck = checkDuplicateShortcut(currentShortcut, otherShortcut);
-  if (!duplicateCheck.valid) return duplicateCheck;
-
-  // 3. Reserved shortcut check
+  // 2. Reserved shortcut check
   const reservedCheck = checkReservedShortcut(currentShortcut, platform);
   if (!reservedCheck.valid) return reservedCheck;
 
-  // 4. Alphanumeric-only check
+  // 3. Alphanumeric-only check
   const alphaCheck = checkAlphanumericOnly(currentShortcut);
   if (!alphaCheck.valid) return alphaCheck;
 
-  // 5. Duplicate modifier pair check (Windows only)
+  // 4. Duplicate modifier pair check (Windows only)
   const pairCheck = checkDuplicateModifierPairs(currentShortcut, platform);
   if (!pairCheck.valid) return pairCheck;
 
-  // 6. Subset conflict check (soft warning - returns valid:true with warning)
+  // 5. Subset conflict check (soft warning - returns valid:true with warning)
   const subsetCheck = checkSubsetConflict(
     currentShortcut,
     otherShortcut,

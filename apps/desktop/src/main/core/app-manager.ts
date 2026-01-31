@@ -35,9 +35,6 @@ export class AppManager {
 
     await this.serviceManager.initialize();
 
-    const telemetryService = this.serviceManager.getService("telemetryService");
-    telemetryService.trackAppLaunch();
-
     // Initialize tRPC handler (services must be ready first)
     this.trpcHandler = createIPCHandler({
       router,
@@ -175,6 +172,35 @@ export class AppManager {
     settingsService.on("theme-changed", async () => {
       await this.windowManager.updateAllWindowThemes();
     });
+
+    // Handle active preset changes (for cross-window synchronization)
+    settingsService.on(
+      "active-preset-changed",
+      ({
+        presetId,
+        presetName,
+      }: {
+        presetId: string | null;
+        presetName: string | null;
+      }) => {
+        const mainWindow = this.windowManager.getMainWindow();
+        const widgetWindow = this.windowManager.getWidgetWindow();
+
+        const message = { type: "preset-changed", presetName };
+
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("preset-notification", message);
+        }
+        if (widgetWindow && !widgetWindow.isDestroyed()) {
+          widgetWindow.webContents.send("preset-notification", message);
+        }
+
+        logger.main.debug("Preset change notification sent to windows", {
+          presetId,
+          presetName,
+        });
+      },
+    );
 
     logger.main.info("Settings event listeners set up");
   }

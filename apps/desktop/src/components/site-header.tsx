@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { PresetSelector } from "@/components/preset-selector";
 import { useRouter } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -179,7 +180,11 @@ export function SiteHeader({ currentView }: SiteHeaderProps) {
           </div>
         </div>
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none select-none">
-          <h1 className="text-base font-medium">{currentView || "Surasura"}</h1>
+          <h1 className="text-base font-medium">{currentView || "surasura"}</h1>
+        </div>
+
+        <div className="ml-auto flex items-center gap-2 px-4 lg:px-6">
+          <PresetSelector />
         </div>
 
         {/* <div className="ml-auto flex items-center gap-2 px-4 lg:px-6">

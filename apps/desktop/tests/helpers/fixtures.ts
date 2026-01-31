@@ -50,15 +50,6 @@ export const defaultAppSettings: AppSettingsData = {
     minimizeToTray: true,
     showWidgetWhileInactive: true,
   },
-  telemetry: {
-    enabled: false,
-  },
-  auth: {
-    isAuthenticated: false,
-    idToken: null,
-    refreshToken: null,
-    expiresAt: null,
-  },
 };
 
 /**
@@ -96,7 +87,7 @@ export const sampleTranscriptions: NewTranscription[] = [
  */
 export const sampleVocabulary: NewVocabulary[] = [
   {
-    word: "Surasura",
+    word: "surasura",
     replacementWord: null,
     isReplacement: false,
     usageCount: 5,

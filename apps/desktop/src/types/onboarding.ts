@@ -23,17 +23,8 @@ export enum FeatureInterest {
   VoiceCommands = "voice_commands",
 }
 
-export enum DiscoverySource {
-  SearchEngine = "search_engine",
-  SocialMedia = "social_media",
-  WordOfMouth = "word_of_mouth",
-  Other = "other",
-}
-
 export interface OnboardingPreferences {
   featureInterests?: FeatureInterest[];
-  discoverySource?: DiscoverySource;
-  discoveryDetails?: string;
   lastVisitedScreen?: OnboardingScreen;
 }
 
@@ -43,7 +34,6 @@ export interface OnboardingState {
   lastVisitedScreen?: OnboardingScreen;
   skippedScreens?: OnboardingScreen[];
   featureInterests?: FeatureInterest[];
-  discoverySource?: DiscoverySource;
 }
 
 // ============================================================================
@@ -63,8 +53,6 @@ export interface OnboardingFeatureFlags {
 
 export const FeatureInterestSchema = z.nativeEnum(FeatureInterest);
 
-export const DiscoverySourceSchema = z.nativeEnum(DiscoverySource);
-
 export const OnboardingScreenSchema = z.nativeEnum(OnboardingScreen);
 
 export const OnboardingStateSchema = z.object({
@@ -72,12 +60,9 @@ export const OnboardingStateSchema = z.object({
   completedAt: z.string().datetime(),
   skippedScreens: z.array(OnboardingScreenSchema).optional(),
   featureInterests: z.array(FeatureInterestSchema).optional(),
-  discoverySource: DiscoverySourceSchema.optional(),
 });
 
 export const OnboardingPreferencesSchema = z.object({
   featureInterests: z.array(FeatureInterestSchema).optional(),
-  discoverySource: DiscoverySourceSchema.optional(),
-  discoveryDetails: z.string().max(200).optional(),
   lastVisitedScreen: OnboardingScreenSchema.optional(),
 });

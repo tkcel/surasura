@@ -26,13 +26,13 @@ type ValidationResult = {
  */
 function validateShortcutFormat(keys: string[]): ValidationResult {
   if (keys.length === 0) {
-    return { valid: false, error: "No keys detected" };
+    return { valid: false, error: "キーが検出されませんでした" };
   }
 
   if (keys.length > MAX_KEY_COMBINATION_LENGTH) {
     return {
       valid: false,
-      error: `Too many keys - use ${MAX_KEY_COMBINATION_LENGTH} or fewer`,
+      error: `キーが多すぎます（${MAX_KEY_COMBINATION_LENGTH}つ以下にしてください）`,
     };
   }
 
@@ -155,7 +155,7 @@ export function ShortcutInput({
           // Basic format is valid - let parent handle backend validation
           onChange(result.shortcut);
         } else {
-          toast.error(result.error || "Invalid key combination");
+          toast.error(result.error || "無効なキーの組み合わせです");
         }
 
         onRecordingShortcutChange(false);

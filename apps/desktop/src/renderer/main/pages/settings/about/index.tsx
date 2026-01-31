@@ -1,35 +1,83 @@
-import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, BookOpen } from "lucide-react";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/trpc/react";
 
-const CHANGELOG_URL = "";
-const GITHUB_URL = "";
-const CONTACT_EMAIL = "";
+const DISCORD_URL = "https://discord.gg/ffpmWv5d";
+const AMICAL_URL = "https://github.com/amicalhq/amical";
+
+const SURASURA_LICENSE = `surasura 非商用ライセンス
+
+Copyright (c) 2026 Takashi Nemoto, KyoToku Inc.
+
+【許可される行為】
+本ソフトウェアは、以下の条件のもとで使用が許可されます：
+- 個人的な使用
+- 教育目的での使用
+- 研究目的での使用
+- 非営利団体による非商用目的での使用
+
+【禁止される行為】
+以下の行為は明示的に禁止されます：
+- 商用目的での使用（直接的または間接的な収益を得る目的での使用）
+- 本ソフトウェアの販売
+- 本ソフトウェアを組み込んだ商用製品またはサービスの提供
+- 商用サービスの一部としての本ソフトウェアの使用
+
+商用利用をご希望の場合は、別途商用ライセンスをお問い合わせください。`;
+
+const ORIGINAL_MIT_LICENSE = `MIT License
+
+Copyright (c) 2025 Naomi Chopra, Haritabh Singh
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.`;
 
 export default function AboutSettingsPage() {
-  const [checking, setChecking] = useState(false);
   const { data: version } = api.settings.getAppVersion.useQuery();
 
-  function handleCheckUpdates() {
-    setChecking(true);
-    setTimeout(() => {
-      setChecking(false);
-      toast.success("最新バージョンです");
-    }, 2000);
-  }
+  const handleOpenDiscord = async () => {
+    if (window.electronAPI?.openExternal) {
+      await window.electronAPI.openExternal(DISCORD_URL);
+    }
+  };
+
+  const handleOpenAmical = async () => {
+    if (window.electronAPI?.openExternal) {
+      await window.electronAPI.openExternal(AMICAL_URL);
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-xl font-bold">このアプリについて</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          バージョン情報、リソース、サポートリンク
-        </p>
+        <p className="text-muted-foreground mt-1 text-sm">バージョン情報</p>
       </div>
 
       <div className="space-y-6">
@@ -41,121 +89,75 @@ export default function AboutSettingsPage() {
                 v{version || "..."}
               </Badge>
             </div>
-            {/* <Button
-              variant="outline"
-              className="mt-4 md:mt-0 flex items-center gap-2"
-              onClick={handleCheckUpdates}
-              disabled={checking}
-            >
-              <RefreshCw
-                className={"w-4 h-4 " + (checking ? "animate-spin" : "")}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-3">
+            <div className="text-lg font-semibold">ご意見・ご要望</div>
+            <p className="text-sm text-muted-foreground">
+              ご意見・ご要望などはDiscordサーバーまでお寄せください。
+            </p>
+            <Button variant="outline" onClick={handleOpenDiscord}>
+              <img
+                src="icons/integrations/discord.svg"
+                alt="Discord"
+                className="w-4 h-4 mr-2"
               />
-              {checking ? "確認中..." : "アップデートを確認"}
-            </Button> */}
+              Discordサーバーに参加
+            </Button>
           </CardContent>
         </Card>
+      </div>
 
-        <Card>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <div className="text-lg font-semibold text-foreground">
-                リソース
-              </div>
-              <p className="text-xs text-muted-foreground">
-                ヘルプ、問題の報告、最新の変更情報を確認できます
-              </p>
-            </div>
-            <div className="divide-y">
-              <ExternalLink href={CHANGELOG_URL}>
-                <div className="flex items-center justify-between py-4 group cursor-pointer">
-                  <div>
-                    <div className="flex items-center gap-2 font-semibold text-base group-hover:underline">
-                      <BookOpen className="w-5 h-5 text-muted-foreground" />
-                      変更履歴
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      リリースノートとアップデートを確認
-                    </div>
-                  </div>
-                </div>
-              </ExternalLink>
-              <ExternalLink href={GITHUB_URL}>
-                <div className="flex items-center justify-between py-4 group cursor-pointer">
-                  <div>
-                    <div className="flex items-center gap-2 font-semibold text-base group-hover:underline">
-                      {/* GitHub icon as image */}
-                      <img
-                        src="icons/integrations/github.svg"
-                        alt="GitHub"
-                        className="w-5 h-5 inline-block align-middle"
-                      />
-                      GitHubリポジトリ
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      ソースコードと問題追跡
-                    </div>
-                  </div>
-                </div>
-              </ExternalLink>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <div className="text-lg font-semibold text-foreground">
-                お問い合わせ
-              </div>
-              <p className="text-xs text-muted-foreground">
-                サポートやお問い合わせはこちらからご連絡ください
-              </p>
-            </div>
-            <ExternalLink href={`mailto:${CONTACT_EMAIL}`}>
-              <div className="flex items-center justify-between group cursor-pointer">
-                <div>
-                  <div className="font-semibold text-base group-hover:underline">
-                    {CONTACT_EMAIL}
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    メールでお問い合わせ
-                  </div>
-                </div>
-              </div>
-            </ExternalLink>
-          </CardContent>
-        </Card>
+      {/* Footer with license link */}
+      <div className="mt-8 pt-4 border-t text-center">
+        <p className="text-xs text-muted-foreground mb-2">
+          このアプリは{" "}
+          <button
+            onClick={handleOpenAmical}
+            className="font-medium hover:text-foreground hover:underline"
+          >
+            Amical
+          </button>{" "}
+          を参考に多くの機能を実装しています。開発者の皆様に感謝いたします。
+        </p>
+        <Dialog>
+          <DialogTrigger asChild>
+            <button className="text-xs text-muted-foreground hover:text-foreground hover:underline">
+              ライセンス情報
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>ライセンス情報</DialogTitle>
+            </DialogHeader>
+            <Tabs defaultValue="surasura" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="surasura">surasura</TabsTrigger>
+                <TabsTrigger value="thirdparty">サードパーティ</TabsTrigger>
+              </TabsList>
+              <TabsContent value="surasura">
+                <ScrollArea className="h-64 mt-2">
+                  <pre className="p-4 bg-muted rounded-md text-xs whitespace-pre-wrap font-mono">
+                    {SURASURA_LICENSE}
+                  </pre>
+                </ScrollArea>
+              </TabsContent>
+              <TabsContent value="thirdparty">
+                <p className="text-sm text-muted-foreground mb-2">
+                  このアプリはAmical（MITライセンス）をベースに開発されています。
+                </p>
+                <ScrollArea className="h-56 mt-2">
+                  <pre className="p-4 bg-muted rounded-md text-xs whitespace-pre-wrap font-mono">
+                    {ORIGINAL_MIT_LICENSE}
+                  </pre>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
 }
-
-const ExternalLink = ({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) => {
-  const handleClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    if (window.electronAPI?.openExternal) {
-      await window.electronAPI.openExternal(href);
-    }
-  };
-
-  return (
-    <a
-      href={href}
-      onClick={handleClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          handleClick(e as any);
-        }
-      }}
-      style={{ cursor: "pointer" }}
-    >
-      {children}
-    </a>
-  );
-};
