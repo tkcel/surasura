@@ -11,8 +11,10 @@ export function ShortcutsSettingsPage() {
   const [toggleRecordingShortcut, setToggleRecordingShortcut] = useState<
     string[]
   >([]);
+  const [pasteLastTranscriptionShortcut, setPasteLastTranscriptionShortcut] =
+    useState<string[]>([]);
   const [recordingShortcut, setRecordingShortcut] = useState<
-    "pushToTalk" | "toggleRecording" | null
+    "pushToTalk" | "toggleRecording" | "pasteLastTranscription" | null
   >(null);
 
   // tRPC queries and mutations
@@ -27,11 +29,13 @@ export function ShortcutsSettingsPage() {
       if (data.warning) {
         toast.warning(data.warning);
       } else {
-        toast.success(
-          variables.type === "pushToTalk"
-            ? "プッシュトゥトークのショートカットを更新しました"
-            : "録音切り替えのショートカットを更新しました",
-        );
+        const messages: Record<string, string> = {
+          pushToTalk: "プッシュトゥトークのショートカットを更新しました",
+          toggleRecording: "録音切り替えのショートカットを更新しました",
+          pasteLastTranscription:
+            "履歴ペーストのショートカットを更新しました",
+        };
+        toast.success(messages[variables.type]);
       }
     },
     onError: (error) => {
@@ -46,6 +50,9 @@ export function ShortcutsSettingsPage() {
     if (shortcutsQuery.data) {
       setPushToTalkShortcut(shortcutsQuery.data.pushToTalk);
       setToggleRecordingShortcut(shortcutsQuery.data.toggleRecording);
+      setPasteLastTranscriptionShortcut(
+        shortcutsQuery.data.pasteLastTranscription,
+      );
     }
   }, [shortcutsQuery.data]);
 
@@ -61,6 +68,14 @@ export function ShortcutsSettingsPage() {
     setToggleRecordingShortcut(shortcut);
     setShortcutMutation.mutate({
       type: "toggleRecording",
+      shortcut: shortcut,
+    });
+  };
+
+  const handlePasteLastTranscriptionChange = (shortcut: string[]) => {
+    setPasteLastTranscriptionShortcut(shortcut);
+    setShortcutMutation.mutate({
+      type: "pasteLastTranscription",
       shortcut: shortcut,
     });
   };
@@ -120,6 +135,34 @@ export function ShortcutsSettingsPage() {
                     }
                     onRecordingShortcutChange={(recording) =>
                       setRecordingShortcut(recording ? "toggleRecording" : null)
+                    }
+                  />
+                </div>
+              </div>
+              <Separator className="my-4" />
+            </div>
+
+            <div>
+              <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                <div>
+                  <Label className="text-base font-semibold text-foreground">
+                    履歴ペースト
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-md">
+                    直前の文字起こし結果を再度ペーストします
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 items-end min-w-[260px]">
+                  <ShortcutInput
+                    value={pasteLastTranscriptionShortcut}
+                    onChange={handlePasteLastTranscriptionChange}
+                    isRecordingShortcut={
+                      recordingShortcut === "pasteLastTranscription"
+                    }
+                    onRecordingShortcutChange={(recording) =>
+                      setRecordingShortcut(
+                        recording ? "pasteLastTranscription" : null,
+                      )
                     }
                   />
                 </div>

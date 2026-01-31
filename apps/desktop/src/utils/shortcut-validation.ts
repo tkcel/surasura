@@ -3,7 +3,7 @@
  * Provides comprehensive validation for keyboard shortcuts
  */
 
-export type ShortcutType = "pushToTalk" | "toggleRecording";
+export type ShortcutType = "pushToTalk" | "toggleRecording" | "pasteLastTranscription";
 
 export interface ValidationContext {
   currentShortcut: string[];

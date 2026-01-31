@@ -22,17 +22,27 @@ interface KeyInfo {
 interface ShortcutConfig {
   pushToTalk: string[];
   toggleRecording: string[];
+  pasteLastTranscription: string[];
 }
+
+// Debounce delay for PTT release (ms)
+// Prevents false releases from momentary modifier flag changes
+const PTT_RELEASE_DEBOUNCE_MS = 50;
 
 export class ShortcutManager extends EventEmitter {
   private activeKeys = new Map<string, KeyInfo>();
   private shortcuts: ShortcutConfig = {
     pushToTalk: [],
     toggleRecording: [],
+    pasteLastTranscription: [],
   };
   private settingsService: SettingsService;
   private nativeBridge: NativeBridge | null = null;
   private isRecordingShortcut: boolean = false;
+
+  // PTT state tracking with debounce
+  private lastEmittedPTTState: boolean = false;
+  private pttReleaseDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(settingsService: SettingsService) {
     super();
@@ -71,6 +81,7 @@ export class ShortcutManager extends EventEmitter {
       await this.nativeBridge.setShortcuts({
         pushToTalk: this.shortcuts.pushToTalk,
         toggleRecording: this.shortcuts.toggleRecording,
+        pasteLastTranscription: this.shortcuts.pasteLastTranscription,
       });
       log.info("Shortcuts synced to native helper");
     } catch (error) {
@@ -223,13 +234,40 @@ export class ShortcutManager extends EventEmitter {
       return;
     }
 
-    // Check PTT shortcut
+    // Check PTT shortcut with debounced release
     const isPTTPressed = this.isPTTShortcutPressed();
-    this.emit("ptt-state-changed", isPTTPressed);
+
+    if (isPTTPressed !== this.lastEmittedPTTState) {
+      if (this.pttReleaseDebounceTimer) {
+        clearTimeout(this.pttReleaseDebounceTimer);
+        this.pttReleaseDebounceTimer = null;
+      }
+
+      if (isPTTPressed) {
+        // Press: emit immediately
+        this.lastEmittedPTTState = true;
+        this.emit("ptt-state-changed", true);
+      } else {
+        // Release: debounce to avoid false releases from momentary flag changes
+        this.pttReleaseDebounceTimer = setTimeout(() => {
+          this.pttReleaseDebounceTimer = null;
+          // Re-check if still released
+          if (!this.isPTTShortcutPressed()) {
+            this.lastEmittedPTTState = false;
+            this.emit("ptt-state-changed", false);
+          }
+        }, PTT_RELEASE_DEBOUNCE_MS);
+      }
+    }
 
     // Check toggle recording shortcut
     if (this.isToggleRecordingShortcutPressed()) {
       this.emit("toggle-recording-triggered");
+    }
+
+    // Check paste last transcription shortcut
+    if (this.isPasteLastTranscriptionShortcutPressed()) {
+      this.emit("paste-last-transcription-triggered");
     }
   }
 
@@ -260,6 +298,21 @@ export class ShortcutManager extends EventEmitter {
     );
   }
 
+  private isPasteLastTranscriptionShortcutPressed(): boolean {
+    const pasteKeys = this.shortcuts.pasteLastTranscription;
+    if (!pasteKeys || pasteKeys.length === 0) {
+      return false;
+    }
+
+    const activeKeysList = this.getActiveKeys();
+
+    // Paste: exact match - only these keys pressed, no extra keys
+    return (
+      pasteKeys.length === activeKeysList.length &&
+      pasteKeys.every((key) => activeKeysList.includes(key))
+    );
+  }
+
   // Register/unregister global shortcuts (for non-Swift platforms)
   registerGlobalShortcuts() {
     // This can be implemented for Windows/Linux using Electron's globalShortcut
@@ -274,5 +327,9 @@ export class ShortcutManager extends EventEmitter {
     this.unregisterAllShortcuts();
     this.removeAllListeners();
     this.activeKeys.clear();
+    if (this.pttReleaseDebounceTimer) {
+      clearTimeout(this.pttReleaseDebounceTimer);
+      this.pttReleaseDebounceTimer = null;
+    }
   }
 }

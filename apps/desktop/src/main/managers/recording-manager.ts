@@ -90,6 +90,39 @@ export class RecordingManager extends EventEmitter {
     shortcutManager.on("toggle-recording-triggered", async () => {
       await this.toggleHandsFree();
     });
+
+    // Handle paste last transcription
+    shortcutManager.on("paste-last-transcription-triggered", async () => {
+      await this.pasteLastTranscription();
+    });
+  }
+
+  // Paste the last successful transcription
+  private async pasteLastTranscription(): Promise<void> {
+    try {
+      const transcriptionService = this.serviceManager.getService(
+        "transcriptionService",
+      );
+      const lastTranscription = transcriptionService.getLastTranscription();
+
+      if (!lastTranscription) {
+        logger.audio.info("No last transcription to paste");
+        return;
+      }
+
+      logger.audio.info("Pasting last transcription", {
+        textLength: lastTranscription.length,
+      });
+
+      const nativeBridge = this.serviceManager.getService("nativeBridge");
+      if (nativeBridge) {
+        await nativeBridge.call("pasteText", {
+          transcript: lastTranscription,
+        });
+      }
+    } catch (error) {
+      logger.audio.error("Failed to paste last transcription", { error });
+    }
   }
 
   private setState(newState: RecordingState): void {

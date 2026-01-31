@@ -18,6 +18,7 @@ class ShortcutManager {
 
     private var pushToTalkKeys: [String] = []
     private var toggleRecordingKeys: [String] = []
+    private var pasteLastTranscriptionKeys: [String] = []
 
     // ============================================================================
     // IMPORTANT: Fn Key State Tracking
@@ -68,12 +69,13 @@ class ShortcutManager {
 
     /// Update the configured shortcuts
     /// Called from IOBridge when setShortcuts RPC is received
-    func setShortcuts(pushToTalk: [String], toggleRecording: [String]) {
+    func setShortcuts(pushToTalk: [String], toggleRecording: [String], pasteLastTranscription: [String]) {
         lock.lock()
         defer { lock.unlock() }
         self.pushToTalkKeys = pushToTalk
         self.toggleRecordingKeys = toggleRecording
-        logToStderr("[ShortcutManager] Shortcuts updated - PTT: \(pushToTalk), Toggle: \(toggleRecording)")
+        self.pasteLastTranscriptionKeys = pasteLastTranscription
+        logToStderr("[ShortcutManager] Shortcuts updated - PTT: \(pushToTalk), Toggle: \(toggleRecording), Paste: \(pasteLastTranscription)")
     }
 
     /// Update the tracked Fn key state
@@ -152,7 +154,7 @@ class ShortcutManager {
         defer { lock.unlock() }
 
         // Early exit if no shortcuts configured
-        if pushToTalkKeys.isEmpty && toggleRecordingKeys.isEmpty {
+        if pushToTalkKeys.isEmpty && toggleRecordingKeys.isEmpty && pasteLastTranscriptionKeys.isEmpty {
             return false
         }
 
@@ -189,6 +191,10 @@ class ShortcutManager {
         let toggleKeys = Set(toggleRecordingKeys)
         let toggleMatch = !toggleKeys.isEmpty && toggleKeys == activeKeys
 
-        return pttMatch || toggleMatch
+        // Paste: exact match (only these keys pressed)
+        let pasteKeys = Set(pasteLastTranscriptionKeys)
+        let pasteMatch = !pasteKeys.isEmpty && pasteKeys == activeKeys
+
+        return pttMatch || toggleMatch || pasteMatch
     }
 }

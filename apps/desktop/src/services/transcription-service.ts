@@ -32,6 +32,7 @@ export class TranscriptionService {
   private vadMutex: Mutex;
   private transcriptionMutex: Mutex;
   private telemetryService: TelemetryService;
+  private lastTranscription: string | null = null;
 
   constructor(
     vadService: VADService,
@@ -448,8 +449,20 @@ export class TranscriptionService {
 
     this.streamingSessions.delete(sessionId);
 
+    // Save as last transcription for paste-last feature
+    if (completeTranscription.trim()) {
+      this.lastTranscription = completeTranscription;
+    }
+
     logger.transcription.info("Streaming session completed", { sessionId });
     return completeTranscription;
+  }
+
+  /**
+   * Get the last successful transcription
+   */
+  getLastTranscription(): string | null {
+    return this.lastTranscription;
   }
 
   private async buildContext(): Promise<PipelineContext> {

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
+import { FolderOpen } from "lucide-react";
 
 export default function AdvancedSettingsPage() {
   const [isResetting, setIsResetting] = useState(false);
@@ -30,6 +31,7 @@ export default function AdvancedSettingsPage() {
   const telemetryQuery = api.settings.getTelemetrySettings.useQuery();
   const dataPathQuery = api.settings.getDataPath.useQuery();
   const logFilePathQuery = api.settings.getLogFilePath.useQuery();
+  const audioFolderPathQuery = api.settings.getAudioFolderPath.useQuery();
   const machineIdQuery = api.settings.getMachineId.useQuery();
   const utils = api.useUtils();
 
@@ -38,37 +40,54 @@ export default function AdvancedSettingsPage() {
       onSuccess: () => {
         utils.settings.getTelemetrySettings.invalidate();
         utils.settings.getTelemetryConfig.invalidate();
-        toast.success("Telemetry settings updated");
+        toast.success("テレメトリー設定を更新しました");
       },
       onError: (error) => {
         console.error("Failed to update telemetry settings:", error);
-        toast.error("Failed to update telemetry settings. Please try again.");
+        toast.error("テレメトリー設定の更新に失敗しました");
       },
     });
 
   const resetAppMutation = api.settings.resetApp.useMutation({
     onMutate: () => {
       setIsResetting(true);
-      toast.info("Resetting app...");
+      toast.info("アプリをリセット中...");
     },
     onSuccess: () => {
-      toast.success("App reset successfully. Restarting...");
+      toast.success("アプリをリセットしました。再起動します...");
     },
     onError: (error) => {
       setIsResetting(false);
       console.error("Failed to reset app:", error);
-      toast.error("Failed to reset app. Please try again.");
+      toast.error("アプリのリセットに失敗しました");
     },
   });
 
   const downloadLogFileMutation = api.settings.downloadLogFile.useMutation({
     onSuccess: (data) => {
       if (data.success) {
-        toast.success("Log file saved successfully");
+        toast.success("ログファイルを保存しました");
       }
     },
     onError: () => {
-      toast.error("Failed to save log file");
+      toast.error("ログファイルの保存に失敗しました");
+    },
+  });
+
+  const openFolderMutation = api.settings.openFolder.useMutation({
+    onSuccess: (data) => {
+      if (!data.success && data.error) {
+        toast.error(`フォルダを開けませんでした: ${data.error}`);
+      }
+    },
+    onError: (error) => {
+      toast.error(`フォルダを開けませんでした: ${error.message}`);
+    },
+  });
+
+  const showFileInFolderMutation = api.settings.showFileInFolder.useMutation({
+    onError: (error) => {
+      toast.error(`ファイルの場所を開けませんでした: ${error.message}`);
     },
   });
 
@@ -78,53 +97,50 @@ export default function AdvancedSettingsPage() {
     });
   };
 
-
   const handleCopyMachineId = async () => {
     if (machineIdQuery.data) {
       await navigator.clipboard.writeText(machineIdQuery.data);
-      toast.success("Machine ID copied to clipboard");
+      toast.success("マシンIDをコピーしました");
+    }
+  };
+
+  const handleOpenDataFolder = () => {
+    if (dataPathQuery.data) {
+      openFolderMutation.mutate({ path: dataPathQuery.data });
+    }
+  };
+
+  const handleShowLogFile = () => {
+    if (logFilePathQuery.data) {
+      showFileInFolderMutation.mutate({ path: logFilePathQuery.data });
+    }
+  };
+
+  const handleOpenAudioFolder = () => {
+    if (audioFolderPathQuery.data) {
+      openFolderMutation.mutate({ path: audioFolderPathQuery.data });
     }
   };
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-xl font-bold">Advanced</h1>
+        <h1 className="text-xl font-bold">詳細設定</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Advanced configuration options and experimental features
+          高度な設定オプションとデータ管理
         </p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Advanced Settings</CardTitle>
-          <CardDescription>Advanced configuration options</CardDescription>
+          <CardTitle>詳細設定</CardTitle>
+          <CardDescription>高度な設定オプション</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="debug-mode">Debug Mode</Label>
+              <Label htmlFor="telemetry">改善のために匿名で情報を提供する</Label>
               <p className="text-sm text-muted-foreground">
-                Enable detailed logging
-              </p>
-            </div>
-            <Switch id="debug-mode" />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="auto-update">Auto Updates</Label>
-              <p className="text-sm text-muted-foreground">
-                Automatically check for updates
-              </p>
-            </div>
-            <Switch id="auto-update" defaultChecked />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="telemetry">Anonymous Telemetry</Label>
-              <p className="text-sm text-muted-foreground">
-                Help improve Surasura by sharing anonymous usage data.
+                匿名の使用状況データを共有してSurasuraの改善に協力する
               </p>
             </div>
             <Switch
@@ -135,40 +151,81 @@ export default function AdvancedSettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="data-location">Data Location</Label>
-            <Input
-              id="data-location"
-              value={dataPathQuery.data || "Loading..."}
-              disabled
-              className="cursor-default"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="log-location">Log File Location</Label>
+            <Label htmlFor="data-location">データの保存場所</Label>
             <div className="flex gap-2">
               <Input
-                id="log-location"
-                value={logFilePathQuery.data || "Loading..."}
+                id="data-location"
+                value={dataPathQuery.data || "読み込み中..."}
                 disabled
                 className="cursor-default flex-1"
               />
               <Button
                 variant="outline"
-                onClick={() => downloadLogFileMutation.mutate()}
-                disabled={downloadLogFileMutation.isPending}
+                size="icon"
+                onClick={handleOpenDataFolder}
+                disabled={!dataPathQuery.data}
+                title="フォルダを開く"
               >
-                Download
+                <FolderOpen className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="machine-id">Machine ID</Label>
+            <Label htmlFor="audio-location">オーディオの保存場所</Label>
+            <div className="flex gap-2">
+              <Input
+                id="audio-location"
+                value={audioFolderPathQuery.data || "読み込み中..."}
+                disabled
+                className="cursor-default flex-1"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleOpenAudioFolder}
+                disabled={!audioFolderPathQuery.data}
+                title="フォルダを開く"
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="log-location">ログファイルの場所</Label>
+            <div className="flex gap-2">
+              <Input
+                id="log-location"
+                value={logFilePathQuery.data || "読み込み中..."}
+                disabled
+                className="cursor-default flex-1"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleShowLogFile}
+                disabled={!logFilePathQuery.data}
+                title="Finderで表示"
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => downloadLogFileMutation.mutate()}
+                disabled={downloadLogFileMutation.isPending}
+              >
+                ダウンロード
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="machine-id">マシンID</Label>
             <div className="flex gap-2">
               <Input
                 id="machine-id"
-                value={machineIdQuery.data || "Loading..."}
+                value={machineIdQuery.data || "読み込み中..."}
                 disabled
                 className="cursor-default flex-1 font-mono text-xs"
               />
@@ -177,7 +234,7 @@ export default function AdvancedSettingsPage() {
                 onClick={handleCopyMachineId}
                 disabled={!machineIdQuery.data}
               >
-                Copy
+                コピー
               </Button>
             </div>
           </div>
@@ -186,18 +243,18 @@ export default function AdvancedSettingsPage() {
 
       <Card className="border-destructive/50 mt-6">
         <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardTitle className="text-destructive">危険な操作</CardTitle>
           <CardDescription>
-            Actions here are irreversible and will delete all your data
+            この操作は元に戻せません。すべてのデータが削除されます
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="reset-app">Reset App</Label>
+                <Label htmlFor="reset-app">アプリをリセット</Label>
                 <p className="text-sm text-muted-foreground">
-                  Delete all data and start fresh
+                  すべてのデータを削除して初期状態に戻します
                 </p>
               </div>
               <AlertDialog>
@@ -207,34 +264,31 @@ export default function AdvancedSettingsPage() {
                     disabled={isResetting}
                     id="reset-app"
                   >
-                    Reset App
+                    リセット
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
-                    </AlertDialogTitle>
+                    <AlertDialogTitle>本当にリセットしますか？</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This action cannot be undone. This will permanently
-                      delete:
+                      この操作は元に戻せません。以下のデータがすべて削除されます：
                       <ul className="list-disc list-inside mt-2">
-                        <li>All your transcriptions</li>
-                        <li>All your notes</li>
-                        <li>Your vocabulary</li>
-                        <li>All settings and preferences</li>
+                        <li>すべての文字起こし履歴</li>
+                        <li>すべてのノート</li>
+                        <li>辞書データ</li>
+                        <li>すべての設定</li>
                       </ul>
                       <br />
-                      The app will restart with a fresh installation.
+                      アプリは初期状態で再起動されます。
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
                     <Button
                       variant="destructive"
                       onClick={() => resetAppMutation.mutate()}
                     >
-                      Yes, delete everything
+                      すべて削除する
                     </Button>
                   </AlertDialogFooter>
                 </AlertDialogContent>

@@ -1,7 +1,7 @@
 import { observable } from "@trpc/server/observable";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { app } from "electron";
+import { app, shell } from "electron";
 import path from "node:path";
 import { createRouter, procedure } from "../trpc";
 import { dbPath, closeDatabase } from "../../db";
@@ -16,7 +16,7 @@ const FormatterConfigSchema = z.object({
 
 // Shortcut schema (array of key names)
 const SetShortcutSchema = z.object({
-  type: z.enum(["pushToTalk", "toggleRecording"]),
+  type: z.enum(["pushToTalk", "toggleRecording", "pasteLastTranscription"]),
   shortcut: z.array(z.string()),
 });
 
@@ -557,6 +557,39 @@ export const settingsRouter = createRouter({
       return { success: true, path: filePath };
     }
     return { success: false };
+  }),
+
+  // Open a folder in the system file manager
+  openFolder: procedure
+    .input(z.object({ path: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const logger = ctx.serviceManager.getLogger();
+      logger?.main.info("Opening folder:", { path: input.path });
+
+      // shell.openPath returns empty string on success, error message on failure
+      const errorMessage = await shell.openPath(input.path);
+      if (errorMessage) {
+        logger?.main.error("Failed to open folder:", { error: errorMessage });
+        return { success: false, error: errorMessage };
+      }
+      return { success: true };
+    }),
+
+  // Show a file in the system file manager (Finder/Explorer)
+  showFileInFolder: procedure
+    .input(z.object({ path: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const logger = ctx.serviceManager.getLogger();
+      logger?.main.info("Showing file in folder:", { path: input.path });
+
+      // shell.showItemInFolder is synchronous and doesn't return errors
+      shell.showItemInFolder(input.path);
+      return { success: true };
+    }),
+
+  // Get audio folder path
+  getAudioFolderPath: procedure.query(() => {
+    return path.join(app.getPath("userData"), "audio");
   }),
 
   // Get app preferences (launch at login, minimize to tray, etc.)
