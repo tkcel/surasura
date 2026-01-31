@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingLayout } from "../shared/OnboardingLayout";
 import { NavigationButtons } from "../shared/NavigationButtons";
-import { Mic, FileText, Users, Command } from "lucide-react";
+import { Mic, FileText, Command } from "lucide-react";
 import { FeatureInterest } from "../../../../types/onboarding";
 import { toast } from "sonner";
 
@@ -41,13 +41,6 @@ export function WelcomeScreen({
       description:
         "音声でアイデアや思いつきをスマートなフォーマットで記録",
       icon: FileText,
-    },
-    {
-      id: FeatureInterest.MeetingTranscriptions,
-      title: "会議の文字起こし",
-      description:
-        "会議や会話を高精度で録音・文字起こし",
-      icon: Users,
     },
     {
       id: FeatureInterest.VoiceCommands,
@@ -147,9 +140,7 @@ export function WelcomeScreen({
                     <div className="flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <h3 className="font-medium">{feature.title}</h3>
-                        {(feature.id ===
-                          FeatureInterest.MeetingTranscriptions ||
-                          feature.id === FeatureInterest.VoiceCommands) && (
+                        {feature.id === FeatureInterest.VoiceCommands && (
                           <Badge
                             variant="outline"
                             className="text-[10px] px-1.5 py-0 h-4 shrink-0"

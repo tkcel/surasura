@@ -11,8 +11,4 @@ export interface Note {
   title: string;
   icon?: string | null;
   updatedAt: Date;
-  meetingEvent?: {
-    title: string;
-    calendarColor: string;
-  };
 }

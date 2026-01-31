@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Calendar } from "lucide-react";
+import { FileText } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { Note } from "../types";
 
@@ -42,22 +42,9 @@ export function NoteCard({ note, onNoteClick }: RecentNoteCardProps) {
           {note.title}
         </div>
 
-        {/* Date and Meeting Info */}
+        {/* Date */}
         <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
           <span>{formatDate(note.updatedAt)}</span>
-
-          {note.meetingEvent && (
-            <>
-              <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
-              <div className="flex items-center gap-1">
-                <Calendar
-                  className="w-3 h-3"
-                  style={{ color: note.meetingEvent.calendarColor }}
-                />
-                <span className="">{note.meetingEvent.title}</span>
-              </div>
-            </>
-          )}
         </div>
       </div>
     </div>
