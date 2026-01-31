@@ -26,7 +26,7 @@ export function ProcessFlowHelpDialog({ children }: ProcessFlowHelpDialogProps) 
           </button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>音声処理フロー</DialogTitle>
         </DialogHeader>
@@ -48,11 +48,19 @@ export function ProcessFlowHelpDialog({ children }: ProcessFlowHelpDialogProps) 
               </p>
             </div>
 
-            <div className="p-3 bg-muted rounded-lg">
-              <h4 className="font-medium mb-1">3. フォーマット</h4>
+            <div className="p-3 bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30">
+              <h4 className="font-medium mb-1">3. AI加工（オプション）</h4>
               <p className="text-muted-foreground text-xs">
-                AIが句読点の追加、段落分け、誤字修正などを行います。カスタム指示を設定すると、より細かい制御が可能です。
+                カスタム指示でAIの出力を自由にカスタマイズできます。
               </p>
+              <div className="mt-3 p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-md">
+                <p className="text-blue-600 dark:text-blue-400 text-xs font-medium">
+                  💡 設定をおすすめ
+                </p>
+                <p className="text-blue-600/80 dark:text-blue-400/80 text-xs mt-1.5 leading-relaxed">
+                  繰り返し発言やフィラーの除去、ビジネスメール調への変換、箇条書き形式での整理、音声で質問してAIに即時回答させるなど、アイデア次第で使い方は無限大。あなただけの音声入力体験を作れます。
+                </p>
+              </div>
             </div>
 
             <div className="p-3 bg-muted rounded-lg">
