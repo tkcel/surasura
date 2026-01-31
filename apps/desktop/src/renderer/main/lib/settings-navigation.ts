@@ -5,8 +5,6 @@ import {
   IconBrain,
   IconInfoCircle,
   IconKeyboard,
-  IconAdjustments,
-  IconNotes,
   type Icon,
 } from "@tabler/icons-react";
 
@@ -19,20 +17,6 @@ export interface SettingsNavItem {
 }
 
 export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
-  {
-    title: "ノート",
-    url: "/settings/notes",
-    description: "ノートを管理",
-    icon: IconNotes,
-    type: "settings",
-  },
-  {
-    title: "環境設定",
-    url: "/settings/preferences",
-    description: "アプリケーションの一般設定と動作を設定",
-    icon: IconSettings,
-    type: "settings",
-  },
   {
     title: "音声入力",
     url: "/settings/dictation",
@@ -48,24 +32,24 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     type: "settings",
   },
   {
-    title: "語彙",
+    title: "辞書機能",
     url: "/settings/vocabulary",
-    description: "カスタム語彙と単語認識を管理",
+    description: "カスタム単語と置換ルールを管理",
     icon: IconBook,
     type: "settings",
   },
   {
-    title: "AIモデル",
+    title: "AIモデル設定",
     url: "/settings/ai-models",
     description: "AIモデルとプロバイダーを設定",
     icon: IconBrain,
     type: "settings",
   },
   {
-    title: "詳細設定",
-    url: "/settings/advanced",
-    description: "高度な設定オプション",
-    icon: IconAdjustments,
+    title: "環境設定",
+    url: "/settings/preferences",
+    description: "アプリケーションの一般設定と動作を設定",
+    icon: IconSettings,
     type: "settings",
   },
   {

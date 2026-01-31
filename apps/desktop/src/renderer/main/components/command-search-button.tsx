@@ -12,9 +12,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { api } from "@/trpc/react";
-import { FileTextIcon } from "lucide-react";
-import { formatDate } from "@/lib/utils";
 import { SETTINGS_NAV_ITEMS } from "../lib/settings-navigation";
 
 // Detect platform for keyboard shortcuts
@@ -36,27 +33,6 @@ export function CommandSearchButton() {
       return searchText.includes(query);
     });
   }, [search]);
-
-  const { data: noteResults = [] } = api.notes.searchNotes.useQuery(
-    { query: search },
-    {
-      enabled: open,
-      staleTime: 1000 * 60 * 5,
-    },
-  );
-
-  const searchResults = React.useMemo(() => {
-    return [
-      ...settingsResults,
-      ...noteResults.map((n) => ({
-        ...n,
-        url: `/settings/notes/${n.id}`,
-        description: formatDate(new Date(n.createdAt)),
-        type: "note" as const,
-        icon: n.icon || "file-text",
-      })),
-    ];
-  }, [settingsResults, noteResults]);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -86,7 +62,7 @@ export function CommandSearchButton() {
         onClick={() => setOpen(true)}
       >
         <IconSearch className="h-4 w-4" />
-        <span className="flex-1 text-left">Search...</span>
+        <span className="flex-1 text-left">検索...</span>
         <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
           {shortcutDisplay}
         </kbd>
@@ -94,74 +70,36 @@ export function CommandSearchButton() {
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
-          placeholder="Search settings and notes..."
+          placeholder="設定を検索..."
           value={search}
           onValueChange={setSearch}
         />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          {(() => {
-            // Separate results by type
-            const noteResults = searchResults.filter(
-              (item) => item.type === "note",
-            );
-            const settingsResults = searchResults.filter(
-              (item) => item.type === "settings",
-            );
-
-            return (
-              <>
-                {settingsResults.length > 0 && (
-                  <CommandGroup heading="Settings">
-                    {settingsResults.map((page) => (
-                      <CommandItem
-                        key={page.url}
-                        value={page.title}
-                        onSelect={() => handleSelect(page.url)}
-                        className="cursor-pointer"
-                      >
-                        {typeof page.icon === "string" ? (
-                          <span className="mr-2 text-xl">{page.icon}</span>
-                        ) : (
-                          <page.icon className="mr-2 h-4 w-4" />
-                        )}
-                        <div className="flex flex-col">
-                          <span className="font-medium">{page.title}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {page.description}
-                          </span>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-                {noteResults.length > 0 && (
-                  <CommandGroup heading="Notes">
-                    {noteResults.map((note) => (
-                      <CommandItem
-                        key={note.url}
-                        value={note.title}
-                        onSelect={() => handleSelect(note.url)}
-                        className="cursor-pointer"
-                      >
-                        {note.icon ? (
-                          <FileTextIcon className="mr-2 h-4 w-4" />
-                        ) : (
-                          <span className="mr-2 text-xl">{note.icon}</span>
-                        )}
-                        <div className="flex flex-col">
-                          <span className="font-medium">{note.title}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {note.description}
-                          </span>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </>
-            );
-          })()}
+          <CommandEmpty>結果が見つかりません</CommandEmpty>
+          {settingsResults.length > 0 && (
+            <CommandGroup heading="設定">
+              {settingsResults.map((page) => (
+                <CommandItem
+                  key={page.url}
+                  value={page.title}
+                  onSelect={() => handleSelect(page.url)}
+                  className="cursor-pointer"
+                >
+                  {typeof page.icon === "string" ? (
+                    <span className="mr-2 text-xl">{page.icon}</span>
+                  ) : (
+                    <page.icon className="mr-2 h-4 w-4" />
+                  )}
+                  <div className="flex flex-col">
+                    <span className="font-medium">{page.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {page.description}
+                    </span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </CommandList>
       </CommandDialog>
     </>

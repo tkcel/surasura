@@ -60,13 +60,13 @@ function VocabularyDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === "add" ? "Add to vocabulary" : "Edit vocabulary"}
+            {mode === "add" ? "辞書に追加" : "辞書を編集"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Label htmlFor="replacement-toggle">Make it a replacement</Label>
+              <Label htmlFor="replacement-toggle">置換を有効にする</Label>
               <Info className="w-4 h-4 text-muted-foreground" />
             </div>
             <Switch
@@ -82,7 +82,7 @@ function VocabularyDialog({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Input
-                  placeholder="Misspelling"
+                  placeholder="置換前"
                   value={formData.word}
                   onChange={(e) =>
                     onFormDataChange({ ...formData, word: e.target.value })
@@ -90,7 +90,7 @@ function VocabularyDialog({
                 />
                 <span className="text-muted-foreground">→</span>
                 <Input
-                  placeholder="Correct spelling"
+                  placeholder="置換後"
                   value={formData.replacementWord}
                   onChange={(e) =>
                     onFormDataChange({
@@ -103,7 +103,7 @@ function VocabularyDialog({
             </div>
           ) : (
             <Input
-              placeholder="Add a new word"
+              placeholder="新しい単語を入力"
               value={formData.word}
               onChange={(e) =>
                 onFormDataChange({ ...formData, word: e.target.value })
@@ -113,7 +113,7 @@ function VocabularyDialog({
 
           <DialogFooter className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              キャンセル
             </Button>
             <Button
               onClick={onSubmit}
@@ -124,10 +124,10 @@ function VocabularyDialog({
               }
             >
               {isLoading
-                ? "Saving..."
+                ? "保存中..."
                 : mode === "add"
-                  ? "Add word"
-                  : "Save changes"}
+                  ? "追加"
+                  : "保存"}
             </Button>
           </DialogFooter>
         </div>
@@ -156,28 +156,28 @@ function DeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete vocabulary item</DialogTitle>
+          <DialogTitle>単語を削除</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete "
+            「
             {deletingItem?.isReplacement
               ? `${deletingItem?.word} → ${deletingItem?.replacementWord}`
               : deletingItem?.word}
-            "? This action cannot be undone.
+            」を削除しますか？この操作は取り消せません。
           </p>
         </div>
 
         <DialogFooter className="flex justify-end gap-2 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            キャンセル
           </Button>
           <Button
             variant="destructive"
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? "Deleting..." : "Delete"}
+            {isLoading ? "削除中..." : "削除"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -213,30 +213,30 @@ export default function VocabularySettingsPage() {
     api.vocabulary.createVocabularyWord.useMutation({
       onSuccess: () => {
         utils.vocabulary.getVocabulary.invalidate();
-        toast.success("Word added to vocabulary");
+        toast.success("単語を追加しました");
       },
       onError: (error) => {
-        toast.error(`Failed to add word: ${error.message}`);
+        toast.error(`追加に失敗しました: ${error.message}`);
       },
     });
 
   const updateVocabularyMutation = api.vocabulary.updateVocabulary.useMutation({
     onSuccess: () => {
       utils.vocabulary.getVocabulary.invalidate();
-      toast.success("Vocabulary updated");
+      toast.success("単語を更新しました");
     },
     onError: (error) => {
-      toast.error(`Failed to update word: ${error.message}`);
+      toast.error(`更新に失敗しました: ${error.message}`);
     },
   });
 
   const deleteVocabularyMutation = api.vocabulary.deleteVocabulary.useMutation({
     onSuccess: () => {
       utils.vocabulary.getVocabulary.invalidate();
-      toast.success("Word deleted from vocabulary");
+      toast.success("単語を削除しました");
     },
     onError: (error) => {
-      toast.error(`Failed to delete word: ${error.message}`);
+      toast.error(`削除に失敗しました: ${error.message}`);
     },
   });
 
@@ -320,9 +320,9 @@ export default function VocabularySettingsPage() {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-xl font-bold">Vocabulary</h1>
+          <h1 className="text-xl font-bold">辞書機能</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Manage your custom vocabulary and word replacements for dictation.
+            音声入力で使用するカスタム単語と置換ルールを管理します。
           </p>
         </div>
 
@@ -333,7 +333,7 @@ export default function VocabularySettingsPage() {
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Add Word
+              単語を追加
             </Button>
           </DialogTrigger>
         </Dialog>
@@ -344,11 +344,11 @@ export default function VocabularySettingsPage() {
         <CardContent className="p-0">
           {vocabularyLoading ? (
             <div className="p-8 text-center text-muted-foreground">
-              Loading vocabulary...
+              読み込み中...
             </div>
           ) : vocabularyItems.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
-              No vocabulary words found. Add your first word to get started.
+              登録された単語がありません。「単語を追加」から登録を始めましょう。
             </div>
           ) : (
             <div className="space-y-0">
