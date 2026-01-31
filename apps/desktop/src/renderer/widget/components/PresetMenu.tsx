@@ -77,7 +77,7 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
         style={{
           left: position.x,
           top: position.y,
-          transform: "translateX(-50%)",
+          transform: "translate(-50%, -100%)",
         }}
       >
         <div className="px-3 py-1.5 text-xs font-medium text-gray-400 flex items-center gap-1.5">

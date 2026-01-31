@@ -169,12 +169,23 @@ export const FloatingButton: React.FC = () => {
   };
 
   // Close preset menu
-  const handleClosePresetMenu = () => {
+  const handleClosePresetMenu = async () => {
     setShowPresetMenu(false);
+    // Re-enable mouse event forwarding after menu closes
+    try {
+      await setIgnoreMouseEvents.mutateAsync({ ignore: true });
+      console.debug("Re-enabled mouse event forwarding after menu close");
+    } catch (error) {
+      console.error("Failed to re-enable mouse event forwarding:", error);
+    }
   };
 
   // Debounced mouse leave handler
   const handleMouseLeave = async () => {
+    // Don't disable mouse events while preset menu is open
+    if (showPresetMenu) {
+      return;
+    }
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
     }
