@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 6;
+const CURRENT_SETTINGS_VERSION = 7;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -103,7 +103,7 @@ const migrations: Record<number, MigrationFn> = {
         id: crypto.randomUUID(),
         name: "標準",
         modelId: "gpt-4o-mini" as const,
-        instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。",
+        instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
         isDefault: true,
         createdAt: now,
         updatedAt: now,
@@ -144,7 +144,7 @@ const migrations: Record<number, MigrationFn> = {
   // v4 -> v5: Add instructions to "標準" preset
   5: (data: unknown): AppSettingsData => {
     const oldData = data as AppSettingsData;
-    const standardInstructions = "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。";
+    const standardInstructions = "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
 
     // Update the "標準" preset if it exists and has empty instructions
     const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
@@ -198,6 +198,33 @@ const migrations: Record<number, MigrationFn> = {
         ...oldData.formatterConfig,
         enabled: oldData.formatterConfig?.enabled ?? false,
         presets: [...(oldData.formatterConfig?.presets ?? []), instantAnswerPreset],
+      },
+    };
+  },
+
+  // v6 -> v7: Update "標準" preset to explicitly not answer questions
+  7: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const newInstructions = "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。";
+
+    // Update the "標準" preset instructions
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.name === "標準" && preset.isDefault) {
+        return {
+          ...preset,
+          instructions: newInstructions,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
       },
     };
   },
@@ -418,7 +445,7 @@ function generateDefaultPresets() {
       id: crypto.randomUUID(),
       name: "標準",
       modelId: "gpt-4o-mini" as const,
-      instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。",
+      instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
       isDefault: true,
       createdAt: now,
       updatedAt: now,
