@@ -19,14 +19,9 @@ export function FormattingSettings() {
     formattingOptions,
     disableFormattingToggle,
     hasFormattingOptions,
-    showCloudRequiresSpeech,
-    showCloudRequiresAuth,
-    showCloudReady,
-    showNoLanguageModels,
+    showApiKeyRequired,
     handleFormattingEnabledChange,
     handleFormattingModelChange,
-    handleCloudLogin,
-    isLoginPending,
   } = useFormattingSettings();
 
   return (
@@ -57,22 +52,20 @@ export function FormattingSettings() {
           </TooltipTrigger>
           {disableFormattingToggle && (
             <TooltipContent className="max-w-sm text-center">
-              フォーマットを有効にするには、言語モデルを同期するか、Surasura Cloudの文字起こしを選択してください。
+              フォーマットを有効にするには、OpenAI APIキーを設定してください。
             </TooltipContent>
           )}
         </Tooltip>
       </div>
 
-      <Link
-        to="/settings/ai-models"
-        search={{ tab: "language" }}
-        className="inline-block"
-      >
-        <Button variant="link" className="text-xs px-0">
-          <Plus className="w-4 h-4" />
-          言語モデルを管理
-        </Button>
-      </Link>
+      {showApiKeyRequired && (
+        <Link to="/settings/ai-models" className="inline-block">
+          <Button variant="link" className="text-xs px-0">
+            <Plus className="w-4 h-4" />
+            OpenAI APIキーを設定
+          </Button>
+        </Link>
+      )}
 
       {formattingEnabled && (
         <div className="mt-6 border-border border rounded-md p-4">
@@ -93,47 +86,6 @@ export function FormattingSettings() {
                 placeholder="モデルを選択..."
                 disabled={!hasFormattingOptions}
               />
-              {showCloudRequiresSpeech && (
-                <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <span>Surasura Cloudの文字起こしが必要です。</span>
-                  <Link to="/settings/ai-models" search={{ tab: "speech" }}>
-                    <Button variant="outline" size="sm">
-                      音声モデルを変更
-                    </Button>
-                  </Link>
-                </div>
-              )}
-              {showCloudRequiresAuth && (
-                <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <span>Surasura Cloudのフォーマットを使用するにはサインインが必要です。</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCloudLogin}
-                    disabled={isLoginPending}
-                  >
-                    サインイン
-                  </Button>
-                </div>
-              )}
-              {showCloudReady && (
-                <p className="text-xs text-muted-foreground">
-                  Surasura Cloudのフォーマットを使用中です。
-                </p>
-              )}
-              {showNoLanguageModels && (
-                <div className="flex items-center justify-between rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-xs text-muted-foreground">
-                  <span>
-                    フォーマットが実行されません — 言語モデルがありません。
-                  </span>
-                  <Link to="/settings/ai-models" search={{ tab: "language" }}>
-                    <Button variant="outline" size="sm">
-                      <Plus className="w-4 h-4 mr-1" />
-                      言語モデルを同期
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </div>
           </div>
         </div>

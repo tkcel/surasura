@@ -14,18 +14,11 @@ interface UseFormattingSettingsReturn {
   // Derived booleans
   disableFormattingToggle: boolean;
   hasFormattingOptions: boolean;
-  showCloudRequiresSpeech: boolean;
-  showCloudRequiresAuth: boolean;
-  showCloudReady: boolean;
-  showNoLanguageModels: boolean;
+  showApiKeyRequired: boolean;
 
   // Handlers
   handleFormattingEnabledChange: (enabled: boolean) => void;
   handleFormattingModelChange: (modelId: string) => void;
-  handleCloudLogin: () => Promise<void>;
-
-  // Loading state
-  isLoginPending: boolean;
 }
 
 export function useFormattingSettings(): UseFormattingSettingsReturn {
@@ -74,6 +67,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   const hasFormattingOptions = hasOpenAIKey;
   const formattingEnabled = formatterConfig?.enabled ?? false;
   const disableFormattingToggle = !hasFormattingOptions;
+  const showApiKeyRequired = !hasOpenAIKey;
 
   const formattingOptions = useMemo<ComboboxOption[]>(() => {
     if (!hasOpenAIKey) return [];
@@ -98,12 +92,6 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     const preferredModelId = formatterConfig?.modelId || "gpt-4o-mini";
     return optionValues.has(preferredModelId) ? preferredModelId : "";
   }, [formatterConfig?.modelId, optionValues]);
-
-  // Inline state conditions (all false since we removed cloud auth)
-  const showCloudRequiresSpeech = false;
-  const showCloudRequiresAuth = false;
-  const showCloudReady = false;
-  const showNoLanguageModels = !hasOpenAIKey;
 
   // Handlers
   const handleFormattingEnabledChange = useCallback(
@@ -141,11 +129,6 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     [formatterConfig, setFormatterConfigMutation],
   );
 
-  // No-op since we removed cloud auth
-  const handleCloudLogin = useCallback(async () => {
-    // Auth removed - no-op
-  }, []);
-
   return {
     // State
     formattingEnabled,
@@ -155,17 +138,10 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     // Derived booleans
     disableFormattingToggle,
     hasFormattingOptions,
-    showCloudRequiresSpeech,
-    showCloudRequiresAuth,
-    showCloudReady,
-    showNoLanguageModels,
+    showApiKeyRequired,
 
     // Handlers
     handleFormattingEnabledChange,
     handleFormattingModelChange,
-    handleCloudLogin,
-
-    // Loading state
-    isLoginPending: false,
   };
 }

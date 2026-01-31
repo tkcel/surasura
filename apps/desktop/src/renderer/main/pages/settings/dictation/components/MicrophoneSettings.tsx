@@ -53,46 +53,48 @@ export function MicrophoneSettings() {
       : audioDevices.find((d) => d.isDefault)?.label || "";
 
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <Label className="text-base font-semibold text-foreground">
-          マイク
-        </Label>
-        <p className="text-xs text-muted-foreground mb-2">
-          使用するマイクを選択してください。
-        </p>
-      </div>
-      <div className="min-w-[200px]">
-        <Select
-          value={currentSelectionValue}
-          onValueChange={handleMicrophoneChange}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="マイクを選択" />
-          </SelectTrigger>
-          <SelectContent>
-            {audioDevices.length === 0 ? (
-              <SelectItem value="no-devices" disabled>
-                マイクがありません
-              </SelectItem>
-            ) : (
-              audioDevices.map((device) => (
-                <SelectItem key={device.deviceId} value={device.label}>
-                  <div className="flex items-center gap-2">
-                    <Mic className="h-4 w-4" />
-                    <span>{device.label}</span>
-                  </div>
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-        {audioDevices.length === 0 && (
-          <p className="text-sm text-muted-foreground mt-1">
-            マイクが検出されませんでした。オーディオデバイスを確認してください。
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <Label className="text-base font-semibold text-foreground">
+            マイク
+          </Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            使用するマイクを選択してください。
           </p>
-        )}
+        </div>
+        <div className="min-w-[200px]">
+          <Select
+            value={currentSelectionValue}
+            onValueChange={handleMicrophoneChange}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="マイクを選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {audioDevices.length === 0 ? (
+                <SelectItem value="no-devices" disabled>
+                  マイクがありません
+                </SelectItem>
+              ) : (
+                audioDevices.map((device) => (
+                  <SelectItem key={device.deviceId} value={device.label}>
+                    <div className="flex items-center gap-2">
+                      <Mic className="h-4 w-4" />
+                      <span>{device.label}</span>
+                    </div>
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+      {audioDevices.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          マイクが検出されませんでした。オーディオデバイスを確認してください。
+        </p>
+      )}
     </div>
   );
 }

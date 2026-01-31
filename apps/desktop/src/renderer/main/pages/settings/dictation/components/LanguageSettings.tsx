@@ -47,20 +47,24 @@ export function LanguageSettings() {
   };
 
   return (
-    <div className="flex justify-between items-center border-border border rounded-md p-4">
-      <div className="flex items-start gap-2 flex-col">
-        <Label className="text-sm font-medium text-foreground">言語</Label>
-        <p className="text-xs text-muted-foreground">
-          音声認識に使用する言語を選択してください
-        </p>
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <Label className="text-base font-semibold text-foreground">
+            言語
+          </Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            音声認識に使用する言語を選択してください。
+          </p>
+        </div>
+        <Combobox
+          options={AVAILABLE_LANGUAGES.filter((l) => l.value !== "auto")}
+          value={selectedLanguage}
+          onChange={handleLanguageChange}
+          placeholder="言語を選択..."
+          disabled={isLoading || updateDictationSettings.isPending}
+        />
       </div>
-      <Combobox
-        options={AVAILABLE_LANGUAGES.filter((l) => l.value !== "auto")}
-        value={selectedLanguage}
-        onChange={handleLanguageChange}
-        placeholder="言語を選択..."
-        disabled={isLoading || updateDictationSettings.isPending}
-      />
     </div>
   );
 }

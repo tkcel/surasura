@@ -424,6 +424,52 @@ export const settingsRouter = createRouter({
     }
   }),
 
+  // Get default speech model (Whisper)
+  getDefaultSpeechModel: procedure.query(async ({ ctx }) => {
+    try {
+      const settingsService = ctx.serviceManager.getService("settingsService");
+      if (!settingsService) {
+        throw new Error("SettingsService not available");
+      }
+      return await settingsService.getDefaultSpeechModel();
+    } catch (error) {
+      const logger = ctx.serviceManager.getLogger();
+      if (logger) {
+        logger.main.error("Error getting default speech model:", error);
+      }
+      return undefined;
+    }
+  }),
+
+  // Set default speech model (Whisper)
+  setDefaultSpeechModel: procedure
+    .input(z.object({ modelId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new Error("SettingsService not available");
+        }
+        await settingsService.setDefaultSpeechModel(input.modelId);
+
+        const logger = ctx.serviceManager.getLogger();
+        if (logger) {
+          logger.main.info("Default speech model updated", {
+            modelId: input.modelId,
+          });
+        }
+
+        return true;
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        if (logger) {
+          logger.main.error("Error setting default speech model:", error);
+        }
+        throw error;
+      }
+    }),
+
   // Validate OpenAI API connection
   validateOpenAIConnection: procedure
     .input(z.object({ apiKey: z.string() }))
