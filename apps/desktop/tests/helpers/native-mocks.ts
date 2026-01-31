@@ -122,16 +122,6 @@ export const mockSystemInformation = {
   ),
 };
 
-// Mock posthog-node
-export const mockPostHog = {
-  PostHog: vi.fn().mockImplementation(() => ({
-    capture: vi.fn(),
-    identify: vi.fn(),
-    alias: vi.fn(),
-    shutdown: vi.fn(() => Promise.resolve()),
-  })),
-};
-
 // Mock update-electron-app
 export const mockUpdateElectronApp = vi.fn();
 
@@ -144,7 +134,6 @@ export function createNativeMocks() {
     "@surasura/windows-helper": mockWindowsHelper,
     "node-machine-id": mockMachineId,
     systeminformation: mockSystemInformation,
-    "posthog-node": mockPostHog,
     "update-electron-app": mockUpdateElectronApp,
   };
 }

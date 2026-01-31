@@ -50,15 +50,6 @@ export const defaultAppSettings: AppSettingsData = {
     minimizeToTray: true,
     showWidgetWhileInactive: true,
   },
-  telemetry: {
-    enabled: false,
-  },
-  auth: {
-    isAuthenticated: false,
-    idToken: null,
-    refreshToken: null,
-    expiresAt: null,
-  },
 };
 
 /**

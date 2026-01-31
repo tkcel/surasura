@@ -43,25 +43,10 @@ export default function PreferencesSettingsPage() {
     },
   });
 
-  // Advanced settings queries and mutations
-  const telemetryQuery = api.settings.getTelemetrySettings.useQuery();
+  // Advanced settings queries
   const dataPathQuery = api.settings.getDataPath.useQuery();
   const logFilePathQuery = api.settings.getLogFilePath.useQuery();
   const audioFolderPathQuery = api.settings.getAudioFolderPath.useQuery();
-  const machineIdQuery = api.settings.getMachineId.useQuery();
-
-  const updateTelemetrySettingsMutation =
-    api.settings.updateTelemetrySettings.useMutation({
-      onSuccess: () => {
-        utils.settings.getTelemetrySettings.invalidate();
-        utils.settings.getTelemetryConfig.invalidate();
-        toast.success("テレメトリー設定を更新しました");
-      },
-      onError: (error) => {
-        console.error("Failed to update telemetry settings:", error);
-        toast.error("テレメトリー設定の更新に失敗しました");
-      },
-    });
 
   const resetAppMutation = api.settings.resetApp.useMutation({
     onMutate: () => {
@@ -123,20 +108,6 @@ export default function PreferencesSettingsPage() {
     updatePreferencesMutation.mutate({
       showInDock: checked,
     });
-  };
-
-  // Advanced settings handlers
-  const handleTelemetryChange = (checked: boolean) => {
-    updateTelemetrySettingsMutation.mutate({
-      enabled: checked,
-    });
-  };
-
-  const handleCopyMachineId = async () => {
-    if (machineIdQuery.data) {
-      await navigator.clipboard.writeText(machineIdQuery.data);
-      toast.success("マシンIDをコピーしました");
-    }
   };
 
   const handleOpenDataFolder = () => {
@@ -260,20 +231,6 @@ export default function PreferencesSettingsPage() {
             <CardDescription>高度な設定オプション</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="telemetry">改善のために匿名で情報を提供する</Label>
-                <p className="text-sm text-muted-foreground">
-                  匿名の使用状況データを共有してsurasuraの改善に協力する
-                </p>
-              </div>
-              <Switch
-                id="telemetry"
-                checked={telemetryQuery.data?.enabled ?? true}
-                onCheckedChange={handleTelemetryChange}
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="data-location">データの保存場所</Label>
               <div className="flex gap-2">
@@ -340,25 +297,6 @@ export default function PreferencesSettingsPage() {
                   disabled={downloadLogFileMutation.isPending}
                 >
                   ダウンロード
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="machine-id">マシンID</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="machine-id"
-                  value={machineIdQuery.data || "読み込み中..."}
-                  disabled
-                  className="cursor-default flex-1 font-mono text-xs"
-                />
-                <Button
-                  variant="outline"
-                  onClick={handleCopyMachineId}
-                  disabled={!machineIdQuery.data}
-                >
-                  コピー
                 </Button>
               </div>
             </div>

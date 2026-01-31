@@ -15,6 +15,7 @@ const FormatPresetSchema = z.object({
   modelId: z.enum(["gpt-4o-mini", "gpt-4o"]),
   instructions: z.string().max(2000),
   isDefault: z.boolean(),
+  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -34,6 +35,7 @@ const CreateFormatPresetSchema = z.object({
   modelId: z.enum(["gpt-4o-mini", "gpt-4o"]),
   instructions: z.string().max(2000),
   isDefault: z.boolean().default(false),
+  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]).default("yellow"),
 });
 
 // Update preset input schema
@@ -43,6 +45,7 @@ const UpdateFormatPresetSchema = z.object({
   modelId: z.enum(["gpt-4o-mini", "gpt-4o"]).optional(),
   instructions: z.string().max(2000).optional(),
   isDefault: z.boolean().optional(),
+  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]).optional(),
 });
 
 // Shortcut schema (array of key names)
@@ -796,25 +799,6 @@ export const settingsRouter = createRouter({
       : path.join(app.getPath("logs"), "surasura.log");
   }),
 
-  // Get machine ID for display
-  getMachineId: procedure.query(async ({ ctx }) => {
-    const telemetryService = ctx.serviceManager.getService("telemetryService");
-    return telemetryService?.getMachineId() ?? "";
-  }),
-
-  // Get telemetry config for renderer (PostHog surveys)
-  getTelemetryConfig: procedure.query(async ({ ctx }) => {
-    const telemetryService = ctx.serviceManager.getService("telemetryService");
-    return {
-      apiKey: process.env.POSTHOG_API_KEY || __BUNDLED_POSTHOG_API_KEY,
-      host: process.env.POSTHOG_HOST || __BUNDLED_POSTHOG_HOST,
-      machineId: telemetryService?.getMachineId() ?? "",
-      enabled: telemetryService?.isEnabled() ?? false,
-      feedbackSurveyId:
-        process.env.FEEDBACK_SURVEY_ID || __BUNDLED_FEEDBACK_SURVEY_ID,
-    };
-  }),
-
   // Download log file via save dialog
   downloadLogFile: procedure.mutation(async () => {
     const { dialog, BrowserWindow } = await import("electron");
@@ -923,58 +907,6 @@ export const settingsRouter = createRouter({
       return true;
     }),
 
-  // Get telemetry settings
-  getTelemetrySettings: procedure.query(async ({ ctx }) => {
-    try {
-      const settingsService = ctx.serviceManager.getService("settingsService");
-      if (!settingsService) {
-        throw new Error("SettingsService not available");
-      }
-      return await settingsService.getTelemetrySettings();
-    } catch (error) {
-      const logger = ctx.serviceManager.getLogger();
-      if (logger) {
-        logger.main.error("Error getting telemetry settings:", error);
-      }
-      return { enabled: true };
-    }
-  }),
-
-  // Update telemetry settings
-  updateTelemetrySettings: procedure
-    .input(
-      z.object({
-        enabled: z.boolean(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const telemetryService =
-          ctx.serviceManager.getService("telemetryService");
-        if (!telemetryService) {
-          throw new Error("TelemetryService not available");
-        }
-
-        // Update the telemetry service state
-        await telemetryService.setEnabled(input.enabled);
-
-        const logger = ctx.serviceManager.getLogger();
-        if (logger) {
-          logger.main.info("Telemetry settings updated", {
-            enabled: input.enabled,
-          });
-        }
-
-        return true;
-      } catch (error) {
-        const logger = ctx.serviceManager.getLogger();
-        if (logger) {
-          logger.main.error("Error updating telemetry settings:", error);
-        }
-        throw error;
-      }
-    }),
-
   // Reset app - deletes database and models, then restarts
   resetApp: procedure.mutation(async ({ ctx }) => {
     try {
@@ -1029,5 +961,59 @@ export const settingsRouter = createRouter({
       throw new Error("Failed to reset app");
     }
   }),
+
+  // Get guides state (which guides have been seen)
+  getGuidesState: procedure.query(async ({ ctx }) => {
+    try {
+      const settingsService = ctx.serviceManager.getService("settingsService");
+      if (!settingsService) {
+        throw new Error("SettingsService not available");
+      }
+      const allSettings = await settingsService.getAllSettings();
+      return allSettings.guides ?? {};
+    } catch (error) {
+      const logger = ctx.serviceManager.getLogger();
+      if (logger) {
+        logger.main.error("Error getting guides state:", error);
+      }
+      return {};
+    }
+  }),
+
+  // Mark a guide as seen
+  markGuideSeen: procedure
+    .input(z.object({ guide: z.enum(["dictationFlow"]) }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new Error("SettingsService not available");
+        }
+
+        const allSettings = await settingsService.getAllSettings();
+        const currentGuides = allSettings.guides ?? {};
+
+        const updatedGuides = {
+          ...currentGuides,
+          ...(input.guide === "dictationFlow" && { hasSeenDictationFlow: true }),
+        };
+
+        await settingsService.setGuidesState(updatedGuides);
+
+        const logger = ctx.serviceManager.getLogger();
+        if (logger) {
+          logger.main.info("Guide marked as seen:", { guide: input.guide });
+        }
+
+        return { success: true };
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        if (logger) {
+          logger.main.error("Error marking guide as seen:", error);
+        }
+        throw error;
+      }
+    }),
 });
 // This comment prevents prettier from removing the trailing newline

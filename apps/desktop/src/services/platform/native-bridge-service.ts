@@ -8,7 +8,6 @@ import { getNativeHelperName, getNativeHelperDir } from "../../utils/platform";
 
 import { EventEmitter } from "events";
 import { createScopedLogger } from "../../main/logger";
-import type { TelemetryService } from "../telemetry-service";
 import {
   RpcRequestSchema,
   RpcRequest,
@@ -97,11 +96,9 @@ export class NativeBridge extends EventEmitter {
   private lastRestartTime = 0;
   private lastCrashInfo: { code: number | null; signal: string | null } | null =
     null;
-  private telemetryService: TelemetryService | null = null;
 
-  constructor(telemetryService?: TelemetryService) {
+  constructor() {
     super();
-    this.telemetryService = telemetryService ?? null;
     this.helperPath = this.determineHelperPath();
     this.startHelperProcess();
   }
@@ -247,17 +244,6 @@ export class NativeBridge extends EventEmitter {
     }
 
     const willRestart = this.restartCount < NativeBridge.MAX_RESTARTS;
-
-    // Track crash telemetry
-    this.telemetryService?.trackNativeHelperCrashed({
-      helper_name: helperName,
-      platform: process.platform,
-      exit_code: this.lastCrashInfo?.code ?? null,
-      signal: this.lastCrashInfo?.signal ?? null,
-      restart_attempt: this.restartCount + 1,
-      max_restarts: NativeBridge.MAX_RESTARTS,
-      will_restart: willRestart,
-    });
 
     if (!willRestart) {
       this.logger.error(

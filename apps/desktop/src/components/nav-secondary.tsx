@@ -8,7 +8,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { FeedbackButton } from "@/components/feedback-button";
 
 export function NavSecondary({
   items,
@@ -39,7 +38,6 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          <FeedbackButton />
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
