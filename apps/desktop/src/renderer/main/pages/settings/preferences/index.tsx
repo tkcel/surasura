@@ -24,11 +24,42 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, CheckCircle, XCircle, ExternalLink, RefreshCw } from "lucide-react";
 
 export default function PreferencesSettingsPage() {
   const [isResetting, setIsResetting] = useState(false);
   const utils = api.useUtils();
+  const isMac = window.electronAPI.platform === "darwin";
+
+  // Permission status query - refetch on window focus (no polling to avoid OS freeze)
+  const permissionsQuery = api.onboarding.checkAllRequirements.useQuery(
+    undefined,
+    { refetchOnWindowFocus: true },
+  );
+
+  // Open accessibility settings mutation
+  const openAccessibilitySettingsMutation =
+    api.onboarding.openAccessibilitySettings.useMutation({
+      onError: () => {
+        toast.error("設定を開けませんでした");
+      },
+    });
+
+  // Request microphone permission mutation
+  const requestMicrophoneMutation =
+    api.onboarding.requestMicrophonePermission.useMutation({
+      onSuccess: (granted) => {
+        if (granted) {
+          toast.success("マイクのアクセスが許可されました");
+        } else {
+          toast.info("マイクのアクセスを許可してください");
+        }
+        utils.onboarding.checkAllRequirements.invalidate();
+      },
+      onError: () => {
+        toast.error("マイクの権限リクエストに失敗しました");
+      },
+    });
 
   // Preferences queries and mutations
   const preferencesQuery = api.settings.getPreferences.useQuery();
@@ -132,7 +163,10 @@ export default function PreferencesSettingsPage() {
     preferencesQuery.data?.showWidgetWhileInactive ?? true;
   const launchAtLogin = preferencesQuery.data?.launchAtLogin ?? true;
   const showInDock = preferencesQuery.data?.showInDock ?? true;
-  const isMac = window.electronAPI.platform === "darwin";
+
+  // Permission status
+  const microphoneGranted = permissionsQuery.data?.microphone ?? false;
+  const accessibilityGranted = permissionsQuery.data?.accessibility ?? false;
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">
@@ -145,6 +179,103 @@ export default function PreferencesSettingsPage() {
       </div>
 
       <div className="space-y-6">
+        {/* Permissions Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>システム権限</CardTitle>
+                <CardDescription>
+                  surasuraが正常に動作するために必要な権限です
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await permissionsQuery.refetch();
+                  toast.success("権限の状態を更新しました");
+                }}
+                disabled={permissionsQuery.isFetching}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-1.5 ${permissionsQuery.isFetching ? "animate-spin" : ""}`}
+                />
+                状態を更新
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Microphone Permission */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {microphoneGranted ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-destructive" />
+                )}
+                <div className="space-y-1">
+                  <Label className="text-base font-medium text-foreground">
+                    マイクへのアクセス
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    音声入力に必要です
+                  </p>
+                </div>
+              </div>
+              {microphoneGranted ? (
+                <span className="text-sm text-green-600">許可済み</span>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => requestMicrophoneMutation.mutate()}
+                  disabled={requestMicrophoneMutation.isPending}
+                >
+                  許可する
+                </Button>
+              )}
+            </div>
+
+            {/* Accessibility Permission (macOS only) */}
+            {isMac && (
+              <>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {accessibilityGranted ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-destructive" />
+                    )}
+                    <div className="space-y-1">
+                      <Label className="text-base font-medium text-foreground">
+                        アクセシビリティ
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        自動ペースト機能に必要です
+                      </p>
+                    </div>
+                  </div>
+                  {accessibilityGranted ? (
+                    <span className="text-sm text-green-600">許可済み</span>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openAccessibilitySettingsMutation.mutate()}
+                      disabled={openAccessibilitySettingsMutation.isPending}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      設定を開く
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
         {/* General Settings Card */}
         <Card>
           <CardContent className="space-y-4">

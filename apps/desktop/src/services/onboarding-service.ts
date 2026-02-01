@@ -228,7 +228,9 @@ export class OnboardingService extends EventEmitter {
 
   /**
    * Check if onboarding is needed
-   * Returns true if user needs to go through onboarding (first time or missing permissions or missing API key)
+   * Returns true only if user has never completed onboarding (first time setup)
+   * Once completed, users won't be sent back to onboarding even if permissions are missing
+   * (they'll see a warning banner in the main app instead)
    */
   async checkNeedsOnboarding(): Promise<{
     needed: boolean;
@@ -260,8 +262,12 @@ export class OnboardingService extends EventEmitter {
     const openaiConfig = await this.settingsService.getOpenAIConfig();
     const hasApiKey = !!openaiConfig?.apiKey;
 
-    const needed =
-      forceOnboarding || !hasCompleted || hasMissingPermissions || !hasApiKey;
+    // Only show onboarding if:
+    // 1. FORCE_ONBOARDING is set (development)
+    // 2. User has never completed onboarding
+    // Note: Once completed, missing permissions/API key won't trigger onboarding
+    // (users will see warning banner in main app instead)
+    const needed = forceOnboarding || !hasCompleted;
 
     return {
       needed,
@@ -391,9 +397,17 @@ export class OnboardingService extends EventEmitter {
 
   /**
    * Start monitoring accessibility permission
-   * Checks every 10 seconds and emits event if permission is lost
+   * NOTE: Currently disabled due to system freeze issues when checking
+   * accessibility permission status after it's been revoked.
+   * TODO: Find alternative approach for permission monitoring
    */
   startPermissionMonitoring(): void {
+    // Temporarily disabled - causes OS freeze when permission is revoked
+    logger.main.info(
+      "Accessibility permission monitoring is currently disabled",
+    );
+    return;
+
     // Only monitor on macOS
     if (process.platform !== "darwin") {
       return;

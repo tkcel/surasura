@@ -300,11 +300,8 @@ export function App() {
   return (
     <OnboardingErrorBoundary>
       <div className="h-screen w-screen bg-background text-foreground">
-        {/* Progress Indicator (T029) - draggable region for frameless window */}
-        <div
-          className="fixed left-0 right-0 top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-          style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
-        >
+        {/* Progress Indicator (T029) */}
+        <div className="fixed left-0 right-0 top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="mx-auto max-w-2xl px-8 pb-4 pt-6">
             <ProgressIndicator
               current={getCurrentScreenIndex() + 1}

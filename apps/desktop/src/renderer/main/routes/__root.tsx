@@ -3,6 +3,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { api, trpcClient } from "@/trpc/react";
 import { usePresetNotifications } from "@/hooks/usePresetNotifications";
+import { PermissionWarningBanner } from "../components/permission-warning-banner";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -24,6 +25,7 @@ function AppShell() {
 
   return (
     <>
+      <PermissionWarningBanner />
       <Outlet />
       {process.env.NODE_ENV === "development" && (
         <TanStackRouterDevtools position="bottom-right" />

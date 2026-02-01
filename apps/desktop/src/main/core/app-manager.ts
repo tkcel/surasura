@@ -137,20 +137,23 @@ export class AppManager {
     // Handle accessibility permission lost
     onboardingService.on("accessibility-permission-lost", async () => {
       logger.main.warn(
-        "Accessibility permission lost, closing all windows and showing onboarding",
+        "Accessibility permission lost, notifying renderer windows",
       );
 
-      // Stop permission monitoring while in recovery mode
-      onboardingService.stopPermissionMonitoring();
+      // Notify all windows about permission loss
+      const mainWindow = this.windowManager.getMainWindow();
+      const widgetWindow = this.windowManager.getWidgetWindow();
 
-      // Close all app windows (main window and widget)
-      this.windowManager.closeAllAppWindows();
+      const message = { type: "accessibility-permission-lost" };
 
-      // Start onboarding flow and show locked onboarding window
-      await onboardingService.startOnboardingFlow();
-      await this.windowManager.createOrShowOnboardingWindow({ blockClose: true });
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("permission-status-changed", message);
+      }
+      if (widgetWindow && !widgetWindow.isDestroyed()) {
+        widgetWindow.webContents.send("permission-status-changed", message);
+      }
 
-      logger.main.info("Entered permission recovery mode");
+      logger.main.info("Permission loss notification sent to renderer windows");
     });
 
     logger.main.info("Onboarding event listeners set up");
