@@ -24,7 +24,8 @@ export function SettingsSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <div className="h-[var(--header-height)]"></div>
+      {/* Desktop: header height spacer, Mobile: traffic light spacer (40px) */}
+      <div className="h-10 md:h-[var(--header-height)]"></div>
       <SidebarHeader className="py-0 -mb-1">
         <SidebarMenu>
           <SidebarMenuItem>

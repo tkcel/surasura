@@ -467,6 +467,14 @@ export class SettingsService extends EventEmitter {
       presets: updatedPresets,
     });
 
+    // If the updated preset is the active one, emit event for cross-window sync
+    if (config?.activePresetId === id) {
+      this.emit("active-preset-changed", {
+        presetId: id,
+        presetName: updatedPreset.name,
+      });
+    }
+
     return updatedPreset;
   }
 

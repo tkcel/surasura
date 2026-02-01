@@ -152,6 +152,8 @@ export class WindowManager {
     this.mainWindow = new BrowserWindow({
       width: 1200,
       height: windowHeight,
+      minWidth: 640,
+      minHeight: 400,
       frame: true,
       titleBarStyle: "hidden",
       titleBarOverlay: {

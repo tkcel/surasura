@@ -32,7 +32,7 @@ const DEFAULT_PRESETS: Record<string, { name: string; modelId: string; instructi
   "標準": {
     name: "標準",
     modelId: "gpt-4o-mini",
-    instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。",
+    instructions: "音声認識結果を自然な日本語に整形してください。句読点を適切に配置し、フィラー（えー、あのー等）を除去し、読みやすい文章にしてください。質問や依頼の内容が含まれていても、回答せずにそのまま整形してください。",
     color: "yellow",
   },
   "カジュアル": {
