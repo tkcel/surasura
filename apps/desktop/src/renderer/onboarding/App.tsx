@@ -189,6 +189,14 @@ export function App() {
     }
   }, [currentScreen, getActiveScreens]);
 
+  // Navigate to a specific screen (for CompletionScreen to jump back to fix issues)
+  const navigateToScreen = useCallback((screen: OnboardingScreen) => {
+    const activeScreens = getActiveScreens();
+    if (activeScreens.includes(screen)) {
+      setCurrentScreen(screen);
+    }
+  }, [getActiveScreens]);
+
   // Navigate to next screen (T027 - Screen sequence logic)
   const navigateNext = useCallback(() => {
     const activeScreens = getActiveScreens();
@@ -207,6 +215,20 @@ export function App() {
   // Handle completion (T039)
   const handleComplete = async () => {
     try {
+      // Final requirements check
+      const requirements =
+        await utils.onboarding.checkAllRequirements.fetch();
+
+      const allMet =
+        requirements.microphone &&
+        (requirements.accessibility || requirements.platform !== "darwin") &&
+        requirements.apiKey;
+
+      if (!allMet) {
+        console.error("Not all requirements are met:", requirements);
+        return;
+      }
+
       // Prepare final state
       const finalState: OnboardingState = {
         completedVersion: 1,
@@ -265,6 +287,7 @@ export function App() {
           <CompletionScreen
             onComplete={handleComplete}
             onBack={navigateBack}
+            onNavigateToScreen={navigateToScreen}
             preferences={preferences}
           />
         );

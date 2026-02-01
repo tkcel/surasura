@@ -1,4 +1,4 @@
-import { app, ipcMain, shell } from "electron";
+import { app, ipcMain, shell, dialog } from "electron";
 import { initializeDatabase } from "../../db";
 import { logger } from "../logger";
 import { WindowManager } from "./window-manager";
@@ -74,6 +74,8 @@ export class AppManager {
       await this.windowManager.createOrShowOnboardingWindow();
     } else {
       await this.setupWindows();
+      // Start permission monitoring after normal app startup
+      onboardingService.startPermissionMonitoring();
     }
 
     await this.setupMenu();
@@ -120,6 +122,8 @@ export class AppManager {
         // Development: just show the main app windows
         logger.main.info("Dev mode: showing main app windows after onboarding");
         this.setupWindows();
+        // Start permission monitoring after onboarding
+        onboardingService.startPermissionMonitoring();
       }
     });
 
@@ -128,6 +132,38 @@ export class AppManager {
       logger.main.info("Onboarding cancelled event received, quitting app");
       this.windowManager.closeOnboardingWindow();
       app.quit();
+    });
+
+    // Handle accessibility permission lost
+    onboardingService.on("accessibility-permission-lost", async () => {
+      logger.main.warn("Accessibility permission lost, showing dialog");
+
+      const result = await dialog.showMessageBox({
+        type: "warning",
+        title: "アクセシビリティ権限が無効になりました",
+        message:
+          "surasuraの自動ペースト機能を使用するには、アクセシビリティ権限が必要です。",
+        detail:
+          "アクセシビリティ権限が無効になりました。権限を再度有効にするか、セットアップを再開してください。",
+        buttons: ["システム環境設定を開く", "セットアップを再開", "あとで"],
+        defaultId: 0,
+        cancelId: 2,
+      });
+
+      switch (result.response) {
+        case 0: // Open System Preferences
+          await shell.openExternal(
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+          );
+          break;
+        case 1: // Restart setup
+          onboardingService.stopPermissionMonitoring();
+          await onboardingService.startOnboardingFlow();
+          await this.windowManager.createOrShowOnboardingWindow();
+          break;
+        case 2: // Later - do nothing
+          break;
+      }
     });
 
     logger.main.info("Onboarding event listeners set up");
@@ -261,6 +297,13 @@ export class AppManager {
   }
 
   async cleanup(): Promise<void> {
+    // Stop permission monitoring
+    const onboardingService =
+      this.serviceManager.getService("onboardingService");
+    if (onboardingService) {
+      onboardingService.stopPermissionMonitoring();
+    }
+
     await this.serviceManager.cleanup();
     if (this.windowManager) {
       this.windowManager.cleanup();

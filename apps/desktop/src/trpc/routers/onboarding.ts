@@ -313,6 +313,55 @@ export const onboardingRouter = createRouter({
   }),
 
   /**
+   * Check all requirements for completing onboarding
+   * Returns the status of microphone, accessibility, and API key
+   */
+  checkAllRequirements: procedure.query(
+    async ({
+      ctx,
+    }): Promise<{
+      microphone: boolean;
+      accessibility: boolean;
+      apiKey: boolean;
+      platform: string;
+    }> => {
+      try {
+        const micStatus = systemPreferences.getMediaAccessStatus("microphone");
+        const accessibilityStatus =
+          process.platform === "darwin"
+            ? systemPreferences.isTrustedAccessibilityClient(false)
+            : true;
+
+        const { serviceManager } = ctx;
+        let hasApiKey = false;
+
+        if (serviceManager) {
+          const settingsService = serviceManager.getService("settingsService");
+          if (settingsService) {
+            const openaiConfig = await settingsService.getOpenAIConfig();
+            hasApiKey = !!openaiConfig?.apiKey;
+          }
+        }
+
+        return {
+          microphone: micStatus === "granted",
+          accessibility: accessibilityStatus,
+          apiKey: hasApiKey,
+          platform: process.platform,
+        };
+      } catch (error) {
+        logger.main.error("Failed to check all requirements:", error);
+        return {
+          microphone: false,
+          accessibility: false,
+          apiKey: false,
+          platform: process.platform,
+        };
+      }
+    },
+  ),
+
+  /**
    * Request microphone permission
    */
   requestMicrophonePermission: procedure.mutation(
@@ -403,4 +452,21 @@ export const onboardingRouter = createRouter({
         console.error("Failed to log error:", error);
       }
     }),
+
+  /**
+   * Open accessibility settings (System Preferences on macOS)
+   */
+  openAccessibilitySettings: procedure.mutation(async (): Promise<void> => {
+    try {
+      if (process.platform === "darwin") {
+        await shell.openExternal(
+          "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+        );
+        logger.main.info("Opened System Preferences for accessibility");
+      }
+    } catch (error) {
+      logger.main.error("Failed to open accessibility settings:", error);
+      throw error;
+    }
+  }),
 });

@@ -1,4 +1,4 @@
-import { ipcMain, app } from "electron";
+import { ipcMain, app, clipboard } from "electron";
 import { EventEmitter } from "node:events";
 import { Mutex } from "async-mutex";
 import { logger, logPerformance } from "../logger";
@@ -730,6 +730,8 @@ export class RecordingManager extends EventEmitter {
       return;
     }
 
+    const PASTE_TIMEOUT = 5000; // 5 seconds timeout
+
     try {
       const nativeBridge = this.serviceManager.getService("nativeBridge");
 
@@ -738,15 +740,63 @@ export class RecordingManager extends EventEmitter {
       });
 
       if (nativeBridge) {
-        await nativeBridge.call("pasteText", {
+        // Wrap pasteText call with timeout to prevent freeze
+        const pastePromise = nativeBridge.call("pasteText", {
           transcript: transcription,
         });
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error("Paste operation timed out"));
+          }, PASTE_TIMEOUT);
+        });
+
+        await Promise.race([pastePromise, timeoutPromise]);
       }
     } catch (error) {
-      logger.main.warn(
-        "Native bridge not available, cannot paste transcription",
-        { error: error instanceof Error ? error.message : String(error) },
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isAccessibilityError =
+        errorMessage.includes("accessibility") ||
+        errorMessage.includes("permission") ||
+        errorMessage.includes("AXError") ||
+        errorMessage.includes("timed out");
+
+      logger.main.warn("Failed to paste transcription", {
+        error: errorMessage,
+        isAccessibilityError,
+      });
+
+      // Copy to clipboard as fallback
+      try {
+        clipboard.writeText(transcription);
+        logger.main.info(
+          "Transcription copied to clipboard as fallback",
+          { textLength: transcription.length },
+        );
+      } catch (clipboardError) {
+        logger.main.error("Failed to copy to clipboard", { clipboardError });
+      }
+
+      // Emit notification for accessibility-related errors
+      if (isAccessibilityError) {
+        this.emit("widget-notification", {
+          type: "accessibility_error",
+          message:
+            "ペーストできませんでした。クリップボードにコピーしました。アクセシビリティ権限を確認してください。",
+        });
+        logger.main.info("Emitted widget notification", {
+          type: "accessibility_error",
+        });
+      } else {
+        this.emit("widget-notification", {
+          type: "paste_error",
+          message: "ペーストできませんでした。クリップボードにコピーしました。",
+        });
+        logger.main.info("Emitted widget notification", {
+          type: "paste_error",
+        });
+      }
     }
   }
 

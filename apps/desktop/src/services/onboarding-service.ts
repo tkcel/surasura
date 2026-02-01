@@ -29,6 +29,8 @@ export class OnboardingService extends EventEmitter {
   private settingsService: SettingsService;
   private currentState: Partial<OnboardingState> = {};
   private isOnboardingInProgress = false;
+  private permissionMonitorInterval: NodeJS.Timeout | null = null;
+  private lastAccessibilityStatus: boolean | null = null;
 
   constructor(settingsService: SettingsService) {
     super();
@@ -226,7 +228,7 @@ export class OnboardingService extends EventEmitter {
 
   /**
    * Check if onboarding is needed
-   * Returns true if user needs to go through onboarding (first time or missing permissions)
+   * Returns true if user needs to go through onboarding (first time or missing permissions or missing API key)
    */
   async checkNeedsOnboarding(): Promise<{
     needed: boolean;
@@ -234,11 +236,13 @@ export class OnboardingService extends EventEmitter {
       forceOnboarding: boolean;
       notCompleted: boolean;
       missingPermissions: boolean;
+      missingApiKey: boolean;
     };
     missingPermissions: {
       microphone: boolean;
       accessibility: boolean;
     };
+    missingApiKey: boolean;
   }> {
     const forceOnboarding = process.env.FORCE_ONBOARDING === "true";
     const state = await this.getOnboardingState();
@@ -252,7 +256,12 @@ export class OnboardingService extends EventEmitter {
     const hasMissingPermissions =
       !permissions.microphone || !permissions.accessibility;
 
-    const needed = forceOnboarding || !hasCompleted || hasMissingPermissions;
+    // Check API key
+    const openaiConfig = await this.settingsService.getOpenAIConfig();
+    const hasApiKey = !!openaiConfig?.apiKey;
+
+    const needed =
+      forceOnboarding || !hasCompleted || hasMissingPermissions || !hasApiKey;
 
     return {
       needed,
@@ -260,11 +269,13 @@ export class OnboardingService extends EventEmitter {
         forceOnboarding,
         notCompleted: !hasCompleted,
         missingPermissions: hasMissingPermissions,
+        missingApiKey: !hasApiKey,
       },
       missingPermissions: {
         microphone: !permissions.microphone,
         accessibility: !permissions.accessibility,
       },
+      missingApiKey: !hasApiKey,
     };
   }
 
@@ -372,5 +383,68 @@ export class OnboardingService extends EventEmitter {
     this.emit("cancelled");
 
     logger.main.info("Onboarding cancelled, emitted event");
+  }
+
+  // ============================================
+  // Permission monitoring (for detecting permission loss)
+  // ============================================
+
+  /**
+   * Start monitoring accessibility permission
+   * Checks every 10 seconds and emits event if permission is lost
+   */
+  startPermissionMonitoring(): void {
+    // Only monitor on macOS
+    if (process.platform !== "darwin") {
+      return;
+    }
+
+    // Don't start if already monitoring
+    if (this.permissionMonitorInterval) {
+      return;
+    }
+
+    // Initialize last status
+    this.lastAccessibilityStatus =
+      systemPreferences.isTrustedAccessibilityClient(false);
+
+    logger.main.info("Starting accessibility permission monitoring", {
+      initialStatus: this.lastAccessibilityStatus,
+    });
+
+    this.permissionMonitorInterval = setInterval(() => {
+      const currentStatus =
+        systemPreferences.isTrustedAccessibilityClient(false);
+
+      // Check if permission was lost (was true, now false)
+      if (this.lastAccessibilityStatus === true && currentStatus === false) {
+        logger.main.warn("Accessibility permission was revoked");
+        this.emit("accessibility-permission-lost");
+      }
+
+      this.lastAccessibilityStatus = currentStatus;
+    }, 10000); // Check every 10 seconds
+  }
+
+  /**
+   * Stop monitoring accessibility permission
+   */
+  stopPermissionMonitoring(): void {
+    if (this.permissionMonitorInterval) {
+      clearInterval(this.permissionMonitorInterval);
+      this.permissionMonitorInterval = null;
+      this.lastAccessibilityStatus = null;
+      logger.main.info("Stopped accessibility permission monitoring");
+    }
+  }
+
+  /**
+   * Check current accessibility permission status
+   */
+  checkAccessibilityPermission(): boolean {
+    if (process.platform !== "darwin") {
+      return true;
+    }
+    return systemPreferences.isTrustedAccessibilityClient(false);
   }
 }
