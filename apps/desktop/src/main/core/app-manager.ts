@@ -1,4 +1,4 @@
-import { app, ipcMain, shell, dialog } from "electron";
+import { app, ipcMain, shell } from "electron";
 import { initializeDatabase } from "../../db";
 import { logger } from "../logger";
 import { WindowManager } from "./window-manager";
@@ -136,34 +136,21 @@ export class AppManager {
 
     // Handle accessibility permission lost
     onboardingService.on("accessibility-permission-lost", async () => {
-      logger.main.warn("Accessibility permission lost, showing dialog");
+      logger.main.warn(
+        "Accessibility permission lost, closing all windows and showing onboarding",
+      );
 
-      const result = await dialog.showMessageBox({
-        type: "warning",
-        title: "アクセシビリティ権限が無効になりました",
-        message:
-          "surasuraの自動ペースト機能を使用するには、アクセシビリティ権限が必要です。",
-        detail:
-          "アクセシビリティ権限が無効になりました。権限を再度有効にするか、セットアップを再開してください。",
-        buttons: ["システム環境設定を開く", "セットアップを再開", "あとで"],
-        defaultId: 0,
-        cancelId: 2,
-      });
+      // Stop permission monitoring while in recovery mode
+      onboardingService.stopPermissionMonitoring();
 
-      switch (result.response) {
-        case 0: // Open System Preferences
-          await shell.openExternal(
-            "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
-          );
-          break;
-        case 1: // Restart setup
-          onboardingService.stopPermissionMonitoring();
-          await onboardingService.startOnboardingFlow();
-          await this.windowManager.createOrShowOnboardingWindow();
-          break;
-        case 2: // Later - do nothing
-          break;
-      }
+      // Close all app windows (main window and widget)
+      this.windowManager.closeAllAppWindows();
+
+      // Start onboarding flow and show locked onboarding window
+      await onboardingService.startOnboardingFlow();
+      await this.windowManager.createOrShowOnboardingWindow({ blockClose: true });
+
+      logger.main.info("Entered permission recovery mode");
     });
 
     logger.main.info("Onboarding event listeners set up");

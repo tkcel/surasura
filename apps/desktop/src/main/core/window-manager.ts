@@ -22,6 +22,7 @@ export class WindowManager {
   private widgetDisplayId: number | null = null;
   private cursorPollingInterval: NodeJS.Timeout | null = null;
   private themeListenerSetup: boolean = false;
+  private onboardingCloseBlocked: boolean = false;
 
   // On Windows, inset from all edges to allow taskbar auto-hide detection
   private readonly widgetEdgeInset = process.platform === "win32" ? 4 : 0;
@@ -285,12 +286,24 @@ export class WindowManager {
     );
   }
 
-  async createOrShowOnboardingWindow(): Promise<void> {
+  /**
+   * Creates or shows the onboarding window.
+   * @param options.blockClose - If true, prevents the window from being closed (used for permission recovery)
+   */
+  async createOrShowOnboardingWindow(options?: {
+    blockClose?: boolean;
+  }): Promise<void> {
+    const blockClose = options?.blockClose ?? false;
+
     if (this.onboardingWindow && !this.onboardingWindow.isDestroyed()) {
+      // Update close blocking state if needed
+      this.onboardingCloseBlocked = blockClose;
       this.onboardingWindow.show();
       this.onboardingWindow.focus();
       return;
     }
+
+    this.onboardingCloseBlocked = blockClose;
 
     // Setup theme listener if not already done
     this.setupThemeListener();
@@ -301,17 +314,10 @@ export class WindowManager {
     const primaryDisplay = screen.getPrimaryDisplay();
     const windowHeight = Math.min(928, primaryDisplay.workAreaSize.height - 40);
 
-    this.onboardingWindow = new BrowserWindow({
+    // When blockClose is true, hide the window controls entirely
+    const windowOptions: Electron.BrowserWindowConstructorOptions = {
       width: 800,
       height: windowHeight,
-      frame: true,
-      titleBarStyle: "hidden",
-      titleBarOverlay: {
-        color: colors.backgroundColor,
-        symbolColor: colors.symbolColor,
-        height: 32,
-      },
-      trafficLightPosition: this.getTrafficLightPosition(),
       resizable: false,
       center: true,
       modal: true,
@@ -320,7 +326,28 @@ export class WindowManager {
         nodeIntegration: false,
         contextIsolation: true,
       },
-    });
+    };
+
+    if (blockClose) {
+      // No title bar, no close button - completely locked
+      windowOptions.frame = false;
+      windowOptions.closable = false;
+      windowOptions.minimizable = false;
+      windowOptions.maximizable = false;
+      windowOptions.fullscreenable = false;
+    } else {
+      // Normal onboarding window with title bar
+      windowOptions.frame = true;
+      windowOptions.titleBarStyle = "hidden";
+      windowOptions.titleBarOverlay = {
+        color: colors.backgroundColor,
+        symbolColor: colors.symbolColor,
+        height: 32,
+      };
+      windowOptions.trafficLightPosition = this.getTrafficLightPosition();
+    }
+
+    this.onboardingWindow = new BrowserWindow(windowOptions);
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
       const devUrl = new URL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -335,12 +362,21 @@ export class WindowManager {
       );
     }
 
-    this.onboardingWindow.on("close", () => {
+    this.onboardingWindow.on("close", (event) => {
+      // Block close if in permission recovery mode
+      if (this.onboardingCloseBlocked) {
+        event.preventDefault();
+        logger.main.info(
+          "Onboarding window close blocked (permission recovery mode)",
+        );
+        return;
+      }
       this.trpcHandler.detachWindow(this.onboardingWindow!);
     });
 
     this.onboardingWindow.on("closed", () => {
       this.onboardingWindow = null;
+      this.onboardingCloseBlocked = false;
     });
 
     // Disable main window while onboarding is open
@@ -349,10 +385,13 @@ export class WindowManager {
     }
 
     this.trpcHandler.attachWindow(this.onboardingWindow!);
-    logger.main.info("Onboarding window created");
+    logger.main.info("Onboarding window created", { blockClose });
   }
 
   closeOnboardingWindow(): void {
+    // Unblock close before closing
+    this.onboardingCloseBlocked = false;
+
     if (this.onboardingWindow && !this.onboardingWindow.isDestroyed()) {
       this.onboardingWindow.close();
     }
@@ -363,6 +402,36 @@ export class WindowManager {
       this.mainWindow.show();
       this.mainWindow.focus();
     }
+  }
+
+  /**
+   * Closes all app windows (main and widget) but not the onboarding window.
+   * Used when transitioning to permission recovery mode.
+   */
+  closeAllAppWindows(): void {
+    // Close main window
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.trpcHandler.detachWindow(this.mainWindow);
+      this.mainWindow.close();
+      this.mainWindow = null;
+    }
+
+    // Hide and destroy widget window
+    if (this.widgetWindow && !this.widgetWindow.isDestroyed()) {
+      this.trpcHandler.detachWindow(this.widgetWindow);
+      this.widgetWindow.close();
+      this.widgetWindow = null;
+    }
+
+    logger.main.info("All app windows closed for permission recovery");
+  }
+
+  /**
+   * Unblock the onboarding window close (called when permissions are restored)
+   */
+  unblockOnboardingClose(): void {
+    this.onboardingCloseBlocked = false;
+    logger.main.info("Onboarding window close unblocked");
   }
 
   showWidget(): void {
