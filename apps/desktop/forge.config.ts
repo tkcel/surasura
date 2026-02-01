@@ -430,10 +430,11 @@ const config: ForgeConfig = {
                   hardenedRuntime: true,
                 };
               }
-              // Use default entitlements for everything else
-              // https://www.npmjs.com/package/@electron/osx-sign#opts
-              // !still need to do any
-              return null as any;
+              // Use entitlements with microphone access for main app
+              return {
+                entitlements: "./entitlements.plist",
+                hardenedRuntime: true,
+              };
             },
           },
           // Notarization for macOS

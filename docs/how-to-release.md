@@ -19,7 +19,25 @@ surasuraのリリースは GitHub Actions を利用して自動化されてい�
 
 以下の Secrets が GitHub リポジトリに設定されている必要があります。
 
-#### macOS コード署名・公証
+#### Secrets の種類
+
+GitHub には複数の種類の Secrets がありますが、このプロジェクトでは **Repository secrets** を使用します。
+
+| 種類 | 用途 | 設定場所 |
+|---|---|---|
+| **Repository secrets** ✅ | リポジトリ内の全ワークフローで使用可能 | Settings → Secrets and variables → Actions → Repository secrets |
+| Environment secrets | 特定の環境（production等）でのみ使用可能 | Settings → Environments → [環境名] → Environment secrets |
+| Organization secrets | Organization 全体で共有 | Organization Settings → Secrets |
+
+#### Secrets の設定手順
+
+1. GitHub リポジトリページを開く
+2. **Settings** タブをクリック
+3. 左サイドバーの **Secrets and variables** → **Actions** をクリック
+4. **Repository secrets** セクションの **New repository secret** をクリック
+5. Name と Secret を入力して **Add secret** をクリック
+
+#### macOS コード署名・公証（必須）
 
 | Secret | 説明 |
 |---|---|
@@ -30,16 +48,30 @@ surasuraのリリースは GitHub Actions を利用して自動化されてい�
 | `APPLE_APP_PASSWORD` | アプリ固有パスワード（Apple IDの2FA用） |
 | `APPLE_TEAM_ID` | Apple Developer Team ID |
 
-#### アプリケーション設定
+#### 証明書の準備方法
 
-| Secret | 説明 |
-|---|---|
-| `POSTHOG_API_KEY` | PostHog の API キー（テレメトリ用） |
-| `FEEDBACK_SURVEY_ID` | フィードバックサーベイID |
-| `AUTH_CLIENT_ID` | 認証クライアントID |
-| `AUTHORIZATION_ENDPOINT` | 認証エンドポイント |
-| `AUTH_TOKEN_ENDPOINT` | トークンエンドポイント |
-| `API_ENDPOINT` | API エンドポイント |
+1. **Developer ID 証明書をエクスポート**
+   - Keychain Access.app を開く
+   - 「ログイン」キーチェーン → 「自分の証明書」を選択
+   - 「Developer ID Application: ...」を右クリック → 「書き出す」
+   - .p12 形式で保存し、パスフレーズを設定
+
+2. **Base64 エンコード**
+   ```bash
+   base64 -i YourCertificate.p12 | pbcopy
+   ```
+   クリップボードにコピーされるので、`DEVELOPER_CERT_BASE64` に貼り付け
+
+3. **アプリ固有パスワードの取得**
+   - https://appleid.apple.com にログイン
+   - 「サインインとセキュリティ」→「アプリ用パスワード」
+   - 新しいパスワードを生成し、`APPLE_APP_PASSWORD` に設定
+
+4. **署名IDの確認**
+   ```bash
+   security find-identity -v -p codesigning
+   ```
+   表示される `"Developer ID Application: Your Name (XXXXXXXXXX)"` 全体を `CODESIGNING_IDENTITY` に設定
 
 ## リリース手順
 
@@ -173,4 +205,5 @@ Windows ビルドで DLL 関連のエラーが出る場合、ビルド環境に 
 |---|---|
 | `.github/workflows/release.yml` | リリースワークフロー |
 | `apps/desktop/forge.config.ts` | Electron Forge 設定 |
+| `apps/desktop/entitlements.plist` | メインアプリ用エンタイトルメント（マイクアクセス等） |
 | `apps/desktop/entitlements.node.plist` | Node.js バイナリ用エンタイトルメント |
