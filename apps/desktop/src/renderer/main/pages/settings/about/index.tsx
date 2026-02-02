@@ -93,6 +93,21 @@ export default function AboutSettingsPage() {
   const installOnNextRestartMutation =
     api.updater.installOnNextRestart.useMutation();
 
+  // ダウンロード進捗をサブスクリプションで受け取る
+  api.updater.onDownloadProgress.useSubscription(undefined, {
+    enabled: updateStatus === "downloading",
+    onData: (progress) => {
+      setDownloadProgress(Math.round(progress.percent || 0));
+      // 100%になったらダウンロード完了
+      if (progress.percent >= 100) {
+        setUpdateStatus("downloaded");
+      }
+    },
+    onError: (error) => {
+      console.error("Download progress subscription error:", error);
+    },
+  });
+
   const handleOpenDiscord = async () => {
     if (window.electronAPI?.openExternal) {
       await window.electronAPI.openExternal(DISCORD_URL);
