@@ -30,8 +30,9 @@ if (isWindows()) {
   app.setAppUserModelId("com.surasura.desktop");
 }
 
-// Enforce single instance
-const gotTheLock = app.requestSingleInstanceLock();
+// Enforce single instance (skip in development for easier debugging)
+const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
+const gotTheLock = isDev || app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
   // Another instance is already running, quit this one
