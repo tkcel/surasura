@@ -74,7 +74,9 @@ Amicalの開発者の皆様に深く感謝いたします。
 
 ## インストール
 
-[Releases](https://github.com/surasura/surasura/releases)ページから最新版をダウンロードしてください。
+[Releases](https://github.com/tkcel/surasura-releases/releases)ページから最新版をダウンロードしてください。
+
+> **Note**: リリースファイルは [surasura-releases](https://github.com/tkcel/surasura-releases) リポジトリで管理しています。
 
 ## コミュニティ
 
@@ -109,6 +111,33 @@ pnpm --filter @surasura/desktop make:dmg:x64
 # Windows
 pnpm --filter @surasura/desktop make:windows
 ```
+
+### リリース手順
+
+1. **バージョンを更新**
+   ```bash
+   pnpm bumpp
+   ```
+
+2. **各プラットフォーム向けにビルド**
+   ```bash
+   pnpm --filter @surasura/desktop make:dmg:arm64
+   pnpm --filter @surasura/desktop make:dmg:x64
+   pnpm --filter @surasura/desktop make:windows
+   ```
+
+3. **surasura-releases リポジトリにアップロード**
+   - https://github.com/tkcel/surasura-releases/releases にアクセス
+   - 「Create a new release」をクリック
+   - タグ名を入力（例: `v0.2.1`）→ 新しいタグを作成
+   - 以下のファイルをアップロード:
+     - `surasura-{version}-arm64.dmg` (macOS Apple Silicon)
+     - `surasura-{version}-x64.dmg` (macOS Intel)
+     - `surasura-{version}.Setup.exe` (Windows)
+   - 「Publish release」をクリック
+
+4. **LPのダウンロードリンクを更新**（必要に応じて）
+   - `apps/www/src/components/sections/Hero.tsx` のURLを新しいバージョンに更新
 
 ## 技術スタック
 
