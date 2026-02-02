@@ -60,7 +60,7 @@ export function Header() {
                 onClick={() =>
                   handleMacDownload(
                     "arm",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.1/surasura-0.2.1-arm64.dmg"
+                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-arm64.dmg"
                   )
                 }
                 disabled={downloadingMac === "arm"}
@@ -86,7 +86,7 @@ export function Header() {
                 onClick={() =>
                   handleMacDownload(
                     "intel",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.1/surasura-0.2.1-x64.dmg"
+                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-x64.dmg"
                   )
                 }
                 disabled={downloadingMac === "intel"}
@@ -109,7 +109,7 @@ export function Header() {
 
               {/* Windows */}
               <a
-                href="https://github.com/tkcel/surasura-releases/releases/download/v0.2.1/surasura-0.2.1.Setup.exe"
+                href="https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2.Setup.exe"
                 className="w-full flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group text-left"
               >
                 <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition-colors">

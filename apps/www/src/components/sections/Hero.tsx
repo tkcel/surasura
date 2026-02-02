@@ -18,7 +18,7 @@ export function Hero() {
   const handleWinDownload = () => {
     setDownloadingWin(true);
     window.location.href =
-      "https://github.com/tkcel/surasura-releases/releases/download/v0.2.1/surasura-0.2.1.Setup.exe";
+      "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2.Setup.exe";
     setTimeout(() => setDownloadingWin(false), 3000);
   };
 
@@ -51,7 +51,7 @@ export function Hero() {
             基本使用料無料・月額課金なし
           </span>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold">
-            Beta v0.2.1
+            Beta v0.2.2
           </span>
         </div>
 
@@ -129,7 +129,7 @@ export function Hero() {
                 onClick={() =>
                   handleMacDownload(
                     "arm",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.1/surasura-0.2.1-arm64.dmg"
+                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-arm64.dmg"
                   )
                 }
                 disabled={downloadingMac === "arm"}
@@ -154,7 +154,7 @@ export function Hero() {
                 onClick={() =>
                   handleMacDownload(
                     "intel",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.1/surasura-0.2.1-x64.dmg"
+                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-x64.dmg"
                   )
                 }
                 disabled={downloadingMac === "intel"}
