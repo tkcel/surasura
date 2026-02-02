@@ -150,6 +150,7 @@ export function APIKeySetupScreen({ onNext, onBack }: APIKeySetupScreenProps) {
                       setApiKey(e.target.value);
                       if (isConnected) setIsConnected(false);
                     }}
+                    className="pr-10"
                   />
                   <Button
                     type="button"

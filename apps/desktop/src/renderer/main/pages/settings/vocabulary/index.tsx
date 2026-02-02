@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Info, MoveRight } from "lucide-react";
+import { Plus, Edit, Trash2, MoveRight, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,92 @@ interface VocabularyDialogProps {
   isLoading?: boolean;
 }
 
+// Help Dialog Component for explaining replacement feature
+function ReplacementHelpDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>辞書機能について</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          {/* 置換OFF */}
+          <div className="space-y-2">
+            <h3 className="font-semibold flex items-center gap-2">
+              <span className="bg-muted px-2 py-0.5 rounded text-xs">置換OFF</span>
+              カスタム語彙として登録
+            </h3>
+            <p className="text-muted-foreground">
+              登録した単語は、音声認識時のヒントとして使用されます。
+              専門用語や固有名詞など、認識されにくい単語の精度が向上します。
+            </p>
+            <div className="bg-muted/50 rounded-md p-3 space-y-1">
+              <p className="text-xs text-muted-foreground">例: 「Surasura」を登録</p>
+              <p>
+                <span className="text-muted-foreground">音声:</span> 「スラスラを起動して」
+              </p>
+              <p>
+                <span className="text-muted-foreground">結果:</span> 「Surasuraを起動して」
+                <span className="text-xs text-green-600 ml-2">← 認識精度UP</span>
+              </p>
+            </div>
+          </div>
+
+          {/* 置換ON */}
+          <div className="space-y-2">
+            <h3 className="font-semibold flex items-center gap-2">
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">置換ON</span>
+              自動置換ルールとして登録
+            </h3>
+            <p className="text-muted-foreground">
+              音声認識が完了した後、指定した単語を別の単語に自動的に置き換えます。
+              表記の統一や、よく誤認識される単語の修正に便利です。
+            </p>
+            <div className="bg-muted/50 rounded-md p-3 space-y-1">
+              <p className="text-xs text-muted-foreground">例: 「すらすら」→「Surasura」を登録</p>
+              <p>
+                <span className="text-muted-foreground">認識結果:</span> 「すらすらを起動して」
+              </p>
+              <p>
+                <span className="text-muted-foreground">置換後:</span> 「Surasuraを起動して」
+                <span className="text-xs text-green-600 ml-2">← 自動変換</span>
+              </p>
+            </div>
+          </div>
+
+          {/* 処理の流れ */}
+          <div className="border-t pt-4 space-y-2">
+            <h3 className="font-semibold text-xs text-muted-foreground">処理の流れ</h3>
+            <div className="flex items-center gap-2 text-xs flex-wrap">
+              <span className="bg-muted px-2 py-1 rounded">音声入力</span>
+              <span>→</span>
+              <span className="bg-muted px-2 py-1 rounded">
+                Whisper認識
+                <span className="text-muted-foreground ml-1">(語彙ヒント使用)</span>
+              </span>
+              <span>→</span>
+              <span className="bg-muted px-2 py-1 rounded">テキスト整形</span>
+              <span>→</span>
+              <span className="bg-primary/10 text-primary px-2 py-1 rounded">置換処理</span>
+              <span>→</span>
+              <span className="bg-muted px-2 py-1 rounded">完了</span>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>閉じる</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function VocabularyDialog({
   open,
   onOpenChange,
@@ -65,10 +151,7 @@ function VocabularyDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="replacement-toggle">置換を有効にする</Label>
-              <Info className="w-4 h-4 text-muted-foreground" />
-            </div>
+            <Label htmlFor="replacement-toggle">置換を有効にする</Label>
             <Switch
               id="replacement-toggle"
               checked={formData.isReplacement}
@@ -189,6 +272,7 @@ export default function VocabularySettingsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<VocabularyItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<VocabularyItem | null>(null);
   const [formData, setFormData] = useState({
@@ -320,7 +404,16 @@ export default function VocabularySettingsPage() {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-xl font-bold">辞書機能</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold">辞書機能</h1>
+            <button
+              type="button"
+              onClick={() => setIsHelpDialogOpen(true)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
+          </div>
           <p className="text-muted-foreground mt-1 text-sm">
             音声入力で使用するカスタム単語と置換ルールを管理します。
           </p>
@@ -423,6 +516,11 @@ export default function VocabularySettingsPage() {
         deletingItem={deletingItem}
         onConfirm={handleDeleteWord}
         isLoading={deleteVocabularyMutation.isPending}
+      />
+
+      <ReplacementHelpDialog
+        open={isHelpDialogOpen}
+        onOpenChange={setIsHelpDialogOpen}
       />
     </div>
   );
