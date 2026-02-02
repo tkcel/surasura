@@ -354,8 +354,8 @@ jobs:
           VERSION="${{ steps.package_version.outputs.version }}"
           RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
-          ARM64_ZIP=$(find release-files -name "*-arm64.zip" | head -1)
-          X64_ZIP=$(find release-files -name "*-x64.zip" | head -1)
+          ARM64_ZIP=$(find release-files -name "*darwin-arm64*.zip" | head -1)
+          X64_ZIP=$(find release-files -name "*darwin-x64*.zip" | head -1)
 
           if [ -n "$ARM64_ZIP" ] && [ -n "$X64_ZIP" ]; then
             ARM64_FILENAME=$(basename "$ARM64_ZIP")
