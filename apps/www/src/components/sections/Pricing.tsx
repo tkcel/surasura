@@ -69,7 +69,7 @@ export function Pricing() {
                 <p className="text-sm text-gray-400 mb-1 font-medium">料金の目安（OpenAI利用時）</p>
                 <p className="text-gray-900 text-lg">
                   毎日30分使っても{" "}
-                  <span className="text-primary-600 font-bold text-xl">月額 約$6程度</span>
+                  <span className="text-primary-600 font-bold text-xl">月額 約$3程度</span>
                 </p>
               </div>
               <a
@@ -79,6 +79,23 @@ export function Pricing() {
                 無料で始める
               </a>
             </div>
+          </div>
+
+          {/* ライセンス注意事項 */}
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <p className="text-xs text-gray-400 leading-relaxed">
+              ※ 本ソフトウェアは個人・教育・研究・非営利目的でのみ無料でご利用いただけます。商用利用をご希望の場合は別途ライセンスが必要です。
+              本ソフトウェアは{" "}
+              <a
+                href="https://github.com/amicalhq/amical"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-gray-600"
+              >
+                Amical
+              </a>
+              （MITライセンス）をベースに開発されています。
+            </p>
           </div>
         </div>
       </div>
