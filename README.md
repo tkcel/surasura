@@ -114,38 +114,12 @@ pnpm --filter @surasura/desktop make:windows
 
 ### リリース手順
 
-1. **bumpコマンドを実行**
-   ```bash
-   pnpm bump 0.2.4  # 新しいバージョン番号を指定
-   ```
+```bash
+pnpm bump 0.2.4  # 新しいバージョン番号を指定
+```
 
-   このコマンド1つで以下がすべて自動実行されます：
-   - `apps/desktop/package.json` のバージョン更新
-   - `apps/www/src/constants/release.ts` の更新（LPのダウンロードリンクも連動）
-   - コミット作成（`chore: release v0.2.4`）
-   - タグ作成（`v0.2.4`）
-   - リモートへプッシュ
-
-2. **GitHub Actions が自動でビルド＆リリース**
-
-   タグがプッシュされると、以下が自動実行されます：
-   - macOS (arm64/x64) と Windows のビルド
-   - このリポジトリにドラフトリリースを作成
-   - `surasura-releases` リポジトリにもリリースを自動作成
-   - `latest-mac.yml` / `latest.yml`（自動アップデート用）も自動生成
-
-3. **リリースノートを編集して公開**
-   - [Releases](https://github.com/tkcel/surasura-releases/releases) ページでドラフトリリースを確認
-   - リリースノートを編集
-   - 「Publish release」をクリック
-
-#### 初回セットアップ（管理者のみ）
-
-`surasura-releases` リポジトリへの自動アップロードには、GitHub Secrets に `RELEASE_REPO_TOKEN` の設定が必要です。
-
-1. GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens
-2. `tkcel/surasura-releases` リポジトリの `Contents` に `Read and write` 権限を付与したトークンを作成
-3. このリポジトリの Settings → Secrets → Actions に `RELEASE_REPO_TOKEN` として追加
+このコマンド1つでバージョン更新、コミット、タグ作成、プッシュまで自動実行されます。
+詳細は [docs/リリース手順.md](./docs/リリース手順.md) を参照してください。
 
 ## 技術スタック
 
