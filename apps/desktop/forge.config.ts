@@ -391,9 +391,26 @@ const config: ForgeConfig = {
       // =====================================================================
       if (platform === "darwin") {
         for (const outputPath of outputPaths) {
-          // On macOS, outputPath is like: .../surasura.app
+          // On macOS, outputPath can be either:
+          // 1. The .app bundle directly: .../surasura.app
+          // 2. The output directory: .../surasura-darwin-arm64 (containing surasura.app)
+          // We need to find the actual .app bundle
+          let appPath = outputPath;
+          if (!outputPath.endsWith(".app")) {
+            // Find .app bundle in the output directory
+            const items = readdirSync(outputPath);
+            const appBundle = items.find((item) => item.endsWith(".app"));
+            if (appBundle) {
+              appPath = join(outputPath, appBundle);
+            } else {
+              console.error(
+                `  ✗ No .app bundle found in ${outputPath}, skipping app-update.yml generation`
+              );
+              continue;
+            }
+          }
           // Resources folder is at: .../surasura.app/Contents/Resources
-          const resourcesPath = join(outputPath, "Contents", "Resources");
+          const resourcesPath = join(appPath, "Contents", "Resources");
           const appUpdateYmlPath = join(resourcesPath, "app-update.yml");
 
           console.log(
