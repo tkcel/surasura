@@ -86,7 +86,7 @@ Amicalの開発者の皆様に深く感謝いたします。
 
 ### 必要環境
 
-- Node.js 24以上
+- Node.js 20以上
 - pnpm 10以上
 
 ### セットアップ
@@ -116,28 +116,41 @@ pnpm --filter @surasura/desktop make:windows
 
 1. **バージョンを更新**
    ```bash
-   pnpm bumpp
+   pnpm bump 0.2.4  # 新しいバージョン番号を指定
    ```
 
-2. **各プラットフォーム向けにビルド**
+   このコマンドで以下が自動更新されます：
+   - `apps/desktop/package.json` のバージョン
+   - `apps/www/src/constants/release.ts`（LPのダウンロードリンクも連動）
+
+2. **変更をコミット＆プッシュ**
    ```bash
-   pnpm --filter @surasura/desktop make:dmg:arm64
-   pnpm --filter @surasura/desktop make:dmg:x64
-   pnpm --filter @surasura/desktop make:windows
+   git add -A
+   git commit -m "chore: release v0.2.4"
+   git tag v0.2.4
+   git push && git push --tags
    ```
 
-3. **surasura-releases リポジトリにアップロード**
-   - https://github.com/tkcel/surasura-releases/releases にアクセス
-   - 「Create a new release」をクリック
-   - タグ名を入力（例: `v0.2.1`）→ 新しいタグを作成
-   - 以下のファイルをアップロード:
-     - `surasura-{version}-arm64.dmg` (macOS Apple Silicon)
-     - `surasura-{version}-x64.dmg` (macOS Intel)
-     - `surasura-{version}.Setup.exe` (Windows)
+3. **GitHub Actions が自動でビルド＆リリース**
+
+   タグをプッシュすると、以下が自動実行されます：
+   - macOS (arm64/x64) と Windows のビルド
+   - このリポジトリにドラフトリリースを作成
+   - `surasura-releases` リポジトリにもリリースを自動作成
+   - `latest-mac.yml` / `latest.yml`（自動アップデート用）も自動生成
+
+4. **リリースノートを編集して公開**
+   - [Releases](https://github.com/tkcel/surasura/releases) ページでドラフトリリースを確認
+   - リリースノートを編集
    - 「Publish release」をクリック
 
-4. **LPのダウンロードリンクを更新**（必要に応じて）
-   - `apps/www/src/components/sections/Hero.tsx` のURLを新しいバージョンに更新
+#### 初回セットアップ（管理者のみ）
+
+`surasura-releases` リポジトリへの自動アップロードには、GitHub Secrets に `RELEASE_REPO_TOKEN` の設定が必要です。
+
+1. GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens
+2. `tkcel/surasura-releases` リポジトリの `Contents` に `Read and write` 権限を付与したトークンを作成
+3. このリポジトリの Settings → Secrets → Actions に `RELEASE_REPO_TOKEN` として追加
 
 ## 技術スタック
 
