@@ -19,6 +19,7 @@ import {
   lstatSync,
   readlinkSync,
   copyFileSync,
+  writeFileSync,
 } from "node:fs";
 import { join, normalize } from "node:path";
 // Use flora-colossus for finding all dependencies of EXTERNAL_DEPENDENCIES
@@ -374,6 +375,73 @@ const config: ForgeConfig = {
           }
         }
         console.log("✓ VC++ runtime DLLs bundled successfully");
+      }
+
+      // =====================================================================
+      // Generate app-update.yml for electron-updater (macOS)
+      // =====================================================================
+      //
+      // WHY: electron-updater requires app-update.yml to know the update feed URL.
+      // electron-forge (unlike electron-builder) does NOT generate this file automatically.
+      //
+      // PROBLEM: Without this file, electron-updater throws:
+      // "ENOENT: no such file or directory, open '.../Resources/app-update.yml'"
+      //
+      // SOLUTION: Generate the file in postPackage hook with GitHub provider config.
+      // =====================================================================
+      if (platform === "darwin") {
+        for (const outputPath of outputPaths) {
+          // On macOS, outputPath is like: .../surasura.app
+          // Resources folder is at: .../surasura.app/Contents/Resources
+          const resourcesPath = join(outputPath, "Contents", "Resources");
+          const appUpdateYmlPath = join(resourcesPath, "app-update.yml");
+
+          console.log(
+            `[postPackage] Generating app-update.yml for macOS at ${appUpdateYmlPath}...`
+          );
+
+          const appUpdateYmlContent = `provider: github
+owner: tkcel
+repo: surasura-releases
+`;
+
+          try {
+            writeFileSync(appUpdateYmlPath, appUpdateYmlContent, "utf-8");
+            console.log("  ✓ Generated app-update.yml");
+          } catch (error) {
+            console.error("  ✗ Failed to generate app-update.yml:", error);
+            throw error;
+          }
+        }
+        console.log("✓ app-update.yml generated successfully");
+      }
+
+      // Generate app-update.yml for Windows as well
+      if (platform === "win32") {
+        for (const outputPath of outputPaths) {
+          // On Windows, outputPath is like: .../surasura-win32-x64
+          // Resources folder is at: .../surasura-win32-x64/resources
+          const resourcesPath = join(outputPath, "resources");
+          const appUpdateYmlPath = join(resourcesPath, "app-update.yml");
+
+          console.log(
+            `[postPackage] Generating app-update.yml for Windows at ${appUpdateYmlPath}...`
+          );
+
+          const appUpdateYmlContent = `provider: github
+owner: tkcel
+repo: surasura-releases
+`;
+
+          try {
+            writeFileSync(appUpdateYmlPath, appUpdateYmlContent, "utf-8");
+            console.log("  ✓ Generated app-update.yml");
+          } catch (error) {
+            console.error("  ✗ Failed to generate app-update.yml:", error);
+            throw error;
+          }
+        }
+        console.log("✓ app-update.yml generated successfully");
       }
     },
   },
