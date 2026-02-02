@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Apple, X, Cpu, Check } from "lucide-react";
+import { DOWNLOAD_URLS } from "../constants/release";
 
 export function Header() {
   const [showMacModal, setShowMacModal] = useState(false);
@@ -60,7 +61,7 @@ export function Header() {
                 onClick={() =>
                   handleMacDownload(
                     "arm",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-arm64.dmg"
+                    DOWNLOAD_URLS.macArm64
                   )
                 }
                 disabled={downloadingMac === "arm"}
@@ -86,7 +87,7 @@ export function Header() {
                 onClick={() =>
                   handleMacDownload(
                     "intel",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-x64.dmg"
+                    DOWNLOAD_URLS.macX64
                   )
                 }
                 disabled={downloadingMac === "intel"}
@@ -109,7 +110,7 @@ export function Header() {
 
               {/* Windows */}
               <a
-                href="https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2.Setup.exe"
+                href={DOWNLOAD_URLS.windows}
                 className="w-full flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group text-left"
               >
                 <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition-colors">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Apple, Monitor, X, Cpu, Download, Check } from "lucide-react";
+import { RELEASE_VERSION, DOWNLOAD_URLS } from "../../constants/release";
 
 export function Hero() {
   const [showMacModal, setShowMacModal] = useState(false);
@@ -17,8 +18,7 @@ export function Hero() {
 
   const handleWinDownload = () => {
     setDownloadingWin(true);
-    window.location.href =
-      "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2.Setup.exe";
+    window.location.href = DOWNLOAD_URLS.windows;
     setTimeout(() => setDownloadingWin(false), 3000);
   };
 
@@ -51,7 +51,7 @@ export function Hero() {
             基本使用料無料・月額課金なし
           </span>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold">
-            Beta v0.2.2
+            Beta v{RELEASE_VERSION}
           </span>
         </div>
 
@@ -129,7 +129,7 @@ export function Hero() {
                 onClick={() =>
                   handleMacDownload(
                     "arm",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-arm64.dmg"
+                    DOWNLOAD_URLS.macArm64
                   )
                 }
                 disabled={downloadingMac === "arm"}
@@ -154,7 +154,7 @@ export function Hero() {
                 onClick={() =>
                   handleMacDownload(
                     "intel",
-                    "https://github.com/tkcel/surasura-releases/releases/download/v0.2.2/surasura-0.2.2-x64.dmg"
+                    DOWNLOAD_URLS.macX64
                   )
                 }
                 disabled={downloadingMac === "intel"}

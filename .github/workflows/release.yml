@@ -191,6 +191,80 @@ jobs:
           echo "=== Detailed file listing ==="
           find artifacts -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" -o -name "*.nupkg" -o -name "RELEASES" \) -exec ls -la {} \;
 
+      - name: Generate latest-mac.yml
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+          RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+          # Find ZIP files for macOS
+          ARM64_ZIP=$(find artifacts/macos-arm64 -name "*.zip" | head -1)
+          X64_ZIP=$(find artifacts/macos-x64 -name "*.zip" | head -1)
+
+          if [ -n "$ARM64_ZIP" ] && [ -n "$X64_ZIP" ]; then
+            ARM64_FILENAME=$(basename "$ARM64_ZIP")
+            ARM64_SIZE=$(stat -c%s "$ARM64_ZIP" 2>/dev/null || stat -f%z "$ARM64_ZIP")
+            ARM64_SHA512=$(sha512sum "$ARM64_ZIP" | awk '{print $1}' | xxd -r -p | base64 -w 0)
+
+            X64_FILENAME=$(basename "$X64_ZIP")
+            X64_SIZE=$(stat -c%s "$X64_ZIP" 2>/dev/null || stat -f%z "$X64_ZIP")
+            X64_SHA512=$(sha512sum "$X64_ZIP" | awk '{print $1}' | xxd -r -p | base64 -w 0)
+
+            cat > artifacts/latest-mac.yml << EOF
+          version: ${VERSION}
+          files:
+            - url: ${ARM64_FILENAME}
+              sha512: ${ARM64_SHA512}
+              size: ${ARM64_SIZE}
+            - url: ${X64_FILENAME}
+              sha512: ${X64_SHA512}
+              size: ${X64_SIZE}
+          path: ${ARM64_FILENAME}
+          sha512: ${ARM64_SHA512}
+          releaseDate: '${RELEASE_DATE}'
+          EOF
+
+            # Remove leading spaces from YAML file
+            sed -i 's/^          //' artifacts/latest-mac.yml
+
+            echo "Generated latest-mac.yml:"
+            cat artifacts/latest-mac.yml
+          else
+            echo "Warning: Could not find macOS ZIP files"
+          fi
+
+      - name: Generate latest.yml (Windows)
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+          RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+          # Find EXE file for Windows
+          WIN_EXE=$(find artifacts/windows-x64 -name "*.exe" | head -1)
+
+          if [ -n "$WIN_EXE" ]; then
+            WIN_FILENAME=$(basename "$WIN_EXE")
+            WIN_SIZE=$(stat -c%s "$WIN_EXE" 2>/dev/null || stat -f%z "$WIN_EXE")
+            WIN_SHA512=$(sha512sum "$WIN_EXE" | awk '{print $1}' | xxd -r -p | base64 -w 0)
+
+            cat > artifacts/latest.yml << EOF
+          version: ${VERSION}
+          files:
+            - url: ${WIN_FILENAME}
+              sha512: ${WIN_SHA512}
+              size: ${WIN_SIZE}
+          path: ${WIN_FILENAME}
+          sha512: ${WIN_SHA512}
+          releaseDate: '${RELEASE_DATE}'
+          EOF
+
+            # Remove leading spaces from YAML file
+            sed -i 's/^          //' artifacts/latest.yml
+
+            echo "Generated latest.yml:"
+            cat artifacts/latest.yml
+          else
+            echo "Warning: Could not find Windows EXE file"
+          fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -233,5 +307,122 @@ jobs:
             artifacts/windows-x64/*.exe
             artifacts/windows-x64/*.nupkg
             artifacts/windows-x64/RELEASES
+            artifacts/latest-mac.yml
+            artifacts/latest.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-to-releases-repo:
+    name: Publish to surasura-releases
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from package.json
+        id: package_version
+        working-directory: apps/desktop
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-files
+
+          # Copy macOS files
+          find artifacts/macos-arm64 -name "*.dmg" -exec cp {} release-files/ \;
+          find artifacts/macos-arm64 -name "*.zip" -exec cp {} release-files/ \;
+          find artifacts/macos-x64 -name "*.dmg" -exec cp {} release-files/ \;
+          find artifacts/macos-x64 -name "*.zip" -exec cp {} release-files/ \;
+
+          # Copy Windows files
+          find artifacts/windows-x64 -name "*.exe" -exec cp {} release-files/ \;
+          find artifacts/windows-x64 -name "*.nupkg" -exec cp {} release-files/ \;
+          find artifacts/windows-x64 -name "RELEASES" -exec cp {} release-files/ \;
+
+          echo "Files to upload:"
+          ls -la release-files/
+
+      - name: Generate latest-mac.yml
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+          RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+          ARM64_ZIP=$(find release-files -name "*-arm64.zip" | head -1)
+          X64_ZIP=$(find release-files -name "*-x64.zip" | head -1)
+
+          if [ -n "$ARM64_ZIP" ] && [ -n "$X64_ZIP" ]; then
+            ARM64_FILENAME=$(basename "$ARM64_ZIP")
+            ARM64_SIZE=$(stat -c%s "$ARM64_ZIP")
+            ARM64_SHA512=$(sha512sum "$ARM64_ZIP" | awk '{print $1}' | xxd -r -p | base64 -w 0)
+
+            X64_FILENAME=$(basename "$X64_ZIP")
+            X64_SIZE=$(stat -c%s "$X64_ZIP")
+            X64_SHA512=$(sha512sum "$X64_ZIP" | awk '{print $1}' | xxd -r -p | base64 -w 0)
+
+            cat > release-files/latest-mac.yml << EOF
+          version: ${VERSION}
+          files:
+            - url: ${ARM64_FILENAME}
+              sha512: ${ARM64_SHA512}
+              size: ${ARM64_SIZE}
+            - url: ${X64_FILENAME}
+              sha512: ${X64_SHA512}
+              size: ${X64_SIZE}
+          path: ${ARM64_FILENAME}
+          sha512: ${ARM64_SHA512}
+          releaseDate: '${RELEASE_DATE}'
+          EOF
+
+            sed -i 's/^          //' release-files/latest-mac.yml
+            echo "Generated latest-mac.yml:"
+            cat release-files/latest-mac.yml
+          fi
+
+      - name: Generate latest.yml
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+          RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+          WIN_EXE=$(find release-files -name "*.exe" | head -1)
+
+          if [ -n "$WIN_EXE" ]; then
+            WIN_FILENAME=$(basename "$WIN_EXE")
+            WIN_SIZE=$(stat -c%s "$WIN_EXE")
+            WIN_SHA512=$(sha512sum "$WIN_EXE" | awk '{print $1}' | xxd -r -p | base64 -w 0)
+
+            cat > release-files/latest.yml << EOF
+          version: ${VERSION}
+          files:
+            - url: ${WIN_FILENAME}
+              sha512: ${WIN_SHA512}
+              size: ${WIN_SIZE}
+          path: ${WIN_FILENAME}
+          sha512: ${WIN_SHA512}
+          releaseDate: '${RELEASE_DATE}'
+          EOF
+
+            sed -i 's/^          //' release-files/latest.yml
+            echo "Generated latest.yml:"
+            cat release-files/latest.yml
+          fi
+
+      - name: Create release in surasura-releases repo
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+          TAG="v${VERSION}"
+
+          # Create release in the releases repo
+          gh release create "$TAG" \
+            --repo tkcel/surasura-releases \
+            --title "Surasura Desktop v${VERSION}" \
+            --notes "Automated release from surasura main repository" \
+            release-files/*

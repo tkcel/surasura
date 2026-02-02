@@ -26,6 +26,13 @@ export class AutoUpdaterService extends EventEmitter {
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
 
+    // Set feed URL to the release repository
+    autoUpdater.setFeedURL({
+      provider: "github",
+      owner: "tkcel",
+      repo: "surasura-releases",
+    });
+
     // Set up event handlers
     autoUpdater.on("checking-for-update", () => {
       logger.updater.info("Checking for update...");
