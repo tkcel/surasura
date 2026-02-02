@@ -141,6 +141,12 @@ export default function PreferencesSettingsPage() {
     });
   };
 
+  const handleSoundEnabledChange = (checked: boolean) => {
+    updatePreferencesMutation.mutate({
+      soundEnabled: checked,
+    });
+  };
+
   const handleOpenDataFolder = () => {
     if (dataPathQuery.data) {
       openFolderMutation.mutate({ path: dataPathQuery.data });
@@ -163,6 +169,7 @@ export default function PreferencesSettingsPage() {
     preferencesQuery.data?.showWidgetWhileInactive ?? true;
   const launchAtLogin = preferencesQuery.data?.launchAtLogin ?? true;
   const showInDock = preferencesQuery.data?.showInDock ?? true;
+  const soundEnabled = preferencesQuery.data?.soundEnabled ?? true;
 
   // Permission status
   const microphoneGranted = permissionsQuery.data?.microphone ?? false;
@@ -339,6 +346,25 @@ export default function PreferencesSettingsPage() {
                 <Separator />
               </>
             )}
+
+            {/* Sound Enabled Section */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base font-medium text-foreground">
+                  効果音
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  録音開始・停止・ペースト時に効果音を再生します
+                </p>
+              </div>
+              <Switch
+                checked={soundEnabled}
+                onCheckedChange={handleSoundEnabledChange}
+                disabled={updatePreferencesMutation.isPending}
+              />
+            </div>
+
+            <Separator />
 
             {/* Theme Section */}
             <div className="flex items-center justify-between">

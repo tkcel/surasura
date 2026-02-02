@@ -240,9 +240,26 @@ namespace WindowsHelper
                 var json = JsonSerializer.Serialize(request.Params, jsonOptions);
                 var parameters = JsonSerializer.Deserialize<PasteTextParams>(json, jsonOptions);
 
+                // Parse playSound param (default true)
+                var shouldPlaySound = true;
+                using (var doc = JsonDocument.Parse(json))
+                {
+                    if (doc.RootElement.TryGetProperty("playSound", out var playSoundProp))
+                    {
+                        shouldPlaySound = playSoundProp.GetBoolean();
+                    }
+                }
+
                 if (parameters != null)
                 {
                     var success = accessibilityService.PasteText(parameters.Transcript, out var errorMessage);
+
+                    // Play paste sound on success if enabled
+                    if (success && shouldPlaySound)
+                    {
+                        _ = audioService.PlaySound("paste", request.Id.ToString());
+                    }
+
                     return new RpcResponse
                     {
                         Id = request.Id.ToString(),
@@ -284,6 +301,40 @@ namespace WindowsHelper
         {
             LogToStderr($"Handling muteSystemAudio for ID: {request.Id}");
 
+            // Parse playSound param (default true)
+            var shouldPlaySound = true;
+            if (request.Params != null)
+            {
+                try
+                {
+                    var json = JsonSerializer.Serialize(request.Params, jsonOptions);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("playSound", out var playSoundProp))
+                    {
+                        shouldPlaySound = playSoundProp.GetBoolean();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogToStderr($"Error parsing muteSystemAudio params: {ex.Message}");
+                }
+            }
+
+            if (!shouldPlaySound)
+            {
+                // Skip sound, just mute
+                var success = audioService.MuteSystemAudio();
+                return new RpcResponse
+                {
+                    Id = request.Id.ToString(),
+                    Result = new MuteSystemAudioResult
+                    {
+                        Success = success,
+                        Message = success ? "Mute command sent" : "Failed to send mute command"
+                    }
+                };
+            }
+
             // Store the request ID for the completion handler
             var requestId = request.Id.ToString();
 
@@ -315,11 +366,36 @@ namespace WindowsHelper
         {
             LogToStderr($"Handling restoreSystemAudio for ID: {request.Id}");
 
+            // Parse isCancelled and playSound params
+            var isCancelled = false;
+            var shouldPlaySound = true;
+            if (request.Params != null)
+            {
+                try
+                {
+                    var json = JsonSerializer.Serialize(request.Params, jsonOptions);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("isCancelled", out var isCancelledProp))
+                    {
+                        isCancelled = isCancelledProp.GetBoolean();
+                    }
+                    if (doc.RootElement.TryGetProperty("playSound", out var playSoundProp))
+                    {
+                        shouldPlaySound = playSoundProp.GetBoolean();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogToStderr($"Error parsing restoreSystemAudio params: {ex.Message}");
+                }
+            }
+
             var success = audioService.RestoreSystemAudio();
-            if (success)
+            if (success && shouldPlaySound)
             {
                 // Play sound asynchronously - NAudio handles its own threading, don't wait
-                _ = audioService.PlaySound("rec-stop", request.Id.ToString());
+                var soundName = isCancelled ? "cancel" : "rec-stop";
+                _ = audioService.PlaySound(soundName, request.Id.ToString());
             }
 
             return new RpcResponse

@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 // Request params
-export const MuteSystemAudioParamsSchema = z.object({}).optional();
+export const MuteSystemAudioParamsSchema = z
+  .object({
+    playSound: z.boolean().optional(),
+  })
+  .optional();
 export type MuteSystemAudioParams = z.infer<typeof MuteSystemAudioParamsSchema>;
 
 // Response result

@@ -133,9 +133,14 @@ export class RecordingManager extends EventEmitter {
       });
 
       const nativeBridge = this.serviceManager.getService("nativeBridge");
+      const settingsService = this.serviceManager.getService("settingsService");
+      const preferences = await settingsService.getPreferences();
+      const playSound = preferences.soundEnabled;
+
       if (nativeBridge) {
         await nativeBridge.call("pasteText", {
           transcript: lastTranscription,
+          playSound,
         });
       }
     } catch (error) {
@@ -333,8 +338,13 @@ export class RecordingManager extends EventEmitter {
       const nativeBridge = this.serviceManager.getService("nativeBridge");
       nativeBridge.refreshAccessibilityContext();
 
+      // Get sound setting
+      const settingsService = this.serviceManager.getService("settingsService");
+      const preferences = await settingsService.getPreferences();
+      const playSound = preferences.soundEnabled;
+
       // AWAIT mute to ensure it completes before mutex releases
-      await nativeBridge.call("muteSystemAudio", {});
+      await nativeBridge.call("muteSystemAudio", { playSound });
     } catch (error) {
       logger.audio.error("Failed to initialize session", { error });
     }
@@ -378,7 +388,12 @@ export class RecordingManager extends EventEmitter {
       // Restore audio after state change (can happen while final chunk is in flight)
       try {
         const nativeBridge = this.serviceManager.getService("nativeBridge");
-        await nativeBridge.call("restoreSystemAudio", {});
+        const settingsService = this.serviceManager.getService("settingsService");
+        const preferences = await settingsService.getPreferences();
+        // Pass isCancelled to play cancel sound instead of rec-stop sound
+        const isCancelled = code !== null && code !== "dismissed";
+        const playSound = preferences.soundEnabled;
+        await nativeBridge.call("restoreSystemAudio", { isCancelled, playSound });
       } catch (error) {
         logger.main.warn("Failed to restore system audio", { error });
       }
@@ -734,6 +749,9 @@ export class RecordingManager extends EventEmitter {
 
     try {
       const nativeBridge = this.serviceManager.getService("nativeBridge");
+      const settingsService = this.serviceManager.getService("settingsService");
+      const preferences = await settingsService.getPreferences();
+      const playSound = preferences.soundEnabled;
 
       logger.main.info("Pasting transcription to active application", {
         textLength: transcription.length,
@@ -743,6 +761,7 @@ export class RecordingManager extends EventEmitter {
         // Wrap pasteText call with timeout to prevent freeze
         const pastePromise = nativeBridge.call("pasteText", {
           transcript: transcription,
+          playSound,
         });
 
         const timeoutPromise = new Promise<never>((_, reject) => {

@@ -170,6 +170,7 @@ export interface AppSettingsData {
     minimizeToTray?: boolean;
     showWidgetWhileInactive?: boolean;
     showInDock?: boolean;
+    soundEnabled?: boolean;
   };
   telemetry?: {
     enabled?: boolean;

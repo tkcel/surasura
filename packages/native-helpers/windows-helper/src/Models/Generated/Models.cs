@@ -259,6 +259,10 @@ namespace WindowsHelper.Models
 
     public partial class PasteTextParams
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("playSound")]
+        public bool? PlaySound { get; set; }
+
         [JsonPropertyName("transcript")]
         public string Transcript { get; set; }
     }

@@ -334,6 +334,7 @@ const defaultSettings: AppSettingsData = {
     launchAtLogin: true,
     showWidgetWhileInactive: true,
     showInDock: true,
+    soundEnabled: true,
   },
   transcription: {
     language: "ja",

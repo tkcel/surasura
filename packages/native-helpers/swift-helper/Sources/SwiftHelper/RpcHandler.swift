@@ -77,8 +77,20 @@ class IOBridge: NSObject {
                     PasteTextParamsSchema.self, from: paramsData)
                 logToStderr("[IOBridge] Decoded pasteParams.transcript for ID: \(request.id)")
 
+                // Parse playSound param (default true)
+                var shouldPlaySound = true
+                if let paramsDict = try JSONSerialization.jsonObject(with: paramsData) as? [String: Any],
+                   let playSound = paramsDict["playSound"] as? Bool {
+                    shouldPlaySound = playSound
+                }
+
                 // Call the actual paste function (to be implemented in AccessibilityService or similar)
                 let success = accessibilityService.pasteText(transcript: pasteParams.transcript)
+
+                // Play paste sound on success if enabled
+                if success && shouldPlaySound {
+                    audioService.playSound(named: "paste")
+                }
 
                 // Corrected to use generated Swift model name from models.swift
                 let resultPayload = PasteTextResultSchema(
@@ -99,6 +111,41 @@ class IOBridge: NSObject {
 
         case .muteSystemAudio:
             logToStderr("[IOBridge] Handling muteSystemAudio for ID: \(request.id)")
+
+            // Parse playSound param (default true)
+            var shouldPlaySound = true
+            if let paramsAnyCodable = request.params {
+                do {
+                    let paramsData = try jsonEncoder.encode(paramsAnyCodable)
+                    if let paramsDict = try JSONSerialization.jsonObject(with: paramsData) as? [String: Any],
+                       let playSound = paramsDict["playSound"] as? Bool {
+                        shouldPlaySound = playSound
+                    }
+                } catch {
+                    logToStderr("[IOBridge] Error parsing muteSystemAudio params: \(error.localizedDescription)")
+                }
+            }
+
+            if !shouldPlaySound {
+                // Skip sound, just mute
+                let success = accessibilityService.muteSystemAudio()
+                let resultPayload = MuteSystemAudioResultSchema(
+                    message: success ? "Mute command sent" : "Failed to send mute command",
+                    success: success)
+
+                var rpcResponse: RPCResponseSchema
+                do {
+                    let resultData = try jsonEncoder.encode(resultPayload)
+                    let resultAsJsonAny = try jsonDecoder.decode(JSONAny.self, from: resultData)
+                    rpcResponse = RPCResponseSchema(error: nil, id: request.id, result: resultAsJsonAny)
+                } catch {
+                    logToStderr("[IOBridge] Error encoding muteSystemAudio result: \(error.localizedDescription) for ID: \(request.id)")
+                    let errPayload = Error(code: -32603, data: nil, message: "Error encoding result: \(error.localizedDescription)")
+                    rpcResponse = RPCResponseSchema(error: errPayload, id: request.id, result: nil)
+                }
+                sendRpcResponse(rpcResponse)
+                return
+            }
 
             audioService.playSound(named: "rec-start") { [weak self] in
                 guard let self = self else {
@@ -141,9 +188,29 @@ class IOBridge: NSObject {
         case .restoreSystemAudio:
             logToStderr("[IOBridge] Handling restoreSystemAudio for ID: \(request.id)")
 
+            // Parse isCancelled and playSound params
+            var isCancelled = false
+            var shouldPlaySound = true
+            if let paramsAnyCodable = request.params {
+                do {
+                    let paramsData = try jsonEncoder.encode(paramsAnyCodable)
+                    if let paramsDict = try JSONSerialization.jsonObject(with: paramsData) as? [String: Any] {
+                        if let cancelled = paramsDict["isCancelled"] as? Bool {
+                            isCancelled = cancelled
+                        }
+                        if let playSound = paramsDict["playSound"] as? Bool {
+                            shouldPlaySound = playSound
+                        }
+                    }
+                } catch {
+                    logToStderr("[IOBridge] Error parsing restoreSystemAudio params: \(error.localizedDescription)")
+                }
+            }
+
             let success = accessibilityService.restoreSystemAudio()
-            if success {  // Play sound only if restore was successful
-                audioService.playSound(named: "rec-stop")
+            if success && shouldPlaySound {  // Play sound only if restore was successful and sound enabled
+                let soundName = isCancelled ? "cancel" : "rec-stop"
+                audioService.playSound(named: soundName)
             }
             let resultPayload = RestoreSystemAudioResultSchema(
                 message: success ? "Restore command sent" : "Failed to send restore command",

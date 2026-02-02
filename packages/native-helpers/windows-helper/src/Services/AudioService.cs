@@ -30,6 +30,8 @@ namespace WindowsHelper.Services
                 // Preload audio files at startup for faster playback
                 PreloadSound("rec-start");
                 PreloadSound("rec-stop");
+                PreloadSound("paste");
+                PreloadSound("cancel");
                 LogToStderr("Audio files preloaded at startup");
             }
             catch (Exception ex)

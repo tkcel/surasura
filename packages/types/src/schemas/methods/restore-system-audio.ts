@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 // Request params
-export const RestoreSystemAudioParamsSchema = z.object({}).optional();
+export const RestoreSystemAudioParamsSchema = z
+  .object({
+    isCancelled: z.boolean().optional(),
+    playSound: z.boolean().optional(),
+  })
+  .optional();
 export type RestoreSystemAudioParams = z.infer<
   typeof RestoreSystemAudioParamsSchema
 >;

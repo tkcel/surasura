@@ -29,6 +29,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\rec-start.mp3" />
     <EmbeddedResource Include="Resources\rec-stop.mp3" />
+    <EmbeddedResource Include="Resources\paste.mp3" />
+    <EmbeddedResource Include="Resources\cancel.mp3" />
   </ItemGroup>
 
 </Project>
