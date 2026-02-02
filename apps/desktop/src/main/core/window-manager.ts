@@ -192,6 +192,13 @@ export class WindowManager {
     this.mainWindow.on("closed", () => {
       // Window is already destroyed, just clean up reference
       this.mainWindow = null;
+
+      // On Windows, quit the app when the main window is closed
+      // This is necessary because the widget window (invisible overlay) remains open,
+      // preventing the 'window-all-closed' event from firing
+      if (process.platform === "win32") {
+        app.quit();
+      }
     });
 
     this.trpcHandler.attachWindow(this.mainWindow!);
