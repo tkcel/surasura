@@ -122,8 +122,24 @@ export const mockSystemInformation = {
   ),
 };
 
-// Mock update-electron-app
-export const mockUpdateElectronApp = vi.fn();
+// Mock electron-updater
+export const mockAutoUpdater = {
+  autoDownload: false,
+  autoInstallOnAppQuit: true,
+  on: vi.fn(),
+  off: vi.fn(),
+  checkForUpdates: vi.fn(() =>
+    Promise.resolve({
+      updateInfo: {
+        version: "1.0.0",
+        releaseNotes: "",
+      },
+    }),
+  ),
+  checkForUpdatesAndNotify: vi.fn(() => Promise.resolve()),
+  downloadUpdate: vi.fn(() => Promise.resolve([])),
+  quitAndInstall: vi.fn(),
+};
 
 export function createNativeMocks() {
   return {
@@ -134,6 +150,6 @@ export function createNativeMocks() {
     "@surasura/windows-helper": mockWindowsHelper,
     "node-machine-id": mockMachineId,
     systeminformation: mockSystemInformation,
-    "update-electron-app": mockUpdateElectronApp,
+    "electron-updater": { autoUpdater: mockAutoUpdater },
   };
 }

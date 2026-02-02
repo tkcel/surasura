@@ -44,7 +44,7 @@ export function ProcessFlowHelpDialog({ children }: ProcessFlowHelpDialogProps) 
             className="inline-flex items-center text-xs text-muted-foreground hover:text-foreground"
           >
             <HelpCircle className="w-3.5 h-3.5 mr-1" />
-            処理フローを見る
+            処理フローについて
           </button>
         )}
       </DialogTrigger>

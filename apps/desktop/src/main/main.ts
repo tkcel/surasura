@@ -6,7 +6,6 @@ import { logger } from "./logger";
 
 import started from "electron-squirrel-startup";
 import { AppManager } from "./core/app-manager";
-import { updateElectronApp } from "update-electron-app";
 import { isWindows } from "../utils/platform";
 
 // Setup renderer logging relay (allows renderer to send logs to main process)
@@ -39,24 +38,8 @@ if (!gotTheLock) {
   app.quit();
 }
 
-// Set up auto-updater for production builds
-if (app.isPackaged && !isWindows()) {
-  updateElectronApp({
-    notifyUser: false,
-  });
-}
-if (app.isPackaged && isWindows()) {
-  // Check if running with --squirrel-firstrun (Windows only)
-  const isSquirrelFirstRun = process.argv.includes("--squirrel-firstrun");
-  // Delay update check on Windows to avoid Squirrel file lock issues
-  if (isWindows() && !isSquirrelFirstRun) {
-    setTimeout(() => {
-      updateElectronApp({
-        notifyUser: false,
-      });
-    }, 60000); // 60 second delay
-  }
-}
+// Auto-updater is now handled by AutoUpdaterService via electron-updater
+// Users can manually check for updates in the About page
 
 const appManager = new AppManager();
 

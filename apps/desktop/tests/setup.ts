@@ -135,8 +135,24 @@ vi.mock("systeminformation", () => ({
   }),
 }));
 
-vi.mock("update-electron-app", () => ({
-  default: vi.fn(),
+vi.mock("electron-updater", () => ({
+  autoUpdater: {
+    autoDownload: false,
+    autoInstallOnAppQuit: true,
+    on: vi.fn(),
+    off: vi.fn(),
+    checkForUpdates: vi.fn(() =>
+      Promise.resolve({
+        updateInfo: {
+          version: "1.0.0",
+          releaseNotes: "",
+        },
+      }),
+    ),
+    checkForUpdatesAndNotify: vi.fn(() => Promise.resolve()),
+    downloadUpdate: vi.fn(() => Promise.resolve([])),
+    quitAndInstall: vi.fn(),
+  },
 }));
 
 // Mock electron-log

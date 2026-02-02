@@ -1,6 +1,7 @@
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { createRouter, procedure } from "../trpc";
+import { UpdateCheckResult } from "../../main/services/auto-updater";
 
 // Download progress type from electron-updater
 interface DownloadProgress {
@@ -11,14 +12,14 @@ interface DownloadProgress {
 }
 
 export const updaterRouter = createRouter({
-  // Check for updates (manual trigger)
+  // Check for updates (manual trigger) - returns result
   checkForUpdates: procedure
     .input(
       z
         .object({ userInitiated: z.boolean().optional().default(false) })
         .optional(),
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx }): Promise<UpdateCheckResult> => {
       try {
         const autoUpdaterService =
           ctx.serviceManager.getService("autoUpdaterService");
@@ -27,13 +28,14 @@ export const updaterRouter = createRouter({
         }
 
         const userInitiated = input?.userInitiated ?? false;
-        await autoUpdaterService.checkForUpdates(userInitiated);
+        const result = await autoUpdaterService.checkForUpdates(userInitiated);
         const logger = ctx.serviceManager.getLogger();
-        logger?.updater.info("Update check initiated via tRPC", {
+        logger?.updater.info("Update check completed via tRPC", {
           userInitiated,
+          updateAvailable: result.updateAvailable,
         });
 
-        return { success: true };
+        return result;
       } catch (error) {
         const logger = ctx.serviceManager.getLogger();
         logger?.updater.error("Error checking for updates via tRPC", {
@@ -89,7 +91,7 @@ export const updaterRouter = createRouter({
     }
   }),
 
-  // Quit and install update
+  // Quit and install update immediately
   quitAndInstall: procedure.mutation(async ({ ctx }) => {
     try {
       const autoUpdaterService =
@@ -106,6 +108,29 @@ export const updaterRouter = createRouter({
     } catch (error) {
       const logger = ctx.serviceManager.getLogger();
       logger?.updater.error("Error quitting and installing via tRPC", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }),
+
+  // Mark update to be installed on next restart
+  installOnNextRestart: procedure.mutation(async ({ ctx }) => {
+    try {
+      const autoUpdaterService =
+        ctx.serviceManager.getService("autoUpdaterService");
+      if (!autoUpdaterService) {
+        throw new Error("Auto-updater service not available");
+      }
+
+      const logger = ctx.serviceManager.getLogger();
+      logger?.updater.info("Install on next restart initiated via tRPC");
+      autoUpdaterService.installOnNextRestart();
+
+      return { success: true };
+    } catch (error) {
+      const logger = ctx.serviceManager.getLogger();
+      logger?.updater.error("Error setting install on next restart via tRPC", {
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;
@@ -150,6 +175,25 @@ export const updaterRouter = createRouter({
     }
   }),
 
+  // Get update downloaded status
+  isUpdateDownloaded: procedure.query(async ({ ctx }) => {
+    try {
+      const autoUpdaterService =
+        ctx.serviceManager.getService("autoUpdaterService");
+      if (!autoUpdaterService) {
+        return false;
+      }
+
+      return autoUpdaterService.isUpdateDownloaded();
+    } catch (error) {
+      const logger = ctx.serviceManager.getLogger();
+      logger?.updater.error("Error getting update downloaded status via tRPC", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+  }),
+
   // Subscribe to download progress updates
   // Using Observable instead of async generator due to Symbol.asyncDispose conflict
   // Modern Node.js (20+) adds Symbol.asyncDispose to async generators natively,
@@ -174,6 +218,29 @@ export const updaterRouter = createRouter({
       // Cleanup function
       return () => {
         autoUpdaterService?.off("download-progress", handleDownloadProgress);
+      };
+    });
+  }),
+
+  // Subscribe to update downloaded event
+  // eslint-disable-next-line deprecation/deprecation
+  onUpdateDownloaded: procedure.subscription(({ ctx }) => {
+    return observable<{ version: string }>((emit) => {
+      const autoUpdaterService =
+        ctx.serviceManager.getService("autoUpdaterService");
+      if (!autoUpdaterService) {
+        throw new Error("Auto-updater service not initialized");
+      }
+
+      const handleUpdateDownloaded = (info: { version: string }) => {
+        emit.next({ version: info.version });
+      };
+
+      autoUpdaterService.on("update-downloaded", handleUpdateDownloaded);
+
+      // Cleanup function
+      return () => {
+        autoUpdaterService?.off("update-downloaded", handleUpdateDownloaded);
       };
     });
   }),
