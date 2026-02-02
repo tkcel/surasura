@@ -51,11 +51,11 @@ Amicalの開発者の皆様に深く感謝いたします。
 
 - フォーマット完了後、保存直前に正規表現で確実に置換
 
-| 処理段階 | 認識ヒント | 置換 |
-|---------|:---:|:---:|
-| 音声認識 | ✅ | - |
-| AIフォーマット | ✅ | - |
-| 最終置換処理 | - | ✅ |
+| 処理段階       | 認識ヒント | 置換  |
+| -------------- | :--------: | :---: |
+| 音声認識       |     ✅      |   -   |
+| AIフォーマット |     ✅      |   -   |
+| 最終置換処理   |     -      |   ✅   |
 
 ### カスタマイズ
 
@@ -114,33 +114,28 @@ pnpm --filter @surasura/desktop make:windows
 
 ### リリース手順
 
-1. **バージョンを更新**
+1. **bumpコマンドを実行**
    ```bash
    pnpm bump 0.2.4  # 新しいバージョン番号を指定
    ```
 
-   このコマンドで以下が自動更新されます：
-   - `apps/desktop/package.json` のバージョン
-   - `apps/www/src/constants/release.ts`（LPのダウンロードリンクも連動）
+   このコマンド1つで以下がすべて自動実行されます：
+   - `apps/desktop/package.json` のバージョン更新
+   - `apps/www/src/constants/release.ts` の更新（LPのダウンロードリンクも連動）
+   - コミット作成（`chore: release v0.2.4`）
+   - タグ作成（`v0.2.4`）
+   - リモートへプッシュ
 
-2. **変更をコミット＆プッシュ**
-   ```bash
-   git add -A
-   git commit -m "chore: release v0.2.4"
-   git tag v0.2.4
-   git push && git push --tags
-   ```
+2. **GitHub Actions が自動でビルド＆リリース**
 
-3. **GitHub Actions が自動でビルド＆リリース**
-
-   タグをプッシュすると、以下が自動実行されます：
+   タグがプッシュされると、以下が自動実行されます：
    - macOS (arm64/x64) と Windows のビルド
    - このリポジトリにドラフトリリースを作成
    - `surasura-releases` リポジトリにもリリースを自動作成
    - `latest-mac.yml` / `latest.yml`（自動アップデート用）も自動生成
 
-4. **リリースノートを編集して公開**
-   - [Releases](https://github.com/tkcel/surasura/releases) ページでドラフトリリースを確認
+3. **リリースノートを編集して公開**
+   - [Releases](https://github.com/tkcel/surasura-releases/releases) ページでドラフトリリースを確認
    - リリースノートを編集
    - 「Publish release」をクリック
 
