@@ -117,7 +117,7 @@ export function UpdateDialog({
               Check for Updates
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Click below to check for the latest version of surasura.
+              Click below to check for the latest version of <span className="font-brand">surasura</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

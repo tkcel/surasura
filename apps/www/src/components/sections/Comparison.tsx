@@ -54,7 +54,7 @@ export function Comparison() {
             他の音声入力ツールとの違い
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            surasuraは「使える文章」を出力することに特化しています
+            <span className="font-brand">surasura</span>は「使える文章」を出力することに特化しています
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export function Comparison() {
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
                   機能
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-primary-600">
+                <th className="px-6 py-4 text-left text-sm font-medium text-primary-600 font-brand">
                   surasura
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">

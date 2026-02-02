@@ -78,7 +78,7 @@ export function WelcomeScreen({
 
   return (
     <OnboardingLayout
-      title="surasuraへようこそ"
+      title={<><span className="font-brand">surasura</span>へようこそ</>}
       subtitle="興味のある機能を選択して、体験をカスタマイズしましょう"
       footer={
         <div className="space-y-4">

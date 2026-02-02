@@ -12,8 +12,8 @@ interface NavigationButtonsProps {
   showComplete?: boolean;
   disableNext?: boolean;
   disableComplete?: boolean;
-  nextLabel?: string;
-  completeLabel?: string;
+  nextLabel?: React.ReactNode;
+  completeLabel?: React.ReactNode;
   className?: string;
 }
 

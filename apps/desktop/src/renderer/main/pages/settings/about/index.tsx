@@ -316,7 +316,7 @@ export default function AboutSettingsPage() {
             </DialogHeader>
             <Tabs defaultValue="surasura" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="surasura">surasura</TabsTrigger>
+                <TabsTrigger value="surasura"><span className="font-brand">surasura</span></TabsTrigger>
                 <TabsTrigger value="thirdparty">サードパーティ</TabsTrigger>
               </TabsList>
               <TabsContent value="surasura">

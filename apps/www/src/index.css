@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --font-sans: "Open Sans", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --font-brand: "Futura", "Futura-Medium", ui-sans-serif, system-ui, sans-serif;
 
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;

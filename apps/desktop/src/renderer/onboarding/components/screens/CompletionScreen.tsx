@@ -89,7 +89,7 @@ export function CompletionScreen({
           showBack={true}
           showNext={false}
           showComplete={true}
-          completeLabel="surasuraを使い始める"
+          completeLabel={<><span className="font-brand">surasura</span>を使い始める</>}
           disableComplete={!allRequirementsMet}
         />
       }

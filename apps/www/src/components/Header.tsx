@@ -21,7 +21,7 @@ export function Header() {
           <div className="flex items-center justify-between h-16">
             <a href="#" className="flex items-center gap-2.5">
               <img src="/logo.svg" alt="surasura" className="h-8 w-8" />
-              <span className="text-xl font-bold text-gray-900 tracking-tight">surasura</span>
+              <span className="text-xl font-bold text-gray-900 tracking-tight font-brand">surasura</span>
             </a>
 
             <button

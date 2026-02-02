@@ -130,7 +130,7 @@ export function UnifiedPermissionsStep({
         <div>
           <h1 className="text-2xl font-bold">Permissions Required</h1>
           <p className="text-muted-foreground mt-2">
-            surasura needs these permissions to work properly
+            <span className="font-brand">surasura</span> needs these permissions to work properly
           </p>
         </div>
       </div>
@@ -238,7 +238,7 @@ export function UnifiedPermissionsStep({
       {/* Action buttons */}
       <div className="flex justify-between gap-4 pt-4">
         <Button onClick={() => quitApp.mutate()} variant="outline" size="lg">
-          Quit surasura
+          Quit <span className="font-brand">surasura</span>
         </Button>
         <Button
           onClick={onComplete}

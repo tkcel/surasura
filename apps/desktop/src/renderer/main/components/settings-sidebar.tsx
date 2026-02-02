@@ -39,7 +39,7 @@ export function SettingsSidebar({
                   alt="surasura Logo"
                   className="!size-7"
                 />
-                <span className="font-semibold">surasura</span>
+                <span className="font-semibold font-brand">surasura</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

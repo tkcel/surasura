@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 interface OnboardingLayoutProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
-  title?: string;
+  title?: React.ReactNode;
   titleIcon?: React.ReactNode;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   className?: string;
 }
 

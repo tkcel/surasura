@@ -23,7 +23,7 @@ export function Footer() {
 
           {/* 作者情報とコピーライト */}
           <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-400">
-            <p>&copy; {new Date().getFullYear()} surasura</p>
+            <p>&copy; {new Date().getFullYear()} <span className="font-brand">surasura</span></p>
             <span className="hidden sm:inline">·</span>
             <a
               href="https://x.com/tkcel9"

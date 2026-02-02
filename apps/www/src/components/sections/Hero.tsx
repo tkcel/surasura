@@ -57,14 +57,14 @@ export function Hero() {
 
         <p className="text-lg text-gray-500 mb-4 tracking-wide">AI音声入力アプリ</p>
 
-        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 tracking-tight">
+        <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 tracking-tight font-brand">
           surasura
         </h1>
 
         <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed font-medium">
           キーボードを手放そう。
           <br />
-          あなたは「surasura」話すだけ。
+          あなたは「<span className="font-brand">surasura</span>」話すだけ。
         </p>
 
         <div

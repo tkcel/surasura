@@ -30,7 +30,7 @@ export function Solution() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            surasuraなら、すべて解決
+            <span className="font-brand">surasura</span>なら、すべて解決
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             音声入力の課題を根本から解決する、3つの強力な機能
