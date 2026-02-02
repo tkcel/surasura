@@ -1,0 +1,29 @@
+{
+  "name": "@surasura/www",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint --ext .ts,.tsx .",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,mjs,mts,css}\" --cache --ignore-path=../../.prettierignore",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "framer-motion": "^12.10.5",
+    "lucide-react": "^0.510.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.6",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^4.4.1",
+    "tailwindcss": "^4.1.6",
+    "typescript": "~5.8.3",
+    "vite": "^6.0.0"
+  }
+}
