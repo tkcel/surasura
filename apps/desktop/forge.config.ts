@@ -19,7 +19,6 @@ import {
   lstatSync,
   readlinkSync,
   copyFileSync,
-  writeFileSync,
 } from "node:fs";
 import { join, normalize } from "node:path";
 // Use flora-colossus for finding all dependencies of EXTERNAL_DEPENDENCIES
@@ -377,89 +376,8 @@ const config: ForgeConfig = {
         console.log("✓ VC++ runtime DLLs bundled successfully");
       }
 
-      // =====================================================================
-      // Generate app-update.yml for electron-updater (macOS)
-      // =====================================================================
-      //
-      // WHY: electron-updater requires app-update.yml to know the update feed URL.
-      // electron-forge (unlike electron-builder) does NOT generate this file automatically.
-      //
-      // PROBLEM: Without this file, electron-updater throws:
-      // "ENOENT: no such file or directory, open '.../Resources/app-update.yml'"
-      //
-      // SOLUTION: Generate the file in postPackage hook with GitHub provider config.
-      // =====================================================================
-      if (platform === "darwin") {
-        for (const outputPath of outputPaths) {
-          // On macOS, outputPath can be either:
-          // 1. The .app bundle directly: .../surasura.app
-          // 2. The output directory: .../surasura-darwin-arm64 (containing surasura.app)
-          // We need to find the actual .app bundle
-          let appPath = outputPath;
-          if (!outputPath.endsWith(".app")) {
-            // Find .app bundle in the output directory
-            const items = readdirSync(outputPath);
-            const appBundle = items.find((item) => item.endsWith(".app"));
-            if (appBundle) {
-              appPath = join(outputPath, appBundle);
-            } else {
-              console.error(
-                `  ✗ No .app bundle found in ${outputPath}, skipping app-update.yml generation`
-              );
-              continue;
-            }
-          }
-          // Resources folder is at: .../surasura.app/Contents/Resources
-          const resourcesPath = join(appPath, "Contents", "Resources");
-          const appUpdateYmlPath = join(resourcesPath, "app-update.yml");
-
-          console.log(
-            `[postPackage] Generating app-update.yml for macOS at ${appUpdateYmlPath}...`
-          );
-
-          const appUpdateYmlContent = `provider: github
-owner: tkcel
-repo: surasura-releases
-`;
-
-          try {
-            writeFileSync(appUpdateYmlPath, appUpdateYmlContent, "utf-8");
-            console.log("  ✓ Generated app-update.yml");
-          } catch (error) {
-            console.error("  ✗ Failed to generate app-update.yml:", error);
-            throw error;
-          }
-        }
-        console.log("✓ app-update.yml generated successfully");
-      }
-
-      // Generate app-update.yml for Windows as well
-      if (platform === "win32") {
-        for (const outputPath of outputPaths) {
-          // On Windows, outputPath is like: .../surasura-win32-x64
-          // Resources folder is at: .../surasura-win32-x64/resources
-          const resourcesPath = join(outputPath, "resources");
-          const appUpdateYmlPath = join(resourcesPath, "app-update.yml");
-
-          console.log(
-            `[postPackage] Generating app-update.yml for Windows at ${appUpdateYmlPath}...`
-          );
-
-          const appUpdateYmlContent = `provider: github
-owner: tkcel
-repo: surasura-releases
-`;
-
-          try {
-            writeFileSync(appUpdateYmlPath, appUpdateYmlContent, "utf-8");
-            console.log("  ✓ Generated app-update.yml");
-          } catch (error) {
-            console.error("  ✗ Failed to generate app-update.yml:", error);
-            throw error;
-          }
-        }
-        console.log("✓ app-update.yml generated successfully");
-      }
+      // NOTE: app-update.yml is now included via extraResource (before signing)
+      // instead of being generated in postPackage (after signing) which broke code signing.
     },
   },
   packagerConfig: {
@@ -483,6 +401,8 @@ repo: surasura-releases
       // License files for distribution
       "./LICENSE",
       "./LICENSE_ORIGINAL_Amical",
+      // app-update.yml for electron-updater (must be included before signing)
+      "./assets/app-update.yml",
     ],
     extendInfo: {
       NSMicrophoneUsageDescription:
