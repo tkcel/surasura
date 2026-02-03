@@ -15,6 +15,7 @@ import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SettingsVocabularyRouteImport } from './routes/settings/vocabulary'
 import { Route as SettingsShortcutsRouteImport } from './routes/settings/shortcuts'
 import { Route as SettingsPreferencesRouteImport } from './routes/settings/preferences'
+import { Route as SettingsHistoryRouteImport } from './routes/settings/history'
 import { Route as SettingsDictationRouteImport } from './routes/settings/dictation'
 import { Route as SettingsAiModelsRouteImport } from './routes/settings/ai-models'
 import { Route as SettingsAboutRouteImport } from './routes/settings/about'
@@ -49,6 +50,11 @@ const SettingsPreferencesRoute = SettingsPreferencesRouteImport.update({
   path: '/preferences',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
+const SettingsHistoryRoute = SettingsHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
 const SettingsDictationRoute = SettingsDictationRouteImport.update({
   id: '/dictation',
   path: '/dictation',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/settings/about': typeof SettingsAboutRoute
   '/settings/ai-models': typeof SettingsAiModelsRoute
   '/settings/dictation': typeof SettingsDictationRoute
+  '/settings/history': typeof SettingsHistoryRoute
   '/settings/preferences': typeof SettingsPreferencesRoute
   '/settings/shortcuts': typeof SettingsShortcutsRoute
   '/settings/vocabulary': typeof SettingsVocabularyRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/settings/about': typeof SettingsAboutRoute
   '/settings/ai-models': typeof SettingsAiModelsRoute
   '/settings/dictation': typeof SettingsDictationRoute
+  '/settings/history': typeof SettingsHistoryRoute
   '/settings/preferences': typeof SettingsPreferencesRoute
   '/settings/shortcuts': typeof SettingsShortcutsRoute
   '/settings/vocabulary': typeof SettingsVocabularyRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/settings/about': typeof SettingsAboutRoute
   '/settings/ai-models': typeof SettingsAiModelsRoute
   '/settings/dictation': typeof SettingsDictationRoute
+  '/settings/history': typeof SettingsHistoryRoute
   '/settings/preferences': typeof SettingsPreferencesRoute
   '/settings/shortcuts': typeof SettingsShortcutsRoute
   '/settings/vocabulary': typeof SettingsVocabularyRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/settings/about'
     | '/settings/ai-models'
     | '/settings/dictation'
+    | '/settings/history'
     | '/settings/preferences'
     | '/settings/shortcuts'
     | '/settings/vocabulary'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/settings/about'
     | '/settings/ai-models'
     | '/settings/dictation'
+    | '/settings/history'
     | '/settings/preferences'
     | '/settings/shortcuts'
     | '/settings/vocabulary'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/settings/about'
     | '/settings/ai-models'
     | '/settings/dictation'
+    | '/settings/history'
     | '/settings/preferences'
     | '/settings/shortcuts'
     | '/settings/vocabulary'
@@ -182,6 +194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsPreferencesRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
+    '/settings/history': {
+      id: '/settings/history'
+      path: '/history'
+      fullPath: '/settings/history'
+      preLoaderRoute: typeof SettingsHistoryRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/settings/dictation': {
       id: '/settings/dictation'
       path: '/dictation'
@@ -210,6 +229,7 @@ interface SettingsRouteRouteChildren {
   SettingsAboutRoute: typeof SettingsAboutRoute
   SettingsAiModelsRoute: typeof SettingsAiModelsRoute
   SettingsDictationRoute: typeof SettingsDictationRoute
+  SettingsHistoryRoute: typeof SettingsHistoryRoute
   SettingsPreferencesRoute: typeof SettingsPreferencesRoute
   SettingsShortcutsRoute: typeof SettingsShortcutsRoute
   SettingsVocabularyRoute: typeof SettingsVocabularyRoute
@@ -220,6 +240,7 @@ const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
   SettingsAboutRoute: SettingsAboutRoute,
   SettingsAiModelsRoute: SettingsAiModelsRoute,
   SettingsDictationRoute: SettingsDictationRoute,
+  SettingsHistoryRoute: SettingsHistoryRoute,
   SettingsPreferencesRoute: SettingsPreferencesRoute,
   SettingsShortcutsRoute: SettingsShortcutsRoute,
   SettingsVocabularyRoute: SettingsVocabularyRoute,

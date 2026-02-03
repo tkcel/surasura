@@ -9,6 +9,7 @@ import { ShortcutManager } from "./shortcut-manager";
 import { WindowManager } from "../core/window-manager";
 import { isMacOS, isWindows } from "../../utils/platform";
 import { OnboardingService } from "../../services/onboarding-service";
+import { runHistoryCleanup } from "../../utils/history-cleanup";
 
 /**
  * Service map for type-safe service access
@@ -60,6 +61,9 @@ export class ServiceManager {
       this.initializeRecordingManager();
       await this.initializeShortcutManager();
       this.initializeAutoUpdater();
+
+      // Run history cleanup on startup (non-blocking)
+      this.runStartupCleanup();
 
       this.isInitialized = true;
       logger.main.info("Services initialized successfully");
@@ -214,6 +218,23 @@ export class ServiceManager {
 
   private initializeAutoUpdater(): void {
     this.autoUpdaterService = new AutoUpdaterService();
+  }
+
+  /**
+   * Run startup cleanup tasks (non-blocking)
+   * - History cleanup: 30日以上経過した履歴を削除、500件を超えた分を削除
+   */
+  private runStartupCleanup(): void {
+    // Run cleanup asynchronously to not block startup
+    runHistoryCleanup()
+      .then((result) => {
+        if (result.totalDeleted > 0) {
+          logger.main.info("Startup history cleanup completed", result);
+        }
+      })
+      .catch((error) => {
+        logger.main.error("Startup history cleanup failed", { error });
+      });
   }
 
   getLogger() {

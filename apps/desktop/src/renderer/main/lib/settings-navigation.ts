@@ -5,6 +5,7 @@ import {
   IconBrain,
   IconInfoCircle,
   IconKeyboard,
+  IconHistory,
   type Icon,
 } from "@tabler/icons-react";
 
@@ -36,6 +37,13 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     url: "/settings/vocabulary",
     description: "カスタム単語と置換ルールを管理",
     icon: IconBook,
+    type: "settings",
+  },
+  {
+    title: "履歴",
+    url: "/settings/history",
+    description: "音声認識履歴を確認・管理",
+    icon: IconHistory,
     type: "settings",
   },
   {

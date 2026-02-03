@@ -16,6 +16,7 @@ function SettingsLayout() {
       "/settings/preferences": "環境設定",
       "/settings/dictation": "音声入力",
       "/settings/vocabulary": "辞書機能",
+      "/settings/history": "履歴",
       "/settings/shortcuts": "ショートカット",
       "/settings/ai-models": "AIプロバイダー設定",
       "/settings/about": "このアプリについて",

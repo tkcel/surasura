@@ -7,8 +7,10 @@ import {
   count,
   gte,
   lte,
+  lt,
   sql,
   like,
+  inArray,
 } from "drizzle-orm";
 import { db } from ".";
 import {
@@ -19,7 +21,7 @@ import {
 
 // Create a new transcription
 export async function createTranscription(
-  data: Omit<NewTranscription, "id" | "createdAt" | "updatedAt">,
+  data: Omit<NewTranscription, "id" | "createdAt" | "updatedAt">
 ) {
   const now = new Date();
 
@@ -45,7 +47,7 @@ export async function getTranscriptions(
     sortBy?: "timestamp" | "createdAt";
     sortOrder?: "asc" | "desc";
     search?: string;
-  } = {},
+  } = {}
 ) {
   const {
     limit = 50,
@@ -92,7 +94,7 @@ export async function getTranscriptionById(id: number) {
 // Update transcription
 export async function updateTranscription(
   id: number,
-  data: Partial<Omit<Transcription, "id" | "createdAt">>,
+  data: Partial<Omit<Transcription, "id" | "createdAt">>
 ) {
   const updateData = {
     ...data,
@@ -135,7 +137,7 @@ export async function getTranscriptionsCount(search?: string) {
 // Get transcriptions by date range
 export async function getTranscriptionsByDateRange(
   startDate: Date,
-  endDate: Date,
+  endDate: Date
 ) {
   return await db
     .select()
@@ -143,8 +145,8 @@ export async function getTranscriptionsByDateRange(
     .where(
       and(
         gte(transcriptions.timestamp, startDate),
-        lte(transcriptions.timestamp, endDate),
-      ),
+        lte(transcriptions.timestamp, endDate)
+      )
     )
     .orderBy(desc(transcriptions.timestamp));
 }
@@ -166,4 +168,145 @@ export async function searchTranscriptions(searchTerm: string, limit = 20) {
     .where(sql`${transcriptions.text} LIKE ${`%${searchTerm}%`} COLLATE NOCASE`)
     .orderBy(desc(transcriptions.timestamp))
     .limit(limit);
+}
+
+// ============================================
+// History Cleanup Functions
+// ============================================
+
+/**
+ * 履歴の最大保存件数
+ * この件数を超えた場合、古いものから自動削除される
+ */
+export const MAX_HISTORY_COUNT = 500;
+
+/**
+ * 履歴の最大保存期間（ミリ秒）
+ * 30日 = 30 * 24 * 60 * 60 * 1000 = 2592000000
+ */
+export const MAX_HISTORY_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * 指定した日付より古い履歴を取得（削除前の確認用）
+ * @param olderThan 基準日時
+ * @returns 古い履歴の配列（audioFileパスを含む）
+ */
+export async function getOldTranscriptions(olderThan: Date) {
+  return await db
+    .select({
+      id: transcriptions.id,
+      audioFile: transcriptions.audioFile,
+    })
+    .from(transcriptions)
+    .where(lt(transcriptions.timestamp, olderThan))
+    .orderBy(asc(transcriptions.timestamp));
+}
+
+/**
+ * 指定した日付より古い履歴を削除
+ * @param olderThan 基準日時
+ * @returns 削除された履歴の配列（audioFileパスを含む）
+ */
+export async function deleteOldTranscriptions(olderThan: Date) {
+  const result = await db
+    .delete(transcriptions)
+    .where(lt(transcriptions.timestamp, olderThan))
+    .returning({
+      id: transcriptions.id,
+      audioFile: transcriptions.audioFile,
+    });
+
+  return result;
+}
+
+/**
+ * 最大件数を超えた分の古い履歴を取得
+ * @param maxCount 最大保存件数
+ * @returns 超過分の履歴（audioFileパスを含む）
+ */
+export async function getExcessTranscriptions(maxCount: number) {
+  // サブクエリで保持すべきIDを取得し、それ以外を返す
+  const toKeep = await db
+    .select({ id: transcriptions.id })
+    .from(transcriptions)
+    .orderBy(desc(transcriptions.timestamp))
+    .limit(maxCount);
+
+  const keepIds = toKeep.map((t) => t.id);
+
+  if (keepIds.length === 0) {
+    // 保持すべきものがない場合は全件返す
+    return await db
+      .select({
+        id: transcriptions.id,
+        audioFile: transcriptions.audioFile,
+      })
+      .from(transcriptions);
+  }
+
+  return await db
+    .select({
+      id: transcriptions.id,
+      audioFile: transcriptions.audioFile,
+    })
+    .from(transcriptions)
+    .where(
+      sql`${transcriptions.id} NOT IN (${sql.join(
+        keepIds.map((id) => sql`${id}`),
+        sql`, `
+      )})`
+    );
+}
+
+/**
+ * 最大件数を超えた分の古い履歴を削除
+ * @param maxCount 最大保存件数
+ * @returns 削除された履歴の配列（audioFileパスを含む）
+ */
+export async function deleteExcessTranscriptions(maxCount: number) {
+  const excess = await getExcessTranscriptions(maxCount);
+
+  if (excess.length === 0) {
+    return [];
+  }
+
+  const excessIds = excess.map((t) => t.id);
+
+  await db.delete(transcriptions).where(inArray(transcriptions.id, excessIds));
+
+  return excess;
+}
+
+/**
+ * 複数の履歴をIDで一括削除
+ * @param ids 削除する履歴のID配列
+ * @returns 削除された履歴の配列（audioFileパスを含む）
+ */
+export async function deleteTranscriptionsByIds(ids: number[]) {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const result = await db
+    .delete(transcriptions)
+    .where(inArray(transcriptions.id, ids))
+    .returning({
+      id: transcriptions.id,
+      audioFile: transcriptions.audioFile,
+    });
+
+  return result;
+}
+
+/**
+ * 全ての履歴を削除
+ * @returns 削除された履歴の配列（audioFileパスを含む）
+ */
+export async function deleteAllTranscriptions() {
+  const result = await db.delete(transcriptions).returning({
+    id: transcriptions.id,
+    audioFile: transcriptions.audioFile,
+  });
+
+  return result;
 }

@@ -11,6 +11,10 @@ import {
   deleteTranscription,
   getTranscriptionsCount,
   searchTranscriptions,
+  deleteTranscriptionsByIds,
+  deleteAllTranscriptions,
+  MAX_HISTORY_COUNT,
+  MAX_HISTORY_AGE_MS,
 } from "../../db/transcriptions.js";
 import { deleteAudioFile } from "../../utils/audio-file-cleanup.js";
 
@@ -232,4 +236,90 @@ export const transcriptionsRouter = createRouter({
         throw new Error("Failed to download audio file");
       }
     }),
+
+  // Delete multiple transcriptions by IDs
+  deleteMany: procedure
+    .input(z.object({ ids: z.array(z.number()) }))
+    .mutation(async ({ input, ctx }) => {
+      const logger = ctx.serviceManager.getLogger();
+
+      if (input.ids.length === 0) {
+        return { deleted: 0, audioFilesDeleted: 0 };
+      }
+
+      logger.main.info("Deleting multiple transcriptions", {
+        count: input.ids.length,
+      });
+
+      const deletedTranscriptions = await deleteTranscriptionsByIds(input.ids);
+
+      let audioFilesDeleted = 0;
+      for (const transcription of deletedTranscriptions) {
+        if (transcription.audioFile) {
+          try {
+            await deleteAudioFile(transcription.audioFile);
+            audioFilesDeleted++;
+          } catch (error) {
+            logger.main.warn("Failed to delete audio file during batch deletion", {
+              transcriptionId: transcription.id,
+              audioFile: transcription.audioFile,
+              error,
+            });
+          }
+        }
+      }
+
+      logger.main.info("Batch deletion completed", {
+        deleted: deletedTranscriptions.length,
+        audioFilesDeleted,
+      });
+
+      return {
+        deleted: deletedTranscriptions.length,
+        audioFilesDeleted,
+      };
+    }),
+
+  // Delete all transcriptions
+  deleteAll: procedure.mutation(async ({ ctx }) => {
+    const logger = ctx.serviceManager.getLogger();
+
+    logger.main.info("Deleting all transcriptions");
+
+    const deletedTranscriptions = await deleteAllTranscriptions();
+
+    let audioFilesDeleted = 0;
+    for (const transcription of deletedTranscriptions) {
+      if (transcription.audioFile) {
+        try {
+          await deleteAudioFile(transcription.audioFile);
+          audioFilesDeleted++;
+        } catch (error) {
+          logger.main.warn("Failed to delete audio file during full deletion", {
+            transcriptionId: transcription.id,
+            audioFile: transcription.audioFile,
+            error,
+          });
+        }
+      }
+    }
+
+    logger.main.info("Full deletion completed", {
+      deleted: deletedTranscriptions.length,
+      audioFilesDeleted,
+    });
+
+    return {
+      deleted: deletedTranscriptions.length,
+      audioFilesDeleted,
+    };
+  }),
+
+  // Get history limits info
+  getHistoryLimits: procedure.query(() => {
+    return {
+      maxCount: MAX_HISTORY_COUNT,
+      maxAgeDays: Math.round(MAX_HISTORY_AGE_MS / (24 * 60 * 60 * 1000)),
+    };
+  }),
 });
