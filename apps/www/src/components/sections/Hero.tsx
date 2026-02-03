@@ -73,14 +73,14 @@ export function Hero() {
         >
           <button
             onClick={() => setShowMacModal(true)}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-primary-600 font-medium rounded-2xl hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-md"
+            className="group inline-flex items-center gap-3 px-8 py-4 bg-primary-600 text-white font-semibold rounded-2xl hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <Apple size={22} className="group-hover:scale-110 transition-transform" />
             macOS版ダウンロード
           </button>
           <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl cursor-not-allowed shadow-nm-inset-sm">
             <Monitor size={22} />
-            Windows版 Coming Soon
+            Windows版 近日公開
           </div>
         </div>
 

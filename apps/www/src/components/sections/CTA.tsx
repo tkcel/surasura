@@ -16,18 +16,15 @@ export function CTA() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
               <a
                 href="https://github.com/tkcel/surasura/releases/latest"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-primary-600 font-medium rounded-xl shadow-nm-raised-md hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <Apple size={20} />
                 macOS版をダウンロード
               </a>
-              <a
-                href="https://github.com/tkcel/surasura/releases/latest"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-600 font-medium rounded-xl shadow-nm-inset-sm hover:shadow-nm-flat transition-all duration-200"
-              >
+              <div className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-xl shadow-nm-inset-sm cursor-not-allowed">
                 <Monitor size={20} />
-                Windows版をダウンロード
-              </a>
+                Windows版 近日公開
+              </div>
             </div>
 
             <div className="flex items-center justify-center gap-6">

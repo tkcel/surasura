@@ -74,7 +74,7 @@ export function Pricing() {
               </div>
               <a
                 href="#download"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-nm-surface text-primary-600 font-medium rounded-2xl hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-md"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 text-white font-semibold rounded-2xl hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 無料で始める
               </a>
