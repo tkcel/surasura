@@ -5,6 +5,7 @@ import {
   Keyboard,
   ClipboardPaste,
   Moon,
+  History,
 } from "lucide-react";
 
 const features = [
@@ -39,10 +40,16 @@ const features = [
     color: "bg-primary-600 text-white",
   },
   {
+    icon: History,
+    title: "履歴管理",
+    description: "過去の文字起こし結果を検索・閲覧・コピー",
+    color: "bg-accent-500 text-white",
+  },
+  {
     icon: Moon,
     title: "ダーク/ライトテーマ",
     description: "作業環境に合わせてテーマを選択",
-    color: "bg-accent-500 text-white",
+    color: "bg-primary-600 text-white",
   },
 ];
 
