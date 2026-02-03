@@ -24,12 +24,12 @@ export const getNotificationDescription = (
   type: WidgetNotificationType,
   microphoneName?: string,
 ): string => {
-  const micDisplay = microphoneName || "your microphone";
+  const micDisplay = microphoneName || "マイク";
   switch (type) {
     case "no_audio":
-      return `No audio from "${micDisplay}"`;
+      return `「${micDisplay}」から音声が検出されませんでした`;
     case "empty_transcript":
-      return `No speech detected from "${micDisplay}"`;
+      return `「${micDisplay}」から音声を認識できませんでした`;
   }
 };
 
@@ -38,18 +38,18 @@ export const WIDGET_NOTIFICATION_CONFIG: Record<
   WidgetNotificationConfig
 > = {
   no_audio: {
-    title: "No audio detected",
-    description: "Check your microphone settings", // Fallback, replaced by template
+    title: "音声が検出されません",
+    description: "マイクの設定を確認してください",
     primaryAction: {
-      label: "Configure Microphone",
+      label: "マイク設定",
       navigateTo: "/settings/dictation",
     },
   },
   empty_transcript: {
-    title: "No speech detected",
-    description: "Try speaking louder or closer to the mic", // Fallback, replaced by template
+    title: "音声を認識できません",
+    description: "マイクに近づいて話してみてください",
     primaryAction: {
-      label: "Configure Microphone",
+      label: "マイク設定",
       navigateTo: "/settings/dictation",
     },
   },

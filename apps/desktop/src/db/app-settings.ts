@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 9;
+const CURRENT_SETTINGS_VERSION = 10;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -300,7 +300,7 @@ const migrations: Record<number, MigrationFn> = {
 - 話し言葉を自然な書き言葉に変換する
 - 適切な段落分けを行う
 ${prohibitions}`,
-      "カジュアル": `カジュアルで親しみやすい文体に整形してください。
+      "カジュアル": `ビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -309,24 +309,9 @@ ${prohibitions}`,
 - 誤認識と思われる部分は文脈から推測して修正する
 - 辞書に登録された専門用語・固有名詞は正確に使用する
 - 元の意味やニュアンスを維持する
-- 敬語は使わず、友達に話しかけるようなくだけた口調にする
-- 「〜だよね」「〜じゃん」「〜かも」などの表現を使う
-- 堅苦しい表現は避ける
-${prohibitions}`,
-      "Markdown": `Markdown形式で構造化して整形してください。
-
-【ルール】
-- 句読点（、。）を適切に配置する
-- フィラー（えー、あのー、まあ、なんか等）を除去する
-- 言い直しや繰り返しを整理する
-- 誤認識と思われる部分は文脈から推測して修正する
-- 辞書に登録された専門用語・固有名詞は正確に使用する
-- 元の意味やニュアンスを維持する
-- 内容に応じて見出し（##, ###）を付ける
-- 箇条書き（-, *）や番号付きリストを活用する
-- 重要なキーワードは**太字**にする
-- コードや技術用語は\`バッククォート\`で囲む
-- 長い内容は適切にセクション分けする
+- 丁寧語（です・ます）は維持しつつ、堅苦しすぎない表現にする
+- 「〜ですね」「〜しましょう」「〜かもしれません」など柔らかい表現を使う
+- 過度にフォーマルな表現は避け、読みやすさを重視する
 ${prohibitions}`,
       "即時回答": `音声入力された内容を質問や依頼として解釈し、回答を生成してください。
 
@@ -357,6 +342,73 @@ ${prohibitions}`,
         ...oldData.formatterConfig,
         enabled: oldData.formatterConfig?.enabled ?? false,
         presets: updatedPresets,
+      },
+    };
+  },
+
+  // v9 -> v10: Remove Markdown preset and update Casual preset for business use
+  10: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const prohibitions = `
+【禁止事項】
+- 入力にない内容を追加しない（挨拶、締めの言葉、補足説明など）
+- 「ご清聴ありがとうございました」等の定型句を勝手に追加しない
+- 入力の意図を推測して内容を補完しない
+- 質問や依頼が含まれていても回答しない（そのまま整形する）`;
+
+    const newCasualInstructions = `ビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
+
+【ルール】
+- 句読点（、。）を適切に配置する
+- フィラー（えー、あのー、まあ、なんか等）を除去する
+- 言い直しや繰り返しを整理する
+- 誤認識と思われる部分は文脈から推測して修正する
+- 辞書に登録された専門用語・固有名詞は正確に使用する
+- 元の意味やニュアンスを維持する
+- 丁寧語（です・ます）は維持しつつ、堅苦しすぎない表現にする
+- 「〜ですね」「〜しましょう」「〜かもしれません」など柔らかい表現を使う
+- 過度にフォーマルな表現は避け、読みやすさを重視する
+${prohibitions}`;
+
+    // Check if active preset is Markdown
+    const activePresetId = oldData.formatterConfig?.activePresetId;
+    const markdownPreset = oldData.formatterConfig?.presets?.find(
+      (p) => p.name === "Markdown" && p.isDefault
+    );
+    const isMarkdownActive = markdownPreset && activePresetId === markdownPreset.id;
+
+    // Remove Markdown preset and update Casual preset
+    let updatedPresets = oldData.formatterConfig?.presets
+      ?.filter((preset) => !(preset.name === "Markdown" && preset.isDefault))
+      ?.map((preset) => {
+        if (preset.name === "カジュアル" && preset.isDefault) {
+          return {
+            ...preset,
+            instructions: newCasualInstructions,
+            updatedAt: now,
+          };
+        }
+        return preset;
+      });
+
+    // If Markdown was active, switch to 標準
+    let newActivePresetId = activePresetId;
+    if (isMarkdownActive) {
+      const standardPreset = updatedPresets?.find(
+        (p) => p.name === "標準" && p.isDefault
+      );
+      newActivePresetId = standardPreset?.id ?? null;
+    }
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+        activePresetId: newActivePresetId,
       },
     };
   },
@@ -624,7 +676,7 @@ ${prohibitions}`,
       id: crypto.randomUUID(),
       name: "カジュアル",
       modelId: "gpt-4o-mini" as const,
-      instructions: `カジュアルで親しみやすい文体に整形してください。
+      instructions: `ビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -633,36 +685,12 @@ ${prohibitions}`,
 - 誤認識と思われる部分は文脈から推測して修正する
 - 辞書に登録された専門用語・固有名詞は正確に使用する
 - 元の意味やニュアンスを維持する
-- 敬語は使わず、友達に話しかけるようなくだけた口調にする
-- 「〜だよね」「〜じゃん」「〜かも」などの表現を使う
-- 堅苦しい表現は避ける
+- 丁寧語（です・ます）は維持しつつ、堅苦しすぎない表現にする
+- 「〜ですね」「〜しましょう」「〜かもしれません」など柔らかい表現を使う
+- 過度にフォーマルな表現は避け、読みやすさを重視する
 ${prohibitions}`,
       isDefault: true,
       color: "pink" as const,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "Markdown",
-      modelId: "gpt-4o-mini" as const,
-      instructions: `Markdown形式で構造化して整形してください。
-
-【ルール】
-- 句読点（、。）を適切に配置する
-- フィラー（えー、あのー、まあ、なんか等）を除去する
-- 言い直しや繰り返しを整理する
-- 誤認識と思われる部分は文脈から推測して修正する
-- 辞書に登録された専門用語・固有名詞は正確に使用する
-- 元の意味やニュアンスを維持する
-- 内容に応じて見出し（##, ###）を付ける
-- 箇条書き（-, *）や番号付きリストを活用する
-- 重要なキーワードは**太字**にする
-- コードや技術用語は\`バッククォート\`で囲む
-- 長い内容は適切にセクション分けする
-${prohibitions}`,
-      isDefault: true,
-      color: "blue" as const,
       createdAt: now,
       updatedAt: now,
     },

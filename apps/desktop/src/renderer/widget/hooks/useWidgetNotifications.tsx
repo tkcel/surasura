@@ -8,28 +8,24 @@ import {
 } from "@/types/widget-notification";
 import { WidgetToast } from "../components/WidgetToast";
 
+/**
+ * Hook to display widget notifications as toasts.
+ * Mouse capture is handled by ToasterWrapper (hover-based),
+ * so we don't need to manage it here.
+ */
 export const useWidgetNotifications = () => {
   const navigateMainWindow = api.widget.navigateMainWindow.useMutation();
-  const setIgnoreMouseEvents = api.widget.setIgnoreMouseEvents.useMutation();
   const { data: settings } = api.settings.getSettings.useQuery();
   const { defaultDeviceName } = useAudioDevices();
 
-  // Get effective mic name: preferred from settings, or system default
   const getEffectiveMicName = () => {
     return settings?.recording?.preferredMicrophoneName || defaultDeviceName;
-  };
-
-  const reEnablePassThrough = () => {
-    setTimeout(() => {
-      setIgnoreMouseEvents.mutate({ ignore: true });
-    }, 100);
   };
 
   const handleActionClick = (action: WidgetNotificationAction) => {
     if (action.navigateTo) {
       navigateMainWindow.mutate({ route: action.navigateTo });
     }
-    reEnablePassThrough();
   };
 
   api.recording.widgetNotifications.useSubscription(undefined, {
@@ -40,8 +36,10 @@ export const useWidgetNotifications = () => {
         micName,
       );
 
+      const toastId = `widget-notification-${Date.now()}`;
+
       toast.custom(
-        (toastId) => (
+        () => (
           <WidgetToast
             title={notification.title}
             description={description}
@@ -50,13 +48,15 @@ export const useWidgetNotifications = () => {
               handleActionClick(action);
               toast.dismiss(toastId);
             }}
+            onDismiss={() => {
+              toast.dismiss(toastId);
+            }}
           />
         ),
         {
+          id: toastId,
           unstyled: true,
           duration: WIDGET_NOTIFICATION_TIMEOUT,
-          onDismiss: reEnablePassThrough,
-          onAutoClose: reEnablePassThrough,
         },
       );
     },

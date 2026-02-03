@@ -1,57 +1,53 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { useMouseEventCapture } from "../contexts/MouseEventContext";
 
-const DEBOUNCE_DELAY = 100;
+const HOVER_DEBOUNCE_MS = 100;
 
 /**
- * Wrapper for Toaster that handles mouse events to enable/disable
- * pass-through on the widget window, making toasts clickable.
+ * Wrapper for Toaster that handles mouse events.
+ * When mouse enters the toast area, capture is enabled so toasts are clickable.
+ * When mouse leaves, capture is released after a short delay.
  */
 export const ToasterWrapper: React.FC = () => {
-  const { requestMouseCapture } = useMouseEventCapture();
+  const { enableCapture, disableCapture, forceDisable } = useMouseEventCapture();
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const releaseRef = useRef<(() => void) | null>(null);
+  const isHoveredRef = useRef(false);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (leaveTimeoutRef.current) {
-        clearTimeout(leaveTimeoutRef.current);
-      }
-      if (releaseRef.current) {
-        releaseRef.current();
-      }
-    };
-  }, []);
-
-  const handleMouseEnter = () => {
-    console.log("ToasterWrapper: mouse enter");
+  const clearLeaveTimeout = useCallback(() => {
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
     }
-    // Request mouse capture if we don't already have it
-    if (!releaseRef.current) {
-      releaseRef.current = requestMouseCapture();
-      console.log("ToasterWrapper: requested mouse capture");
-    }
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
-    console.log("ToasterWrapper: mouse leave");
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current);
-    }
-    leaveTimeoutRef.current = setTimeout(() => {
-      // Release mouse capture
-      if (releaseRef.current) {
-        releaseRef.current();
-        releaseRef.current = null;
-        console.log("ToasterWrapper: released mouse capture");
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearLeaveTimeout();
+      if (isHoveredRef.current) {
+        forceDisable();
       }
-    }, DEBOUNCE_DELAY);
-  };
+    };
+  }, [clearLeaveTimeout, forceDisable]);
+
+  const handleMouseEnter = useCallback(() => {
+    clearLeaveTimeout();
+    if (!isHoveredRef.current) {
+      isHoveredRef.current = true;
+      enableCapture();
+    }
+  }, [clearLeaveTimeout, enableCapture]);
+
+  const handleMouseLeave = useCallback(() => {
+    clearLeaveTimeout();
+    leaveTimeoutRef.current = setTimeout(() => {
+      if (isHoveredRef.current) {
+        isHoveredRef.current = false;
+        disableCapture();
+      }
+    }, HOVER_DEBOUNCE_MS);
+  }, [clearLeaveTimeout, disableCapture]);
 
   return (
     <div
@@ -60,7 +56,6 @@ export const ToasterWrapper: React.FC = () => {
         bottom: 0,
         left: 0,
         right: 0,
-        // Don't capture mouse events on the container
         pointerEvents: "none",
         zIndex: 9999,
       }}

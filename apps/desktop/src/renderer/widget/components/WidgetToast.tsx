@@ -1,4 +1,5 @@
 import React from "react";
+import { X } from "lucide-react";
 import type { WidgetNotificationAction } from "@/types/widget-notification";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ interface WidgetToastProps {
   description: string;
   primaryAction?: WidgetNotificationAction;
   onActionClick: (action: WidgetNotificationAction) => void;
+  onDismiss?: () => void;
 }
 
 export const WidgetToast: React.FC<WidgetToastProps> = ({
@@ -21,10 +23,20 @@ export const WidgetToast: React.FC<WidgetToastProps> = ({
   description,
   primaryAction,
   onActionClick,
+  onDismiss,
 }) => {
   return (
-    <Card className="min-w-[300px] gap-3 py-4 shadow-lg">
-      <CardHeader className="gap-1 px-4 py-0">
+    <Card className="relative min-w-[300px] gap-3 py-4 shadow-lg">
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="absolute right-2 top-2 rounded-sm p-1 text-muted-foreground opacity-70 transition-opacity hover:opacity-100"
+          aria-label="閉じる"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+      <CardHeader className="gap-1 px-4 py-0 pr-8">
         <CardTitle className="text-sm">{title}</CardTitle>
         <CardDescription className="text-xs">{description}</CardDescription>
       </CardHeader>

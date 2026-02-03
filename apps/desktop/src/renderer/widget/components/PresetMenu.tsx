@@ -85,6 +85,10 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
           top: position.y,
           transform: "translate(-50%, -100%)",
         }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
       >
         <div className="px-3 py-1.5 text-xs font-medium text-gray-400 flex items-center gap-1.5">
           <Sparkles className={`w-3 h-3 ${getPresetColorClass(activePresetId ? presets.find(p => p.id === activePresetId)?.color : undefined)}`} />

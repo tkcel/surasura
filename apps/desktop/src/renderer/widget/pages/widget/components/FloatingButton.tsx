@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Square, X, Sparkles } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useRecording } from "@/hooks/useRecording";
@@ -7,16 +7,14 @@ import { PresetMenu } from "../../../components/PresetMenu";
 import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
 import { useMouseEventCapture } from "../../../contexts/MouseEventContext";
 
-// Get the Tailwind class for a preset color
 function getPresetColorClass(colorId: PresetColorId | undefined): string {
   const color = PRESET_COLORS.find((c) => c.id === colorId);
   return color?.class ?? "text-yellow-500";
 }
 
-const NUM_WAVEFORM_BARS = 6; // Fewer bars to make room for stop button
-const DEBOUNCE_DELAY = 100; // milliseconds
+const NUM_WAVEFORM_BARS = 6;
+const HOVER_DEBOUNCE_MS = 100;
 
-// Separate component for the stop button
 const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
   onClick,
 }) => (
@@ -29,7 +27,6 @@ const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
   </button>
 );
 
-// Separate component for the cancel button
 const CancelButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
   onClick,
 }) => (
@@ -42,7 +39,6 @@ const CancelButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
   </button>
 );
 
-// Separate component for the processing indicator
 const ProcessingIndicator: React.FC = () => (
   <div className="flex gap-[4px] items-center justify-center flex-1 h-6">
     <div className="w-[4px] h-[4px] bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
@@ -51,7 +47,6 @@ const ProcessingIndicator: React.FC = () => (
   </div>
 );
 
-// Separate component for the waveform visualization
 const WaveformVisualization: React.FC<{
   isRecording: boolean;
   voiceDetected: boolean;
@@ -75,57 +70,13 @@ export const FloatingButton: React.FC = () => {
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const clickTimeRef = useRef<number | null>(null);
-  const releaseMouseCaptureRef = useRef<(() => void) | null>(null);
 
-  // Use centralized mouse event management
-  const { requestMouseCapture } = useMouseEventCapture();
+  const { enableCapture, disableCapture, forceDisable } = useMouseEventCapture();
 
-  // Formatter config and active preset queries
   const { data: formatterConfig } = api.settings.getFormatterConfig.useQuery();
   const { data: activePreset } = api.settings.getActivePreset.useQuery();
   const isFormatterEnabled = formatterConfig?.enabled ?? false;
   const presets = formatterConfig?.presets ?? [];
-
-  // Determine if we need mouse capture
-  const needsMouseCapture = isHovered || showPresetMenu;
-  const prevNeedsMouseCaptureRef = useRef(needsMouseCapture);
-
-  // Sync mouse capture state with context
-  useEffect(() => {
-    const prevValue = prevNeedsMouseCaptureRef.current;
-    prevNeedsMouseCaptureRef.current = needsMouseCapture;
-
-    // Only act on actual changes
-    if (needsMouseCapture && !prevValue) {
-      // false -> true: request mouse capture
-      releaseMouseCaptureRef.current = requestMouseCapture();
-    } else if (!needsMouseCapture && prevValue) {
-      // true -> false: release mouse capture
-      if (releaseMouseCaptureRef.current) {
-        releaseMouseCaptureRef.current();
-        releaseMouseCaptureRef.current = null;
-      }
-    }
-  }, [needsMouseCapture, requestMouseCapture]);
-
-  // Separate cleanup effect for unmount only
-  useEffect(() => {
-    return () => {
-      if (releaseMouseCaptureRef.current) {
-        releaseMouseCaptureRef.current();
-        releaseMouseCaptureRef.current = null;
-      }
-    };
-  }, []);
-
-  // Log component initialization
-  useEffect(() => {
-    console.log("FloatingButton component initialized");
-    return () => {
-      console.debug("FloatingButton component unmounting");
-    };
-  }, []);
 
   const {
     recordingStatus,
@@ -134,131 +85,150 @@ export const FloatingButton: React.FC = () => {
     voiceDetected,
     startRecording,
   } = useRecording();
+
+  const isIdle = recordingStatus.state === "idle";
   const isRecording =
     recordingStatus.state === "recording" ||
     recordingStatus.state === "starting";
   const isStopping = recordingStatus.state === "stopping";
   const isHandsFreeMode = recordingStatus.mode === "hands-free";
 
-  // Track when recording state changes to "recording" after a click
-  useEffect(() => {
-    if (recordingStatus.state === "recording" && clickTimeRef.current) {
-      const timeSinceClick = performance.now() - clickTimeRef.current;
-      console.log(
-        `FAB: Recording state became 'recording' ${timeSinceClick.toFixed(2)}ms after user click`,
-      );
-      clickTimeRef.current = null; // Reset
-    }
-  }, [recordingStatus.state]);
-
-  // Handler for widget click to start recording in hands-free mode
-  const handleButtonClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const clickTime = performance.now();
-    clickTimeRef.current = clickTime;
-    console.log("FAB: Button clicked at", clickTime);
-    console.log("FAB: Current status:", recordingStatus);
-
-    // Only start recording if not already recording
-    if (recordingStatus.state === "idle") {
-      const startRecordingCallTime = performance.now();
-      await startRecording();
-      const startRecordingReturnTime = performance.now();
-      console.log(
-        `FAB: startRecording() call took ${(startRecordingReturnTime - startRecordingCallTime).toFixed(2)}ms to return`,
-      );
-      console.log("FAB: Started hands-free recording");
-    } else {
-      console.log("FAB: Already recording, ignoring click");
-      clickTimeRef.current = null; // Reset since we're not starting
-    }
-  };
-
-  // Handler for stop button in hands-free mode
-  const handleStopClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("FAB: Stopping hands-free recording");
-    await stopRecording();
-  };
-
-  // Handler for cancel button
-  const handleCancelClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("FAB: Cancelling recording");
-    await cancelRecording();
-  };
-
-  // Handler for right-click to show preset menu
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Only show menu if formatter is enabled and we have presets
-    if (!isFormatterEnabled || presets.length === 0) {
-      return;
-    }
-
-    // Position menu above the widget
-    setMenuPosition({
-      x: e.clientX,
-      y: e.clientY - 10,
-    });
-    setShowPresetMenu(true);
-  };
-
-  // Close preset menu
-  const handleClosePresetMenu = () => {
-    // Clear any pending leave timeout
+  const clearLeaveTimeout = useCallback(() => {
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
     }
+  }, []);
 
+  // Determine if capture should be enabled
+  const shouldEnableCapture = useCallback(() => {
+    // Preset menu needs capture
+    if (showPresetMenu) return true;
+    // Not hovering = no capture
+    if (!isHovered) return false;
+    // Idle = capture for interaction
+    if (isIdle) return true;
+    // Hands-free recording = capture for buttons
+    if (isHandsFreeMode && isRecording) return true;
+    // Everything else = no capture
+    return false;
+  }, [showPresetMenu, isHovered, isIdle, isHandsFreeMode, isRecording]);
+
+  // Sync capture state
+  useEffect(() => {
+    if (shouldEnableCapture()) {
+      enableCapture();
+    } else {
+      disableCapture();
+    }
+  }, [shouldEnableCapture, enableCapture, disableCapture]);
+
+  // Force disable on recording state changes (safety measure)
+  const prevRecordingStateRef = useRef(recordingStatus.state);
+  useEffect(() => {
+    const prevState = prevRecordingStateRef.current;
+    const currentState = recordingStatus.state;
+    prevRecordingStateRef.current = currentState;
+
+    // On any state transition, force disable and reset hover
+    if (prevState !== currentState) {
+      console.log(`[FloatingButton] State change: ${prevState} -> ${currentState}`);
+      setIsHovered(false);
+      setShowPresetMenu(false);
+      forceDisable();
+    }
+  }, [recordingStatus.state, forceDisable]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearLeaveTimeout();
+      forceDisable();
+    };
+  }, [clearLeaveTimeout, forceDisable]);
+
+  const handleButtonClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (isIdle) {
+        setIsHovered(false);
+        forceDisable();
+        await startRecording();
+      }
+    },
+    [isIdle, startRecording, forceDisable]
+  );
+
+  const handleStopClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsHovered(false);
+      forceDisable();
+      await stopRecording();
+    },
+    [stopRecording, forceDisable]
+  );
+
+  const handleCancelClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsHovered(false);
+      forceDisable();
+      await cancelRecording();
+    },
+    [cancelRecording, forceDisable]
+  );
+
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Only in idle state
+      if (!isIdle) return;
+      if (!isFormatterEnabled || presets.length === 0) return;
+
+      setMenuPosition({ x: e.clientX, y: e.clientY - 10 });
+      setShowPresetMenu(true);
+    },
+    [isIdle, isFormatterEnabled, presets.length]
+  );
+
+  const handleClosePresetMenu = useCallback(() => {
+    clearLeaveTimeout();
     setShowPresetMenu(false);
-    // Minimize widget after preset selection
     setIsHovered(false);
-  };
+    forceDisable();
+  }, [clearLeaveTimeout, forceDisable]);
 
-  // Debounced mouse leave handler
-  const handleMouseLeave = () => {
-    // Don't start leave timer while preset menu is open
-    if (showPresetMenu) {
-      return;
-    }
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current);
-    }
+  const handleMouseEnter = useCallback(() => {
+    clearLeaveTimeout();
+    setIsHovered(true);
+  }, [clearLeaveTimeout]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (showPresetMenu) return;
+
+    clearLeaveTimeout();
     leaveTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-    }, DEBOUNCE_DELAY);
-  };
-
-  // Mouse enter handler
-  const handleMouseEnter = () => {
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current);
-      leaveTimeoutRef.current = null;
-    }
-    setIsHovered(true);
-  };
+    }, HOVER_DEBOUNCE_MS);
+  }, [showPresetMenu, clearLeaveTimeout]);
 
   const expanded = isRecording || isStopping || isHovered;
 
-  // Calculate width based on state
   const getExpandedWidth = () => {
     if (!expanded) return "w-[48px]";
     if (isRecording && isHandsFreeMode) return "w-[120px]";
     if (isRecording) return "w-[96px]";
-    if (isFormatterEnabled && activePreset) {
-      return "w-[140px]";
-    }
+    if (isFormatterEnabled && activePreset) return "w-[140px]";
     return "w-[96px]";
   };
 
-  // Function to render widget content based on state
   const renderWidgetContent = () => {
     if (!expanded) return null;
 
@@ -304,7 +274,9 @@ export const FloatingButton: React.FC = () => {
       >
         {isFormatterEnabled && activePreset && (
           <div className="flex items-center gap-1 text-xs text-white/70 shrink-0">
-            <Sparkles className={`w-3 h-3 ${getPresetColorClass(activePreset.color)}`} />
+            <Sparkles
+              className={`w-3 h-3 ${getPresetColorClass(activePreset.color)}`}
+            />
             <span className="max-w-[60px] truncate">{activePreset.name}</span>
           </div>
         )}
@@ -338,7 +310,6 @@ export const FloatingButton: React.FC = () => {
         )}
       </div>
 
-      {/* Preset selection menu */}
       {showPresetMenu && presets.length > 0 && (
         <PresetMenu
           presets={presets}
