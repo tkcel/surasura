@@ -6,6 +6,7 @@ import {
   FormattingProvider,
 } from "../pipeline/core/pipeline-types";
 import { createDefaultContext } from "../pipeline/core/context";
+import { ProviderRegistry } from "../pipeline/core/provider-registry";
 import { OpenAIWhisperProvider } from "../pipeline/providers/transcription/openai-whisper-provider";
 import { OpenAIFormatter } from "../pipeline/providers/formatting/openai-formatter";
 import { SettingsService } from "../services/settings-service";
@@ -23,6 +24,7 @@ import { dialog } from "electron";
  * Service for audio transcription and optional formatting
  */
 export class TranscriptionService {
+  private registry: ProviderRegistry;
   private openaiWhisperProvider: OpenAIWhisperProvider;
   private currentProvider: TranscriptionProvider | null = null;
   private streamingSessions = new Map<string, StreamingSession>();
@@ -31,6 +33,7 @@ export class TranscriptionService {
   private vadMutex: Mutex;
   private transcriptionMutex: Mutex;
   private lastTranscription: string | null = null;
+  private formatterCache = new Map<string, OpenAIFormatter>();
 
   constructor(
     vadService: VADService,
@@ -38,19 +41,63 @@ export class TranscriptionService {
     private nativeBridge: NativeBridge | null,
     private onboardingService: OnboardingService | null,
   ) {
+    this.registry = ProviderRegistry.getInstance();
     this.openaiWhisperProvider = new OpenAIWhisperProvider(settingsService);
     this.vadService = vadService;
     this.settingsService = settingsService;
     this.vadMutex = new Mutex();
     this.transcriptionMutex = new Mutex();
+
+    // Register default providers
+    this.registry.registerTranscriptionProvider(
+      "openai-whisper",
+      this.openaiWhisperProvider,
+      { isDefault: true },
+    );
   }
 
   /**
-   * Select the appropriate transcription provider
+   * Select the appropriate transcription provider based on settings
    */
   private async selectProvider(): Promise<TranscriptionProvider> {
+    // Get provider ID from pipeline settings (future: read from settings)
+    const pipelineSettings = await this.settingsService.getPipelineSettings();
+    const providerId =
+      pipelineSettings?.transcriptionProviderId ?? "openai-whisper";
+
+    // Try to get from registry
+    const provider = this.registry.getTranscriptionProvider(providerId);
+    if (provider) {
+      this.currentProvider = provider;
+      return provider;
+    }
+
+    // Fall back to default
+    const defaultProvider = this.registry.getDefaultTranscriptionProvider();
+    if (defaultProvider) {
+      this.currentProvider = defaultProvider;
+      return defaultProvider;
+    }
+
+    // Last resort: use the direct instance
     this.currentProvider = this.openaiWhisperProvider;
     return this.openaiWhisperProvider;
+  }
+
+  /**
+   * Get a cached formatter instance, creating one if necessary
+   */
+  private getOrCreateFormatter(apiKey: string, modelId: string): OpenAIFormatter {
+    const cacheKey = `${modelId}`;
+    let formatter = this.formatterCache.get(cacheKey);
+
+    if (!formatter) {
+      formatter = new OpenAIFormatter(apiKey, modelId);
+      this.formatterCache.set(cacheKey, formatter);
+      logger.transcription.debug("Created new formatter instance", { modelId });
+    }
+
+    return formatter;
   }
 
   async initialize(): Promise<void> {
@@ -185,13 +232,7 @@ export class TranscriptionService {
       // Accumulate the result only if Whisper returned something
       // (it returns empty string while buffering)
       if (chunkTranscription.trim()) {
-        // Cloud provider concatenates previousTranscription with new transcription,
-        // so we need to replace the array instead of appending to avoid duplication
-        if (provider.name === "surasura-cloud" && aggregatedTranscription) {
-          session.transcriptionResults = [chunkTranscription];
-        } else {
-          session.transcriptionResults.push(chunkTranscription);
-        }
+        session.transcriptionResults.push(chunkTranscription);
         logger.transcription.info("Whisper returned transcription", {
           sessionId,
           transcriptionLength: chunkTranscription.length,
@@ -344,9 +385,10 @@ export class TranscriptionService {
           presetName: activePreset?.name,
         });
 
-        const provider = new OpenAIFormatter(openaiConfig.apiKey, modelId);
+        // Use cached formatter instance
+        const formatter = this.getOrCreateFormatter(openaiConfig.apiKey, modelId);
         const result = await this.formatWithProvider(
-          provider,
+          formatter,
           sessionId,
           completeTranscription,
           session,
@@ -558,6 +600,7 @@ export class TranscriptionService {
    */
   async dispose(): Promise<void> {
     await this.openaiWhisperProvider.dispose();
+    this.formatterCache.clear();
     // VAD service is managed by ServiceManager
     logger.transcription.info("Transcription service disposed");
   }

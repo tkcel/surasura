@@ -16,6 +16,9 @@ export type {
 export { createDefaultContext } from "./core/context";
 export type { PipelineContext, SharedPipelineData } from "./core/context";
 
+// Provider registry
+export { ProviderRegistry } from "./core/provider-registry";
+
 // Main service
 export { TranscriptionService } from "../services/transcription-service";
 

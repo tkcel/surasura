@@ -553,4 +553,18 @@ export class SettingsService extends EventEmitter {
 
     return preset;
   }
+
+  // ==================== Pipeline Settings Methods ====================
+
+  /**
+   * Pipeline settings for provider selection and configuration
+   */
+  async getPipelineSettings(): Promise<{
+    transcriptionProviderId?: string;
+    formattingProviderId?: string;
+  } | null> {
+    // Future: Read from database settings
+    // For now, return null to use defaults (openai-whisper)
+    return null;
+  }
 }

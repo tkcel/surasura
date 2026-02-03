@@ -19,7 +19,6 @@ export class OpenAIWhisperProvider implements TranscriptionProvider {
   private readonly FRAME_SIZE = 512; // 32ms at 16kHz
   private readonly MAX_SILENCE_DURATION_MS = 3000; // Max silence before transcribing
   private readonly SAMPLE_RATE = 16000;
-  private readonly SPEECH_PROBABILITY_THRESHOLD = 0.2;
   private readonly IGNORE_FULLY_SILENT_CHUNKS = true;
 
   private settingsService: SettingsService;
@@ -38,6 +37,7 @@ export class OpenAIWhisperProvider implements TranscriptionProvider {
 
   /**
    * Process an audio chunk - buffers and conditionally transcribes
+   * Uses VAD result directly without additional threshold processing
    */
   async transcribe(params: TranscribeParams): Promise<string> {
     const { audioData, speechProbability = 1, context } = params;
@@ -46,14 +46,15 @@ export class OpenAIWhisperProvider implements TranscriptionProvider {
     this.frameBuffer.push(audioData);
     this.frameBufferSpeechProbabilities.push(speechProbability);
 
-    // Consider it speech if probability is above threshold
-    const isSpeech = speechProbability > this.SPEECH_PROBABILITY_THRESHOLD;
+    // Use VAD's speech probability directly - low probability indicates silence
+    // VADService already applies its own threshold logic
+    const isSpeech = speechProbability > 0;
 
     logger.transcription.debug(
       `Frame received - SpeechProb: ${speechProbability.toFixed(3)}, Buffer size: ${this.frameBuffer.length}, Silence count: ${this.currentSilenceFrameCount}`,
     );
 
-    // Handle speech/silence logic
+    // Handle speech/silence logic based on VAD result
     if (isSpeech) {
       this.currentSilenceFrameCount = 0;
     } else {
@@ -130,7 +131,7 @@ export class OpenAIWhisperProvider implements TranscriptionProvider {
         file: audioFile,
         model: speechModel,
         language: context.language !== "auto" ? context.language : undefined,
-        prompt: this.generateInitialPrompt(
+        prompt: this.generateRecognitionPrompt(
           context.vocabulary,
           context.aggregatedTranscription,
         ),
@@ -269,7 +270,11 @@ export class OpenAIWhisperProvider implements TranscriptionProvider {
     }
   }
 
-  private generateInitialPrompt(
+  /**
+   * 音声認識プロンプトを生成
+   * 辞書の単語と前回までの認識結果を含めることで認識精度を向上させる
+   */
+  private generateRecognitionPrompt(
     vocabulary?: string[],
     aggregatedTranscription?: string,
   ): string {
@@ -284,7 +289,7 @@ export class OpenAIWhisperProvider implements TranscriptionProvider {
     }
 
     const prompt = promptParts.join(" ");
-    logger.transcription.debug(`Generated initial prompt: "${prompt}"`);
+    logger.transcription.debug(`Generated recognition prompt: "${prompt}"`);
 
     return prompt;
   }
