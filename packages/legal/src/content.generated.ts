@@ -274,6 +274,6 @@ export const externalServicesRaw = `# 付録: 外部サービス一覧
 
 export const config = {
   "lastUpdated": "2026-02-03",
-  "contactInfo": "[X: @tkcel9](https://x.com/tkcel9) / [Discord](https://discord.gg/ffpmWv5d) / Email: t.nemoto@kyo-toku.com",
+  "contactInfo": "[X: @tkcel9](https://x.com/tkcel9) / [Discord](https://discord.gg/ffpmWv5d) / t.nemoto@kyo-toku.com",
   "appName": "surasura"
 } as const;
