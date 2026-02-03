@@ -45,7 +45,7 @@ export class TrayManager {
     // Create context menu
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: "Open Console",
+        label: "設定画面を開く",
         click: async () => {
           logger.main.info("Open console requested from tray");
           if (this.windowManager) {
@@ -55,22 +55,22 @@ export class TrayManager {
       },
       { type: "separator" as const },
       ...(isMacOS()
-        ? [{ role: "about" as const }]
+        ? [{ role: "about" as const, label: `${app.name} について` }]
         : [
             {
-              label: "About",
+              label: `${app.name} について`,
               click: () => {
                 app.showAboutPanel();
               },
             },
           ]),
       {
-        label: `Version ${app.getVersion()}`,
+        label: `バージョン ${app.getVersion()}`,
         enabled: false,
       },
       { type: "separator" as const },
       {
-        label: "Quit",
+        label: "アプリを終了",
         click: () => {
           logger.main.info("Quit requested from tray");
           app.quit();
