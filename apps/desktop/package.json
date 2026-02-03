@@ -1,6 +1,6 @@
 {
   "name": "@surasura/desktop",
-  "version": "0.2.13",
+  "version": "0.3.0",
   "description": "surasura Desktop app",
   "main": ".vite/build/main.js",
   "productName": "surasura",
