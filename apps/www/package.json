@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "pnpm --filter @surasura/legal build && tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint --ext .ts,.tsx .",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json,mjs,mts,css}\" --cache --ignore-path=../../.prettierignore",
