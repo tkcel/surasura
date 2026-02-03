@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 
 export function Footer() {
@@ -19,6 +20,21 @@ export function Footer() {
               <MessageCircle size={18} />
               Discordで相談する
             </a>
+          </div>
+
+          {/* 法的情報リンク */}
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">
+            <Link to="/privacy" className="hover:text-gray-700 transition-colors">
+              プライバシーポリシー
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link to="/disclaimer" className="hover:text-gray-700 transition-colors">
+              免責事項
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link to="/external-services" className="hover:text-gray-700 transition-colors">
+              外部サービス一覧
+            </Link>
           </div>
 
           {/* 作者情報とコピーライト */}

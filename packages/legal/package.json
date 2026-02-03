@@ -1,0 +1,30 @@
+{
+  "name": "@surasura/legal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "プライバシーポリシー・免責事項の共通管理パッケージ",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./content/*": "./content/*"
+  },
+  "files": [
+    "dist",
+    "content"
+  ],
+  "scripts": {
+    "build:content": "tsx scripts/build-content.ts",
+    "build": "pnpm build:content && tsup src/index.ts --format esm --dts",
+    "dev": "pnpm build:content && tsup src/index.ts --format esm --dts --watch"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.0.0"
+  }
+}

@@ -12,7 +12,11 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
+    "@surasura/legal": "workspace:*",
     "framer-motion": "^12.10.5",
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "^7.1.0",
+    "remark-gfm": "^4.0.0",
     "lucide-react": "^0.510.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"

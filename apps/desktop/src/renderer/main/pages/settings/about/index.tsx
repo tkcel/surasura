@@ -14,7 +14,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { api } from "@/trpc/react";
-import { RefreshCw, Check, Download, Loader2 } from "lucide-react";
+import { RefreshCw, Check, Download, Loader2, FileText, Shield, ExternalLink } from "lucide-react";
+import { LegalDocumentDialog } from "@/components/legal-document-dialog";
+import {
+  getPrivacyPolicy,
+  getDisclaimer,
+  getExternalServices,
+  type LegalDocument,
+} from "@surasura/legal";
 
 const DISCORD_URL = "https://discord.gg/ffpmWv5d";
 
@@ -34,6 +41,25 @@ export default function AboutSettingsPage() {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+
+  // 法的文書の表示状態
+  const [legalDocument, setLegalDocument] = useState<LegalDocument | null>(null);
+  const [showLegalDialog, setShowLegalDialog] = useState(false);
+
+  const handleShowPrivacyPolicy = () => {
+    setLegalDocument(getPrivacyPolicy());
+    setShowLegalDialog(true);
+  };
+
+  const handleShowDisclaimer = () => {
+    setLegalDocument(getDisclaimer());
+    setShowLegalDialog(true);
+  };
+
+  const handleShowExternalServices = () => {
+    setLegalDocument(getExternalServices());
+    setShowLegalDialog(true);
+  };
 
   const checkForUpdatesMutation = api.updater.checkForUpdates.useMutation();
   const downloadUpdateMutation = api.updater.downloadUpdate.useMutation();
@@ -247,7 +273,37 @@ export default function AboutSettingsPage() {
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="space-y-3">
+            <div className="text-lg font-semibold">法的情報</div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={handleShowPrivacyPolicy}>
+                <Shield className="w-4 h-4 mr-2" />
+                プライバシーポリシー
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShowDisclaimer}>
+                <FileText className="w-4 h-4 mr-2" />
+                免責事項
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShowExternalServices}>
+                <ExternalLink className="w-4 h-4 mr-2" />
+                外部サービス一覧
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Legal Document Dialog */}
+      {legalDocument && (
+        <LegalDocumentDialog
+          open={showLegalDialog}
+          onOpenChange={setShowLegalDialog}
+          title={legalDocument.title}
+          content={legalDocument.content}
+        />
+      )}
 
       {/* Update Available Dialog */}
       <AlertDialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
