@@ -107,7 +107,7 @@ export default function LanguageTab() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            OpenAI APIは文字起こしとテキストの整形に使用されます。APIキーは{" "}
+            OpenAI APIは文字起こしとテキスト整形に使用します。APIキーは{" "}
             <a
               href="https://platform.openai.com/api-keys"
               target="_blank"

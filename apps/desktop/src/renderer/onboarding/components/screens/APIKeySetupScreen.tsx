@@ -9,6 +9,7 @@ import { NavigationButtons } from "../shared/NavigationButtons";
 import { api } from "@/trpc/react";
 import { Check, Loader2, Eye, EyeOff, Info, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface APIKeySetupScreenProps {
   onNext: () => void;
@@ -16,71 +17,81 @@ interface APIKeySetupScreenProps {
 }
 
 export function APIKeySetupScreen({ onNext, onBack }: APIKeySetupScreenProps) {
-  const [apiKey, setApiKey] = useState("");
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  // OpenAI state
+  const [openaiApiKey, setOpenaiApiKey] = useState("");
+  const [showOpenaiApiKey, setShowOpenaiApiKey] = useState(false);
+  const [isValidatingOpenai, setIsValidatingOpenai] = useState(false);
+  const [isOpenaiConnected, setIsOpenaiConnected] = useState(false);
 
-  // Get existing OpenAI config
-  const { data: openaiConfig, isLoading: isLoadingConfig } =
+  // Get existing config
+  const { data: openaiConfig, isLoading: isLoadingOpenai } =
     api.settings.getOpenAIConfig.useQuery();
 
   // Mutations
   const setOpenAIConfig = api.settings.setOpenAIConfig.useMutation();
-  const validateConnection = api.settings.validateOpenAIConnection.useMutation();
+  const validateOpenAIConnection =
+    api.settings.validateOpenAIConnection.useMutation();
 
   // Initialize from stored config
   useEffect(() => {
     if (openaiConfig?.apiKey) {
-      setApiKey(openaiConfig.apiKey);
-      setIsConnected(true);
+      setOpenaiApiKey(openaiConfig.apiKey);
+      setIsOpenaiConnected(true);
     }
   }, [openaiConfig]);
 
-  const handleValidateAndSave = async () => {
-    if (!apiKey.trim()) {
+  // OpenAI is required for transcription
+  const canContinue = isOpenaiConnected;
+
+  // Validation handler
+  const handleValidateOpenai = async () => {
+    if (!openaiApiKey.trim()) {
       toast.error("APIキーを入力してください");
       return;
     }
 
-    setIsValidating(true);
+    setIsValidatingOpenai(true);
     try {
-      const result = await validateConnection.mutateAsync({ apiKey });
+      const result = await validateOpenAIConnection.mutateAsync({
+        apiKey: openaiApiKey,
+      });
 
       if (result.success) {
-        await setOpenAIConfig.mutateAsync({ apiKey });
-        setIsConnected(true);
+        await setOpenAIConfig.mutateAsync({ apiKey: openaiApiKey });
+        setIsOpenaiConnected(true);
         toast.success("OpenAI APIキーを保存しました");
       } else {
-        setIsConnected(false);
+        setIsOpenaiConnected(false);
         toast.error(result.error || "無効なAPIキーです");
       }
     } catch (error) {
-      setIsConnected(false);
+      setIsOpenaiConnected(false);
       toast.error("APIキーの検証に失敗しました");
     } finally {
-      setIsValidating(false);
+      setIsValidatingOpenai(false);
     }
-  };
-
-  const handleContinue = () => {
-    if (!isConnected) {
-      toast.error("続行するにはOpenAI APIキーを設定してください");
-      return;
-    }
-    onNext();
   };
 
   const handleOpenPlatform = () => {
     window.open("https://platform.openai.com/api-keys", "_blank");
   };
 
-  if (isLoadingConfig) {
+  const handleContinue = () => {
+    if (!canContinue) {
+      toast.error("続行するにはOpenAI APIキーを設定してください");
+      return;
+    }
+    onNext();
+  };
+
+  if (isLoadingOpenai) {
     return (
       <OnboardingLayout
         title="APIキーの設定"
         subtitle=""
-        footer={<NavigationButtons onBack={onBack} onNext={() => {}} disableNext />}
+        footer={
+          <NavigationButtons onBack={onBack} onNext={() => {}} disableNext />
+        }
       >
         <div className="flex items-center justify-center p-6">
           <Loader2 className="h-6 w-6 animate-spin" />
@@ -92,13 +103,13 @@ export function APIKeySetupScreen({ onNext, onBack }: APIKeySetupScreenProps) {
   return (
     <OnboardingLayout
       title="APIキーの設定"
-      subtitle="音声認識にOpenAI Whisper APIを使用します"
+      subtitle="音声認識とテキスト整形に使用します"
       footer={
         <NavigationButtons
           onBack={onBack}
           onNext={handleContinue}
-          disableNext={!isConnected}
-          nextLabel={isConnected ? "続ける" : "APIキーを設定してください"}
+          disableNext={!canContinue}
+          nextLabel={canContinue ? "続ける" : "OpenAI APIキーを設定してください"}
         />
       }
     >
@@ -108,47 +119,48 @@ export function APIKeySetupScreen({ onNext, onBack }: APIKeySetupScreenProps) {
           <Info className="h-4 w-4 text-blue-500" />
           <AlertDescription>
             <div>
-              音声認識にはOpenAI Whisper APIを使用します。APIキーはOpenAIのプラットフォームから取得できます。
+              音声認識とテキスト整形に使用します。
             </div>
           </AlertDescription>
         </Alert>
 
-        {/* API Key Setup Card */}
-        <Card className="p-4">
-          <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">OpenAI APIキー</h3>
-                    {isConnected && (
-                      <span className="flex items-center gap-1 text-sm font-normal text-green-600">
-                        <Check className="h-4 w-4" />
-                        接続済み
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Whisper APIを使用するためにAPIキーが必要です
-                  </p>
+        {/* OpenAI Card */}
+        <Card
+          className={cn("overflow-hidden", isOpenaiConnected && "border-green-500/50")}
+        >
+          <div className="p-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-start gap-0.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium">OpenAI</h3>
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-600">
+                    必須
+                  </span>
+                  {isOpenaiConnected && (
+                    <span className="flex items-center gap-1 text-sm font-normal text-green-600">
+                      <Check className="h-4 w-4" />
+                      接続済み
+                    </span>
+                  )}
                 </div>
+                <p className="text-sm text-muted-foreground text-left">
+                  文字起こしとテキスト整形
+                </p>
               </div>
             </div>
 
             {/* API Key Input */}
             <div className="space-y-2">
-              <Label htmlFor="api-key">APIキー</Label>
+              <Label>APIキー</Label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Input
-                    id="api-key"
-                    type={showApiKey ? "text" : "password"}
+                    type={showOpenaiApiKey ? "text" : "password"}
                     placeholder="sk-..."
-                    value={apiKey}
+                    value={openaiApiKey}
                     onChange={(e) => {
-                      setApiKey(e.target.value);
-                      if (isConnected) setIsConnected(false);
+                      setOpenaiApiKey(e.target.value);
+                      if (isOpenaiConnected) setIsOpenaiConnected(false);
                     }}
                     className="pr-10"
                   />
@@ -157,9 +169,9 @@ export function APIKeySetupScreen({ onNext, onBack }: APIKeySetupScreenProps) {
                     variant="ghost"
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => setShowApiKey(!showApiKey)}
+                    onClick={() => setShowOpenaiApiKey(!showOpenaiApiKey)}
                   >
-                    {showApiKey ? (
+                    {showOpenaiApiKey ? (
                       <EyeOff className="h-4 w-4" />
                     ) : (
                       <Eye className="h-4 w-4" />
@@ -167,12 +179,12 @@ export function APIKeySetupScreen({ onNext, onBack }: APIKeySetupScreenProps) {
                   </Button>
                 </div>
                 <Button
-                  onClick={handleValidateAndSave}
-                  disabled={isValidating || !apiKey.trim()}
+                  onClick={handleValidateOpenai}
+                  disabled={isValidatingOpenai || !openaiApiKey.trim()}
                 >
-                  {isValidating ? (
+                  {isValidatingOpenai ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : isConnected ? (
+                  ) : isOpenaiConnected ? (
                     "更新"
                   ) : (
                     "保存"
@@ -182,32 +194,30 @@ export function APIKeySetupScreen({ onNext, onBack }: APIKeySetupScreenProps) {
             </div>
 
             {/* Get API Key Link */}
-            <div className="pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={handleOpenPlatform}
-              >
-                <ExternalLink className="h-4 w-4" />
-                OpenAI PlatformでAPIキーを取得
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={handleOpenPlatform}
+            >
+              <ExternalLink className="h-4 w-4" />
+              OpenAI PlatformでAPIキーを取得
+            </Button>
 
             {/* Features */}
-            <div className="text-sm pt-2">
+            <div className="text-sm">
               <ul className="space-y-0.5 text-muted-foreground">
                 <li className="flex items-center gap-1.5">
                   <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                  高精度な音声認識
+                  高精度な音声認識 (Whisper)
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                  高品質なテキスト整形 (GPT-4o)
                 </li>
                 <li className="flex items-center gap-1.5">
                   <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
                   多言語対応
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
-                  高速な処理
                 </li>
               </ul>
             </div>

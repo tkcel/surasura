@@ -66,10 +66,10 @@ export class TranscriptionService {
         if (!onboardingCheck?.needed) {
           dialog.showMessageBox({
             type: "warning",
-            title: "API Key Required",
-            message: "OpenAI API key is not configured.",
+            title: "APIキーが必要です",
+            message: "OpenAI APIキーが設定されていません。",
             detail:
-              "To use voice transcription, please configure your OpenAI API key in Settings.",
+              "音声入力を使用するには、設定画面でOpenAI APIキーを設定してください。",
             buttons: ["OK"],
           });
         }
@@ -322,23 +322,21 @@ export class TranscriptionService {
     } else if (!completeTranscription.trim().length) {
       logger.transcription.debug("Formatting skipped: empty transcription");
     } else {
-      // Get OpenAI API key
+      // Get active preset to determine model
+      const activePreset = await this.settingsService.getActivePreset();
+
+      // Determine model ID from preset or config
+      const modelId =
+        activePreset?.modelId ||
+        formatterConfig.modelId ||
+        (await this.settingsService.getDefaultLanguageModel()) ||
+        "gpt-4o-mini";
+
+      // Use OpenAI formatter
       const openaiConfig = await this.settingsService.getOpenAIConfig();
       if (!openaiConfig?.apiKey) {
-        logger.transcription.warn(
-          "Formatting skipped: OpenAI API key missing",
-        );
+        logger.transcription.warn("Formatting skipped: OpenAI API key missing");
       } else {
-        // Get active preset to determine model
-        const activePreset = await this.settingsService.getActivePreset();
-
-        // Use preset's model if available, otherwise fall back to default
-        const modelId =
-          activePreset?.modelId ||
-          formatterConfig.modelId ||
-          (await this.settingsService.getDefaultLanguageModel()) ||
-          "gpt-4o-mini";
-
         logger.transcription.info("Starting formatting", {
           sessionId,
           provider: "OpenAI",

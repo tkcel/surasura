@@ -43,7 +43,7 @@ export function Pricing() {
                 </span>
               </p>
               <p className="text-sm text-gray-500">
-                対応: OpenAI / Azure / Google Gemini / Anthropic Claude / Groq など
+                対応: OpenAI
               </p>
             </div>
 

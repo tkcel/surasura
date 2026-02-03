@@ -4,6 +4,10 @@ import { toast } from "sonner";
 import type { FormatterConfig, FormatPreset, PresetColorId } from "@/types/formatter";
 
 import type { ComboboxOption } from "@/components/ui/combobox";
+import {
+  LANGUAGE_MODEL_COSTS,
+  formatLanguageCost,
+} from "../../../../../../constants/model-costs";
 
 // Helper to find the scroll container and preserve scroll position
 function getScrollContainer(): HTMLElement | null {
@@ -255,10 +259,12 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
 
   const formattingOptions = useMemo<ComboboxOption[]>(() => {
     if (!hasOpenAIKey) return [];
-    return [
-      { value: "gpt-4o-mini", label: "GPT-4o Mini" },
-      { value: "gpt-4o", label: "GPT-4o" },
-    ];
+
+    return LANGUAGE_MODEL_COSTS.map((m) => ({
+      value: m.id,
+      label: m.name,
+      description: `${m.description} · ${formatLanguageCost(m)}`,
+    }));
   }, [hasOpenAIKey]);
 
   // Handlers
@@ -357,7 +363,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       return;
     }
 
-    const modelId = editModelId as "gpt-4o-mini" | "gpt-4o";
+    const modelId = editModelId as "gpt-4.1-nano" | "gpt-4o-mini" | "gpt-4.1-mini" | "gpt-4.1" | "gpt-4o";
 
     if (isCreatingNew) {
       createPresetMutation.mutate({

@@ -18,15 +18,26 @@ import { Link } from "@tanstack/react-router";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { useFormattingSettings } from "../hooks/use-formatting-settings";
 import { cn } from "@/lib/utils";
 import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
+import {
+  getLanguageModelCost,
+  getSpeedLabel,
+  getQualityLabel,
+  formatLanguageCost,
+} from "../../../../../../constants/model-costs";
 
 const MODEL_LABELS: Record<string, string> = {
+  "gpt-4.1-nano": "GPT-4.1 Nano",
   "gpt-4o-mini": "GPT-4o Mini",
+  "gpt-4.1-mini": "GPT-4.1 Mini",
+  "gpt-4.1": "GPT-4.1",
   "gpt-4o": "GPT-4o",
 };
 
@@ -276,7 +287,7 @@ export function FormattingSettings() {
                 {/* Color Selection */}
                 <div>
                   <Label className="text-sm mb-1.5 block">アイコンの色</Label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     {PRESET_COLORS.map((color) => (
                       <Tooltip key={color.id} delayDuration={100}>
                         <TooltipTrigger asChild>
@@ -284,9 +295,9 @@ export function FormattingSettings() {
                             type="button"
                             onClick={() => handleEditColorChange(color.id as PresetColorId)}
                             className={cn(
-                              "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                              "hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary",
-                              editColor === color.id && "ring-2 ring-offset-2 ring-primary"
+                              "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                              "hover:bg-muted focus:outline-none",
+                              editColor === color.id && "bg-muted scale-110"
                             )}
                           >
                             <Sparkles className={cn("w-5 h-5", color.class)} />
@@ -303,12 +314,35 @@ export function FormattingSettings() {
                 {/* Model Selection */}
                 <div>
                   <Label className="text-sm mb-1.5 block">使用モデル</Label>
-                  <Combobox
-                    options={formattingOptions}
-                    value={editModelId}
-                    onChange={handleEditModelChange}
-                    placeholder="モデルを選択..."
-                  />
+                  <div className="flex items-center gap-2">
+                    <Combobox
+                      options={formattingOptions}
+                      value={editModelId}
+                      onChange={handleEditModelChange}
+                      placeholder="モデルを選択..."
+                    />
+                    {(() => {
+                      const modelInfo = getLanguageModelCost(editModelId);
+                      return modelInfo ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="secondary" className="text-xs cursor-help">
+                                {getSpeedLabel(modelInfo.speed)} / {getQualityLabel(modelInfo.quality)}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-sm">
+                                <p className="font-medium">{modelInfo.name}</p>
+                                <p className="text-muted-foreground">{modelInfo.description}</p>
+                                <p className="mt-1">コスト: {formatLanguageCost(modelInfo)}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : null;
+                    })()}
+                  </div>
                 </div>
 
                 {/* Instructions */}

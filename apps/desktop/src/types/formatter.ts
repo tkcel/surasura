@@ -10,10 +10,18 @@ export const PRESET_COLORS = [
 
 export type PresetColorId = (typeof PRESET_COLORS)[number]["id"];
 
+// サポートされるモデルID
+export type FormatterModelId =
+  | "gpt-4.1-nano"
+  | "gpt-4o-mini"
+  | "gpt-4.1-mini"
+  | "gpt-4.1"
+  | "gpt-4o";
+
 export interface FormatPreset {
   id: string;
   name: string; // 最大20文字
-  modelId: "gpt-4o-mini" | "gpt-4o";
+  modelId: FormatterModelId;
   instructions: string; // 最大2000文字
   isDefault: boolean;
   color: PresetColorId; // プリセットの色

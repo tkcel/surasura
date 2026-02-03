@@ -22,6 +22,7 @@ import {
 export interface ComboboxOption {
   value: string;
   label: string;
+  description?: string;
   disabled?: boolean;
   disabledReason?: string;
 }
@@ -77,11 +78,18 @@ export function Combobox({
                   >
                     <CheckIcon
                       className={cn(
-                        "mr-2 h-4 w-4",
+                        "mr-2 h-4 w-4 shrink-0",
                         value === option.value ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    {option.label}
+                    <div className="flex flex-col">
+                      <span>{option.label}</span>
+                      {option.description && (
+                        <span className="text-[10px] text-muted-foreground">
+                          {option.description}
+                        </span>
+                      )}
+                    </div>
                   </CommandItem>
                   {option.disabled && option.disabledReason && (
                     <p className="text-[10px] text-muted-foreground px-2 pb-1 -mt-0.5">
