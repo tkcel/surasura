@@ -1,9 +1,13 @@
 # surasura
 
-AI音声入力アプリ
+![surasura](assets/thumbnail.png)
 
-surasuraは、お好みのAIモデルを使って音声入力ができるデスクトップアプリです。
-OpenAIのWhisperとGPTを使用して、高精度な音声認識とインテリジェントなテキスト整形機能を提供します。
+AI音声入力アプリ「**surasura**」
+
+surasuraは、OpenAI APIを使った音声入力デスクトップアプリです。
+Whisperによる高精度な音声認識と、GPTによるインテリジェントなテキスト整形機能を提供します。
+
+サイトは[こちら](https://www.sura2.net)です。
 
 ## ベースプロジェクト
 
