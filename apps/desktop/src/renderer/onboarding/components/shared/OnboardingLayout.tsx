@@ -29,6 +29,12 @@ export function OnboardingLayout({
         className,
       )}
     >
+      {/* Draggable title bar area */}
+      <div
+        className="absolute top-0 left-0 right-0 h-8"
+        style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
+      />
+
       {/* Scrollable content area */}
       <div className="flex-1 w-full max-w-3xl overflow-auto">
         {/* Header */}
