@@ -232,12 +232,31 @@ jobs:
             echo "Warning: Could not find macOS ZIP files"
           fi
 
+      - name: Normalize Windows EXE filename
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+
+          # Find EXE file for Windows (may have spaces in name from Squirrel)
+          WIN_EXE=$(find artifacts/windows-x64 -name "*.exe" | head -1)
+
+          if [ -n "$WIN_EXE" ]; then
+            WIN_DIR=$(dirname "$WIN_EXE")
+            # Use consistent naming: surasura-VERSION-Setup.exe (with hyphen)
+            NORMALIZED_NAME="surasura-${VERSION}-Setup.exe"
+            NORMALIZED_PATH="${WIN_DIR}/${NORMALIZED_NAME}"
+
+            if [ "$WIN_EXE" != "$NORMALIZED_PATH" ]; then
+              echo "Renaming: $(basename "$WIN_EXE") -> ${NORMALIZED_NAME}"
+              mv "$WIN_EXE" "$NORMALIZED_PATH"
+            fi
+          fi
+
       - name: Generate latest.yml (Windows)
         run: |
           VERSION="${{ steps.package_version.outputs.version }}"
           RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
-          # Find EXE file for Windows
+          # Find EXE file for Windows (already normalized)
           WIN_EXE=$(find artifacts/windows-x64 -name "*.exe" | head -1)
 
           if [ -n "$WIN_EXE" ]; then
