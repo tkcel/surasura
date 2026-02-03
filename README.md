@@ -80,56 +80,6 @@ Whisperによる高精度な音声認識と、GPTによるインテリジェン�
 > **Note**
 > 本プロジェクトは個人で開発・運営しているため、IssueやPull Requestへの対応、返信が遅れる場合があります。ご了承ください。
 
-## 開発
-
-### 必要環境
-
-- Node.js 20以上
-- pnpm 10以上
-
-### セットアップ
-
-```bash
-# 依存関係のインストール
-pnpm install
-
-# 開発サーバーの起動
-pnpm dev
-```
-
-### ビルド
-
-```bash
-# macOS (arm64)
-pnpm --filter @surasura/desktop make:dmg:arm64
-
-# macOS (x64)
-pnpm --filter @surasura/desktop make:dmg:x64
-
-# Windows
-pnpm --filter @surasura/desktop make:windows
-```
-
-### リリース手順
-
-```bash
-pnpm bump 0.2.4  # 新しいバージョン番号を指定
-```
-
-このコマンド1つでバージョン更新、コミット、タグ作成、プッシュまで自動実行されます。
-詳細は [docs/リリース手順.md](./docs/リリース手順.md) を参照してください。
-
-## 技術スタック
-
-- [Electron](https://electronjs.org/) - デスクトップアプリフレームワーク
-- [React](https://react.dev/) - UIライブラリ
-- [TypeScript](https://www.typescriptlang.org/) - 型安全なJavaScript
-- [TailwindCSS](https://tailwindcss.com/) - CSSフレームワーク
-- [shadcn/ui](https://ui.shadcn.com/) - UIコンポーネント
-- [tRPC](https://trpc.io/) - 型安全なAPI
-- [Drizzle ORM](https://orm.drizzle.team/) - データベースORM
-- [Turborepo](https://turbo.build/) - モノレポ管理
-
 ## ライセンス
 
 surasura 非商用ライセンス
