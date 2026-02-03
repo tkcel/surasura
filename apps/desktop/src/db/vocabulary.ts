@@ -2,6 +2,9 @@ import { eq, desc, asc, like, count, gt, sql } from "drizzle-orm";
 import { db } from ".";
 import { vocabulary, type Vocabulary, type NewVocabulary } from "./schema";
 
+// 辞書の最大登録件数
+export const MAX_VOCABULARY_COUNT = 1000;
+
 // Create a new vocabulary word
 export async function createVocabularyWord(
   data: Omit<NewVocabulary, "id" | "createdAt" | "updatedAt">,
@@ -167,18 +170,3 @@ export async function searchVocabulary(searchTerm: string, limit = 20) {
     .limit(limit);
 }
 
-// Bulk import vocabulary words
-export async function bulkImportVocabulary(
-  words: Omit<NewVocabulary, "id" | "createdAt" | "updatedAt">[],
-) {
-  const now = new Date();
-
-  const vocabularyWords = words.map((word) => ({
-    ...word,
-    dateAdded: word.dateAdded || now,
-    createdAt: now,
-    updatedAt: now,
-  }));
-
-  return await db.insert(vocabulary).values(vocabularyWords).returning();
-}

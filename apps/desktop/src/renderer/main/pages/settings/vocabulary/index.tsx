@@ -288,8 +288,11 @@ export default function VocabularySettingsPage() {
     sortOrder: "desc",
   });
 
+  const statsQuery = api.vocabulary.getVocabularyStats.useQuery();
+
   const vocabularyItems = vocabularyQuery.data || [];
   const vocabularyLoading = vocabularyQuery.isLoading;
+  const stats = statsQuery.data;
 
   // tRPC mutations
   const utils = api.useUtils();
@@ -297,6 +300,7 @@ export default function VocabularySettingsPage() {
     api.vocabulary.createVocabularyWord.useMutation({
       onSuccess: () => {
         utils.vocabulary.getVocabulary.invalidate();
+        utils.vocabulary.getVocabularyStats.invalidate();
         toast.success("単語を追加しました");
       },
       onError: (error) => {
@@ -317,6 +321,7 @@ export default function VocabularySettingsPage() {
   const deleteVocabularyMutation = api.vocabulary.deleteVocabulary.useMutation({
     onSuccess: () => {
       utils.vocabulary.getVocabulary.invalidate();
+      utils.vocabulary.getVocabularyStats.invalidate();
       toast.success("単語を削除しました");
     },
     onError: (error) => {
@@ -417,6 +422,11 @@ export default function VocabularySettingsPage() {
           <p className="text-muted-foreground mt-1 text-sm">
             音声入力で使用するカスタム単語と置換ルールを管理します。
           </p>
+          {stats && (
+            <p className="text-muted-foreground mt-1 text-sm">
+              登録数: <span className="font-medium text-foreground">{stats.count}</span> / {stats.maxCount} 件
+            </p>
+          )}
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>

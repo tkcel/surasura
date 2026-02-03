@@ -9,9 +9,9 @@ import {
   deleteVocabulary,
   getVocabularyCount,
   searchVocabulary,
-  bulkImportVocabulary,
   trackWordUsage,
   getMostUsedWords,
+  MAX_VOCABULARY_COUNT,
 } from "../../db/vocabulary";
 
 // Input schemas
@@ -89,13 +89,6 @@ const UpdateVocabularySchema = z
     },
   );
 
-const BulkImportSchema = z.array(
-  z.object({
-    word: z.string().min(1),
-    dateAdded: z.date().optional(),
-  }),
-);
-
 export const vocabularyRouter = createRouter({
   // Get vocabulary list with pagination and filtering
   getVocabulary: procedure
@@ -110,6 +103,15 @@ export const vocabularyRouter = createRouter({
     .query(async ({ input }) => {
       return await getVocabularyCount(input.search);
     }),
+
+  // Get vocabulary count with max limit
+  getVocabularyStats: procedure.query(async () => {
+    const count = await getVocabularyCount();
+    return {
+      count,
+      maxCount: MAX_VOCABULARY_COUNT,
+    };
+  }),
 
   // Get vocabulary by ID
   getVocabularyById: procedure
@@ -148,6 +150,12 @@ export const vocabularyRouter = createRouter({
   createVocabularyWord: procedure
     .input(CreateVocabularySchema)
     .mutation(async ({ input }) => {
+      const currentCount = await getVocabularyCount();
+      if (currentCount >= MAX_VOCABULARY_COUNT) {
+        throw new Error(
+          `辞書の登録件数が上限（${MAX_VOCABULARY_COUNT}件）に達しています`,
+        );
+      }
       return await createVocabularyWord(input);
     }),
 
@@ -177,10 +185,4 @@ export const vocabularyRouter = createRouter({
       return await trackWordUsage(input.word);
     }),
 
-  // Bulk import vocabulary
-  bulkImportVocabulary: procedure
-    .input(BulkImportSchema)
-    .mutation(async ({ input }) => {
-      return await bulkImportVocabulary(input);
-    }),
 });
