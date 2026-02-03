@@ -17,8 +17,9 @@ export function usePresetNotifications() {
   useEffect(() => {
     const handlePresetNotification = (notification: PresetNotification) => {
       if (notification.type === "preset-changed") {
-        toast.success(`プリセット: ${notification.presetName}`, {
-          duration: 2000,
+        toast.success("プリセット変更完了", {
+          description: notification.presetName,
+          duration: 1000,
         });
 
         // Invalidate queries to refresh UI

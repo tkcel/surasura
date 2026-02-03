@@ -17,11 +17,21 @@ export const widgetRouter = createRouter({
       }
 
       const widgetWindow = windowManager.getWidgetWindow();
-      widgetWindow!.setIgnoreMouseEvents(input.ignore, {
-        forward: true,
-      });
-      logger.main.debug("Set widget ignore mouse events", input);
-      return true;
+      if (!widgetWindow) {
+        logger.main.error("Widget window not available");
+        return false;
+      }
+
+      try {
+        widgetWindow.setIgnoreMouseEvents(input.ignore, {
+          forward: true,
+        });
+        logger.main.debug("Set widget ignore mouse events", input);
+        return true;
+      } catch (error) {
+        logger.main.error("Failed to set widget ignore mouse events", { error });
+        return false;
+      }
     }),
 
   // Navigate to a route in the main window (show and focus it first)

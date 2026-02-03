@@ -5,6 +5,7 @@ import { useRecording } from "@/hooks/useRecording";
 import { api } from "@/trpc/react";
 import { PresetMenu } from "../../../components/PresetMenu";
 import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
+import { useMouseEventCapture } from "../../../contexts/MouseEventContext";
 
 // Get the Tailwind class for a preset color
 function getPresetColorClass(colorId: PresetColorId | undefined): string {
@@ -73,17 +74,50 @@ export const FloatingButton: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
-  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
-  const clickTimeRef = useRef<number | null>(null); // Track when user clicked
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clickTimeRef = useRef<number | null>(null);
+  const releaseMouseCaptureRef = useRef<(() => void) | null>(null);
 
-  // tRPC mutation to control widget mouse events
-  const setIgnoreMouseEvents = api.widget.setIgnoreMouseEvents.useMutation();
+  // Use centralized mouse event management
+  const { requestMouseCapture } = useMouseEventCapture();
 
   // Formatter config and active preset queries
   const { data: formatterConfig } = api.settings.getFormatterConfig.useQuery();
   const { data: activePreset } = api.settings.getActivePreset.useQuery();
   const isFormatterEnabled = formatterConfig?.enabled ?? false;
   const presets = formatterConfig?.presets ?? [];
+
+  // Determine if we need mouse capture
+  const needsMouseCapture = isHovered || showPresetMenu;
+  const prevNeedsMouseCaptureRef = useRef(needsMouseCapture);
+
+  // Sync mouse capture state with context
+  useEffect(() => {
+    const prevValue = prevNeedsMouseCaptureRef.current;
+    prevNeedsMouseCaptureRef.current = needsMouseCapture;
+
+    // Only act on actual changes
+    if (needsMouseCapture && !prevValue) {
+      // false -> true: request mouse capture
+      releaseMouseCaptureRef.current = requestMouseCapture();
+    } else if (!needsMouseCapture && prevValue) {
+      // true -> false: release mouse capture
+      if (releaseMouseCaptureRef.current) {
+        releaseMouseCaptureRef.current();
+        releaseMouseCaptureRef.current = null;
+      }
+    }
+  }, [needsMouseCapture, requestMouseCapture]);
+
+  // Separate cleanup effect for unmount only
+  useEffect(() => {
+    return () => {
+      if (releaseMouseCaptureRef.current) {
+        releaseMouseCaptureRef.current();
+        releaseMouseCaptureRef.current = null;
+      }
+    };
+  }, []);
 
   // Log component initialization
   useEffect(() => {
@@ -144,7 +178,7 @@ export const FloatingButton: React.FC = () => {
   // Handler for stop button in hands-free mode
   const handleStopClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent triggering the main button click
+    e.stopPropagation();
     console.log("FAB: Stopping hands-free recording");
     await stopRecording();
   };
@@ -152,7 +186,7 @@ export const FloatingButton: React.FC = () => {
   // Handler for cancel button
   const handleCancelClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent triggering the main button click
+    e.stopPropagation();
     console.log("FAB: Cancelling recording");
     await cancelRecording();
   };
@@ -176,50 +210,39 @@ export const FloatingButton: React.FC = () => {
   };
 
   // Close preset menu
-  const handleClosePresetMenu = async () => {
-    setShowPresetMenu(false);
-    // Minimize widget after preset selection to avoid obstructing the screen
-    setIsHovered(false);
-    // Re-enable mouse event forwarding after menu closes
-    try {
-      await setIgnoreMouseEvents.mutateAsync({ ignore: true });
-      console.debug("Re-enabled mouse event forwarding after menu close");
-    } catch (error) {
-      console.error("Failed to re-enable mouse event forwarding:", error);
+  const handleClosePresetMenu = () => {
+    // Clear any pending leave timeout
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
     }
+
+    setShowPresetMenu(false);
+    // Minimize widget after preset selection
+    setIsHovered(false);
   };
 
   // Debounced mouse leave handler
-  const handleMouseLeave = async () => {
-    // Don't disable mouse events while preset menu is open
+  const handleMouseLeave = () => {
+    // Don't start leave timer while preset menu is open
     if (showPresetMenu) {
       return;
     }
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
     }
-    leaveTimeoutRef.current = setTimeout(async () => {
+    leaveTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-      // Re-enable mouse event forwarding when not hovering
-      try {
-        await setIgnoreMouseEvents.mutateAsync({ ignore: true });
-        console.debug("Re-enabled mouse event forwarding");
-      } catch (error) {
-        console.error("Failed to re-enable mouse event forwarding:", error);
-      }
     }, DEBOUNCE_DELAY);
   };
 
-  // Mouse enter handler - clears any pending leave timeout
-  const handleMouseEnter = async () => {
+  // Mouse enter handler
+  const handleMouseEnter = () => {
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
     }
     setIsHovered(true);
-    // Disable mouse event forwarding to make widget clickable
-    await setIgnoreMouseEvents.mutateAsync({ ignore: false });
-    console.debug("Disabled mouse event forwarding for clicking");
   };
 
   const expanded = isRecording || isStopping || isHovered;
@@ -227,25 +250,22 @@ export const FloatingButton: React.FC = () => {
   // Calculate width based on state
   const getExpandedWidth = () => {
     if (!expanded) return "w-[48px]";
-    if (isRecording && isHandsFreeMode) return "w-[120px]"; // Cancel + waveform + stop
-    if (isRecording) return "w-[96px]"; // Just waveform (PTT recording)
-    // Idle/hover state: show preset name if formatter is enabled
+    if (isRecording && isHandsFreeMode) return "w-[120px]";
+    if (isRecording) return "w-[96px]";
     if (isFormatterEnabled && activePreset) {
-      return "w-[140px]"; // Preset name + waveform
+      return "w-[140px]";
     }
-    return "w-[96px]"; // Just waveform
+    return "w-[96px]";
   };
 
   // Function to render widget content based on state
   const renderWidgetContent = () => {
     if (!expanded) return null;
 
-    // Show processing indicator when stopping
     if (isStopping) {
       return <ProcessingIndicator />;
     }
 
-    // Show waveform with cancel and stop buttons in hands-free mode
     if (isRecording && isHandsFreeMode) {
       return (
         <>
@@ -265,7 +285,6 @@ export const FloatingButton: React.FC = () => {
       );
     }
 
-    // Show just waveform in PTT mode (user releases key to stop/cancel)
     if (isRecording) {
       return (
         <div className="justify-center items-center flex flex-1 gap-1">
@@ -277,8 +296,6 @@ export const FloatingButton: React.FC = () => {
       );
     }
 
-    // Show clickable waveform visualization when idle/hovered
-    // With preset name if formatter is enabled
     return (
       <button
         className="justify-center items-center flex flex-1 gap-1 h-full w-full px-2"

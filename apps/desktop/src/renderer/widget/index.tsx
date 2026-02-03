@@ -5,6 +5,7 @@ import { WidgetPage } from "./pages/widget";
 import { api, trpcClient } from "@/trpc/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToasterWrapper } from "./components/ToasterWrapper";
+import { MouseEventProvider } from "./contexts/MouseEventContext";
 import "@/styles/globals.css";
 
 // Extend Console interface to include original methods
@@ -74,8 +75,10 @@ if (container) {
     <ThemeProvider>
       <api.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          <WidgetPage />
-          <ToasterWrapper />
+          <MouseEventProvider>
+            <WidgetPage />
+            <ToasterWrapper />
+          </MouseEventProvider>
         </QueryClientProvider>
       </api.Provider>
     </ThemeProvider>,
