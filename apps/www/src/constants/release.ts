@@ -1,7 +1,7 @@
 // This file is auto-updated by the bump script
 // Do not edit manually
 
-export const RELEASE_VERSION = "0.3.2";
+export const RELEASE_VERSION = "0.3.3";
 
 const RELEASE_REPO = "tkcel/surasura";
 const BASE_URL = `https://github.com/${RELEASE_REPO}/releases/download/v${RELEASE_VERSION}`;
