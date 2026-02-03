@@ -11,7 +11,6 @@ import { createContext } from "../../trpc/context";
 import { cleanupAudioFiles } from "../../utils/audio-file-cleanup";
 import type { OnboardingService } from "../../services/onboarding-service";
 import type { RecordingManager } from "../managers/recording-manager";
-import type { RecordingState } from "../../types/recording";
 import type { SettingsService } from "../../services/settings-service";
 
 export class AppManager {
@@ -160,40 +159,14 @@ export class AppManager {
   }
 
   private setupRecordingEventListeners(
-    recordingManager: RecordingManager,
+    _recordingManager: RecordingManager,
   ): void {
-    recordingManager.on("state-changed", (state: RecordingState) => {
-      this.updateWidgetVisibility(state === "idle").catch((error) => {
-        logger.main.error("Failed to update widget visibility", error);
-      });
-    });
-
+    // Recording state changes no longer affect widget visibility
+    // Widget is always shown
     logger.main.info("Recording state listener connected in AppManager");
   }
 
   private setupSettingsEventListeners(settingsService: SettingsService): void {
-    // Handle preference changes (widget visibility, dock visibility)
-    settingsService.on(
-      "preferences-changed",
-      async ({
-        showWidgetWhileInactiveChanged,
-        showInDockChanged,
-      }: {
-        showWidgetWhileInactiveChanged: boolean;
-        showInDockChanged: boolean;
-      }) => {
-        if (showWidgetWhileInactiveChanged) {
-          const recordingManager =
-            this.serviceManager.getService("recordingManager");
-          const isIdle = recordingManager.getState() === "idle";
-          await this.updateWidgetVisibility(isIdle);
-        }
-        if (showInDockChanged) {
-          settingsService.syncDockVisibility();
-        }
-      },
-    );
-
     // Handle theme changes
     settingsService.on("theme-changed", async () => {
       await this.windowManager.updateAllWindowThemes();
@@ -231,45 +204,13 @@ export class AppManager {
     logger.main.info("Settings event listeners set up");
   }
 
-  private async updateWidgetVisibility(isIdle: boolean): Promise<void> {
-    const settingsService = this.serviceManager.getService("settingsService");
-    const preferences = await settingsService.getPreferences();
-
-    if (preferences.showWidgetWhileInactive || !isIdle) {
-      this.windowManager.showWidget();
-    } else {
-      this.windowManager.hideWidget();
-    }
-  }
-
   private async setupWindows(): Promise<void> {
     await this.windowManager.createWidgetWindow();
 
-    // AppManager decides initial widget visibility based on settings
-    const settingsService = this.serviceManager.getService("settingsService");
-    const preferences = await settingsService.getPreferences();
-    if (preferences.showWidgetWhileInactive) {
-      this.windowManager.showWidget();
-    }
+    // Always show widget
+    this.windowManager.showWidget();
 
     this.windowManager.createOrShowMainWindow();
-
-    // Apply dock visibility based on user preference (macOS only)
-    if (app.dock) {
-      if (preferences.showInDock) {
-        app.dock
-          .show()
-          .then(() => {
-            logger.main.info("Showing app in dock based on preference");
-          })
-          .catch((error) => {
-            logger.main.error("Error showing app in dock", error);
-          });
-      } else {
-        app.dock.hide();
-        logger.main.info("Hiding app from dock based on preference");
-      }
-    }
   }
 
   private async setupMenu(): Promise<void> {
@@ -352,24 +293,15 @@ export class AppManager {
     const allWindows = this.windowManager.getAllWindows();
 
     if (allWindows.every((w) => !w || w.isDestroyed())) {
-      // All windows destroyed - recreate widget with proper visibility
+      // All windows destroyed - recreate widget
       await this.windowManager.createWidgetWindow();
-      const settingsService = this.serviceManager.getService("settingsService");
-      const preferences = await settingsService.getPreferences();
-      if (preferences.showWidgetWhileInactive) {
-        this.windowManager.showWidget();
-      }
+      this.windowManager.showWidget();
     } else {
       const widgetWindow = this.windowManager.getWidgetWindow();
       if (!widgetWindow || widgetWindow.isDestroyed()) {
-        // Widget destroyed - recreate with proper visibility
+        // Widget destroyed - recreate
         await this.windowManager.createWidgetWindow();
-        const settingsService =
-          this.serviceManager.getService("settingsService");
-        const preferences = await settingsService.getPreferences();
-        if (preferences.showWidgetWhileInactive) {
-          this.windowManager.showWidget();
-        }
+        this.windowManager.showWidget();
       } else {
         widgetWindow.show();
       }

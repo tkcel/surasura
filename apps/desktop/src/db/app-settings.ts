@@ -472,8 +472,6 @@ const defaultSettings: AppSettingsData = {
   },
   preferences: {
     launchAtLogin: true,
-    showWidgetWhileInactive: true,
-    showInDock: true,
     soundEnabled: true,
   },
   transcription: {

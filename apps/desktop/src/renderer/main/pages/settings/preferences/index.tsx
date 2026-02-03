@@ -129,18 +129,6 @@ export default function PreferencesSettingsPage() {
     });
   };
 
-  const handleShowWidgetWhileInactiveChange = (checked: boolean) => {
-    updatePreferencesMutation.mutate({
-      showWidgetWhileInactive: checked,
-    });
-  };
-
-  const handleShowInDockChange = (checked: boolean) => {
-    updatePreferencesMutation.mutate({
-      showInDock: checked,
-    });
-  };
-
   const handleSoundEnabledChange = (checked: boolean) => {
     updatePreferencesMutation.mutate({
       soundEnabled: checked,
@@ -165,10 +153,7 @@ export default function PreferencesSettingsPage() {
     }
   };
 
-  const showWidgetWhileInactive =
-    preferencesQuery.data?.showWidgetWhileInactive ?? true;
   const launchAtLogin = preferencesQuery.data?.launchAtLogin ?? true;
-  const showInDock = preferencesQuery.data?.showInDock ?? true;
   const soundEnabled = preferencesQuery.data?.soundEnabled ?? true;
 
   // Permission status
@@ -304,48 +289,6 @@ export default function PreferencesSettingsPage() {
             </div>
 
             <Separator />
-
-            {/* Show Widget While Inactive Section */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-base font-medium text-foreground">
-                  非アクティブ時もウィジェットを表示
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  録音していないときもウィジェットを画面に表示し続けます
-                </p>
-              </div>
-              <Switch
-                checked={showWidgetWhileInactive}
-                onCheckedChange={handleShowWidgetWhileInactiveChange}
-                disabled={updatePreferencesMutation.isPending}
-              />
-            </div>
-
-            <Separator />
-
-            {/* Show in Dock Section (macOS only) */}
-            {isMac && (
-              <>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-base font-medium text-foreground">
-                      Dockにアプリを表示
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      macOSのDockにアプリケーションアイコンを表示します
-                    </p>
-                  </div>
-                  <Switch
-                    checked={showInDock}
-                    onCheckedChange={handleShowInDockChange}
-                    disabled={updatePreferencesMutation.isPending}
-                  />
-                </div>
-
-                <Separator />
-              </>
-            )}
 
             {/* Sound Enabled Section */}
             <div className="flex items-center justify-between">

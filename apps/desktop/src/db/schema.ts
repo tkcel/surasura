@@ -168,8 +168,6 @@ export interface AppSettingsData {
   preferences?: {
     launchAtLogin?: boolean;
     minimizeToTray?: boolean;
-    showWidgetWhileInactive?: boolean;
-    showInDock?: boolean;
     soundEnabled?: boolean;
   };
   telemetry?: {

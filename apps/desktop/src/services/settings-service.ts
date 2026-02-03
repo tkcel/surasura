@@ -28,8 +28,6 @@ export interface ShortcutsConfig {
 export interface AppPreferences {
   launchAtLogin: boolean;
   minimizeToTray: boolean;
-  showWidgetWhileInactive: boolean;
-  showInDock: boolean;
   soundEnabled: boolean;
 }
 
@@ -287,8 +285,6 @@ export class SettingsService extends EventEmitter {
     return {
       launchAtLogin: preferences?.launchAtLogin ?? true,
       minimizeToTray: preferences?.minimizeToTray ?? true,
-      showWidgetWhileInactive: preferences?.showWidgetWhileInactive ?? true,
-      showInDock: preferences?.showInDock ?? true,
       soundEnabled: preferences?.soundEnabled ?? true,
     };
   }
@@ -311,12 +307,9 @@ export class SettingsService extends EventEmitter {
       this.syncAutoLaunch();
     }
 
-    // Emit event for listeners (AppManager will handle window updates)
+    // Emit event for listeners
     this.emit("preferences-changed", {
       changes: preferences,
-      showWidgetWhileInactiveChanged:
-        preferences.showWidgetWhileInactive !== undefined,
-      showInDockChanged: preferences.showInDock !== undefined,
     });
   }
 
@@ -331,26 +324,6 @@ export class SettingsService extends EventEmitter {
         openAtLogin: preferences.launchAtLogin,
         openAsHidden: false,
       });
-    });
-  }
-
-  /**
-   * Sync the dock visibility setting with macOS
-   * This ensures the dock visibility matches our stored preference
-   */
-  syncDockVisibility(): void {
-    // Only applicable on macOS where app.dock exists
-    if (!app.dock) {
-      return;
-    }
-
-    // Get the current preference asynchronously and apply it
-    this.getPreferences().then((preferences) => {
-      if (preferences.showInDock) {
-        app.dock?.show();
-      } else {
-        app.dock?.hide();
-      }
     });
   }
 
