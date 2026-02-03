@@ -102,7 +102,6 @@ try {
   console.log(`\n📋 GitHub Actions will now:`);
   console.log(`   - Build for macOS (arm64/x64) and Windows`);
   console.log(`   - Create a draft release in this repository`);
-  console.log(`   - Create a release in surasura-releases repository`);
   console.log(`\n🔗 Check progress: https://github.com/tkcel/surasura/actions`);
 } catch (error) {
   console.error("\n❌ Git operation failed:", error.message);

@@ -75,9 +75,7 @@ Amicalの開発者の皆様に深く感謝いたします。
 
 ## インストール
 
-[Releases](https://github.com/tkcel/surasura-releases/releases)ページから最新版をダウンロードしてください。
-
-> **Note**: リリースファイルは [surasura-releases](https://github.com/tkcel/surasura-releases) リポジトリで管理しています。
+[公式サイト](https://www.sura2.net) または [Releases](https://github.com/tkcel/surasura/releases)ページから最新版をダウンロードしてください。
 
 ## コミュニティ
 

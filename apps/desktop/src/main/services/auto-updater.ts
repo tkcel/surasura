@@ -30,7 +30,7 @@ export class AutoUpdaterService extends EventEmitter {
     autoUpdater.setFeedURL({
       provider: "github",
       owner: "tkcel",
-      repo: "surasura-releases",
+      repo: "surasura",
     });
 
     // Set up event handlers
