@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Apple, Monitor, X, Cpu, Download, Check } from "lucide-react";
+import { Apple, Monitor, X, Cpu, Check } from "lucide-react";
 import { RELEASE_VERSION, DOWNLOAD_URLS } from "../../constants/release";
 
 export function Hero() {
   const [showMacModal, setShowMacModal] = useState(false);
   const [downloadingMac, setDownloadingMac] = useState<string | null>(null);
-  const [downloadingWin, setDownloadingWin] = useState(false);
 
   const handleMacDownload = (type: "arm" | "intel", url: string) => {
     setDownloadingMac(type);
@@ -14,12 +13,6 @@ export function Hero() {
       setDownloadingMac(null);
       setShowMacModal(false);
     }, 3000);
-  };
-
-  const handleWinDownload = () => {
-    setDownloadingWin(true);
-    window.location.href = DOWNLOAD_URLS.windows;
-    setTimeout(() => setDownloadingWin(false), 3000);
   };
 
   return (
@@ -78,26 +71,13 @@ export function Hero() {
             <Apple size={22} className="group-hover:scale-110 transition-transform" />
             macOS版ダウンロード
           </button>
-          <button
-            onClick={handleWinDownload}
-            disabled={downloadingWin}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-gray-900 text-white font-medium rounded-2xl hover:bg-gray-800 transition-all hover:scale-[1.02] shadow-xl shadow-gray-900/20 disabled:opacity-80"
-          >
-            {downloadingWin ? (
-              <>
-                <Download size={22} className="animate-bounce" />
-                ダウンロード中...
-              </>
-            ) : (
-              <>
-                <Monitor size={22} className="group-hover:scale-110 transition-transform" />
-                Windows版ダウンロード
-              </>
-            )}
-          </button>
+          <div className="inline-flex items-center gap-3 px-8 py-4 bg-gray-300 text-gray-500 font-medium rounded-2xl cursor-not-allowed">
+            <Monitor size={22} />
+            Windows版 Coming Soon
+          </div>
         </div>
 
-        <p className="text-sm text-gray-400">macOS 12+ / Windows 10+ 対応</p>
+        <p className="text-sm text-gray-400">macOS 12+ 対応（Windows版は近日公開）</p>
       </div>
 
       {/* macOS選択モーダル */}
