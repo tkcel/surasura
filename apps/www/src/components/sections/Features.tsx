@@ -48,7 +48,7 @@ const features = [
 
 export function Features() {
   return (
-    <section id="features" className="relative py-24 md:py-32 overflow-hidden">
+    <section id="features" className="relative py-24 md:py-32 overflow-hidden bg-nm-surface">
       {/* nyoro装飾 */}
       <img
         src="/nyoro.svg"
@@ -70,12 +70,12 @@ export function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group bg-white rounded-2xl p-7 border border-gray-100 shadow-lg shadow-gray-900/5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="group bg-nm-surface rounded-2xl p-7 shadow-nm-raised-md hover:shadow-nm-raised-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div
-                className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform`}
+                className={`w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center mb-5 group-hover:shadow-nm-raised-md transition-all duration-200`}
               >
-                <feature.icon size={22} />
+                <feature.icon size={22} className={feature.color.includes('primary') ? 'text-primary-600' : 'text-accent-500'} />
               </div>
               <h3 className="font-bold text-gray-900 mb-2 text-lg">
                 {feature.title}

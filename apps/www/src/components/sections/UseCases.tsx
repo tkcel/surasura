@@ -36,7 +36,7 @@ export function UseCases() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-20 md:py-32 bg-nm-surface">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -53,18 +53,18 @@ export function UseCases() {
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                className={`w-full text-left p-4 rounded-xl transition-all ${
+                className={`w-full text-left p-4 rounded-xl transition-all duration-200 ${
                   activeIndex === index
-                    ? "bg-primary-50 border-2 border-primary-200"
-                    : "bg-white border-2 border-transparent hover:bg-gray-50"
+                    ? "bg-nm-surface shadow-nm-inset-sm"
+                    : "bg-nm-surface shadow-nm-raised-sm hover:shadow-nm-raised-md"
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200 ${
                       activeIndex === index
-                        ? "bg-primary-100"
-                        : "bg-gray-100"
+                        ? "bg-nm-surface shadow-nm-raised-sm"
+                        : "bg-nm-surface shadow-nm-inset-sm"
                     }`}
                   >
                     <useCase.icon
@@ -88,18 +88,18 @@ export function UseCases() {
             ))}
           </div>
 
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8">
+          <div className="bg-nm-surface rounded-2xl p-8 shadow-nm-raised-lg">
             <div className="space-y-6">
               <div>
                 <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
                   入力（音声）
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-gray-200">
+                <div className="bg-nm-surface rounded-xl p-4 shadow-nm-inset-sm">
                   <p className="text-gray-700">{useCases[activeIndex].input}</p>
                 </div>
               </div>
               <div className="flex justify-center">
-                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-nm-surface shadow-nm-raised-sm rounded-full flex items-center justify-center">
                   <svg
                     className="w-4 h-4 text-primary-600"
                     fill="none"
@@ -119,7 +119,7 @@ export function UseCases() {
                 <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
                   出力（整形後）
                 </div>
-                <div className="bg-white rounded-xl p-4 border-2 border-primary-200">
+                <div className="bg-nm-surface rounded-xl p-4 shadow-nm-raised-sm">
                   <p className="text-gray-700">{useCases[activeIndex].output}</p>
                 </div>
               </div>

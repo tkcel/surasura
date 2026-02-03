@@ -26,7 +26,7 @@ const solutions = [
 
 export function Solution() {
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-20 md:py-32 bg-nm-surface">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -43,14 +43,9 @@ export function Solution() {
               key={index}
               className="relative group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-accent-500/10 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative bg-white rounded-2xl p-8 border border-gray-100 hover:border-primary-200 transition-colors h-full">
+              <div className="relative bg-nm-surface rounded-2xl p-8 shadow-nm-raised-md hover:shadow-nm-raised-lg transition-all duration-200 h-full">
                 <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${
-                    solution.color === "primary"
-                      ? "bg-primary-100"
-                      : "bg-accent-500/10"
-                  }`}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-nm-surface shadow-nm-raised-sm"
                 >
                   <solution.icon
                     size={28}

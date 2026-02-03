@@ -17,7 +17,7 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-nm-surface/90 backdrop-blur-md shadow-nm-raised-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <a href="#" className="flex items-center gap-2.5">
@@ -39,7 +39,7 @@ export function Header() {
               </a>
               <button
                 onClick={() => setShowMacModal(true)}
-                className="px-5 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-all hover:scale-[1.02] shadow-md shadow-primary-600/20"
+                className="px-5 py-2.5 text-sm font-semibold text-primary-600 bg-nm-surface rounded-xl hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-md"
               >
                 ダウンロード
               </button>
@@ -55,7 +55,7 @@ export function Header() {
           onClick={() => setShowMacModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            className="bg-nm-surface rounded-3xl p-8 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -78,9 +78,9 @@ export function Header() {
                   )
                 }
                 disabled={downloadingMac === "arm"}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group text-left disabled:bg-primary-50 disabled:border-primary-300"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-nm-surface shadow-nm-raised-sm hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 group text-left disabled:shadow-nm-inset-sm"
               >
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                <div className="w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center group-hover:shadow-nm-raised-md transition-all duration-200">
                   {downloadingMac === "arm" ? (
                     <Check size={24} className="text-primary-600" />
                   ) : (
@@ -104,9 +104,9 @@ export function Header() {
                   )
                 }
                 disabled={downloadingMac === "intel"}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group text-left disabled:bg-primary-50 disabled:border-primary-300"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-nm-surface shadow-nm-raised-sm hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 group text-left disabled:shadow-nm-inset-sm"
               >
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                <div className="w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center group-hover:shadow-nm-raised-md transition-all duration-200">
                   {downloadingMac === "intel" ? (
                     <Check size={24} className="text-primary-600" />
                   ) : (
@@ -122,8 +122,8 @@ export function Header() {
               </button>
 
               {/* Windows - Coming Soon */}
-              <div className="w-full flex items-center gap-4 p-4 rounded-2xl border border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed">
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+              <div className="w-full flex items-center gap-4 p-4 rounded-2xl bg-nm-surface shadow-nm-inset-sm opacity-60 cursor-not-allowed">
+                <div className="w-12 h-12 bg-nm-surface shadow-nm-inset-sm rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
                   </svg>

@@ -2,7 +2,7 @@ import { MessageCircle } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="bg-gray-50 border-t border-gray-100 py-12">
+    <footer className="bg-nm-surface shadow-nm-inset-sm py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col items-center gap-6">
           {/* Discord誘導 */}
@@ -14,7 +14,7 @@ export function Footer() {
               href="https://discord.gg/ffpmWv5d"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#5865F2] text-white font-medium rounded-xl hover:bg-[#4752C4] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-nm-surface text-[#5865F2] font-medium rounded-xl shadow-nm-raised-md hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200"
             >
               <MessageCircle size={18} />
               Discordで相談する

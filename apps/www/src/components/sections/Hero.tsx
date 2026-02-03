@@ -16,13 +16,20 @@ export function Hero() {
   };
 
   return (
-    <section className="relative pt-40 pb-32 md:pt-52 md:pb-44 min-h-screen flex items-center bg-gray-50 overflow-hidden">
+    <section className="relative pt-40 pb-32 md:pt-52 md:pb-44 min-h-screen flex items-center bg-nm-surface overflow-hidden">
       {/* ドットパターン背景 */}
       <div
         className="absolute inset-0 opacity-[0.4]"
         style={{
           backgroundImage: `radial-gradient(circle, #94a3b8 1px, transparent 1px)`,
           backgroundSize: "24px 24px",
+        }}
+      />
+      {/* 下部のグラデーションフェード */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+        style={{
+          background: "linear-gradient(to top, var(--color-nm-surface) 0%, transparent 100%)",
         }}
       />
 
@@ -40,10 +47,10 @@ export function Hero() {
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
         <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-          <span className="inline-flex items-center gap-2 px-4 py-2 bg-white text-primary-700 rounded-full text-sm font-medium shadow-sm border border-primary-100">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-nm-surface text-primary-700 rounded-full text-sm font-medium shadow-nm-raised-sm border-0">
             基本使用料無料・月額課金なし
           </span>
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-nm-surface text-amber-700 rounded-full text-xs font-semibold shadow-nm-raised-sm border-0">
             Beta v{RELEASE_VERSION}
           </span>
         </div>
@@ -66,12 +73,12 @@ export function Hero() {
         >
           <button
             onClick={() => setShowMacModal(true)}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-all hover:scale-[1.02] shadow-xl shadow-primary-600/20"
+            className="group inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-primary-600 font-medium rounded-2xl hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-md"
           >
             <Apple size={22} className="group-hover:scale-110 transition-transform" />
             macOS版ダウンロード
           </button>
-          <div className="inline-flex items-center gap-3 px-8 py-4 bg-gray-300 text-gray-500 font-medium rounded-2xl cursor-not-allowed">
+          <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl cursor-not-allowed shadow-nm-inset-sm">
             <Monitor size={22} />
             Windows版 Coming Soon
           </div>
@@ -87,7 +94,7 @@ export function Hero() {
           onClick={() => setShowMacModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            className="bg-nm-surface rounded-3xl p-8 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -113,9 +120,9 @@ export function Hero() {
                   )
                 }
                 disabled={downloadingMac === "arm"}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group text-left disabled:bg-primary-50 disabled:border-primary-300"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-nm-surface shadow-nm-raised-sm hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 group text-left disabled:shadow-nm-inset-sm"
               >
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                <div className="w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center group-hover:shadow-nm-raised-md transition-all duration-200">
                   {downloadingMac === "arm" ? (
                     <Check size={24} className="text-primary-600" />
                   ) : (
@@ -138,9 +145,9 @@ export function Hero() {
                   )
                 }
                 disabled={downloadingMac === "intel"}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all group text-left disabled:bg-primary-50 disabled:border-primary-300"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-nm-surface shadow-nm-raised-sm hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 group text-left disabled:shadow-nm-inset-sm"
               >
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                <div className="w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center group-hover:shadow-nm-raised-md transition-all duration-200">
                   {downloadingMac === "intel" ? (
                     <Check size={24} className="text-primary-600" />
                   ) : (
