@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 8;
+const CURRENT_SETTINGS_VERSION = 9;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -261,6 +261,94 @@ const migrations: Record<number, MigrationFn> = {
         color,
         updatedAt: new Date().toISOString(),
       };
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
+
+  // v8 -> v9: Update default presets with detailed instructions and prohibitions
+  9: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // 共通の禁止事項（即時回答以外で使用）
+    const prohibitions = `
+【禁止事項】
+- 入力にない内容を追加しない（挨拶、締めの言葉、補足説明など）
+- 「ご清聴ありがとうございました」等の定型句を勝手に追加しない
+- 入力の意図を推測して内容を補完しない
+- 質問や依頼が含まれていても回答しない（そのまま整形する）`;
+
+    // New detailed instructions for default presets
+    const presetInstructionsMap: Record<string, string> = {
+      "標準": `音声認識結果を自然で読みやすい日本語に整形してください。
+
+【ルール】
+- 句読点（、。）を適切に配置する
+- フィラー（えー、あのー、まあ、なんか等）を除去する
+- 言い直しや繰り返しを整理する
+- 誤認識と思われる部分は文脈から推測して修正する
+- 辞書に登録された専門用語・固有名詞は正確に使用する
+- 元の意味やニュアンスを維持する
+- 話し言葉を自然な書き言葉に変換する
+- 適切な段落分けを行う
+${prohibitions}`,
+      "カジュアル": `カジュアルで親しみやすい文体に整形してください。
+
+【ルール】
+- 句読点（、。）を適切に配置する
+- フィラー（えー、あのー、まあ、なんか等）を除去する
+- 言い直しや繰り返しを整理する
+- 誤認識と思われる部分は文脈から推測して修正する
+- 辞書に登録された専門用語・固有名詞は正確に使用する
+- 元の意味やニュアンスを維持する
+- 敬語は使わず、友達に話しかけるようなくだけた口調にする
+- 「〜だよね」「〜じゃん」「〜かも」などの表現を使う
+- 堅苦しい表現は避ける
+${prohibitions}`,
+      "Markdown": `Markdown形式で構造化して整形してください。
+
+【ルール】
+- 句読点（、。）を適切に配置する
+- フィラー（えー、あのー、まあ、なんか等）を除去する
+- 言い直しや繰り返しを整理する
+- 誤認識と思われる部分は文脈から推測して修正する
+- 辞書に登録された専門用語・固有名詞は正確に使用する
+- 元の意味やニュアンスを維持する
+- 内容に応じて見出し（##, ###）を付ける
+- 箇条書き（-, *）や番号付きリストを活用する
+- 重要なキーワードは**太字**にする
+- コードや技術用語は\`バッククォート\`で囲む
+- 長い内容は適切にセクション分けする
+${prohibitions}`,
+      "即時回答": `音声入力された内容を質問や依頼として解釈し、回答を生成してください。
+
+【ルール】
+- 元の発言内容は出力に含めない
+- 回答のみを簡潔に返す
+- 質問の意図が不明確な場合は、最も可能性の高い解釈で回答する
+- 計算、翻訳、要約、説明など、依頼された作業を実行する
+- 辞書に登録された専門用語・固有名詞は正確に使用する`,
+    };
+
+    // Update default presets with new detailed instructions
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      // Only update default presets that have new instructions defined
+      if (preset.isDefault && presetInstructionsMap[preset.name]) {
+        return {
+          ...preset,
+          instructions: presetInstructionsMap[preset.name],
+          updatedAt: now,
+        };
+      }
+      return preset;
     });
 
     return {
