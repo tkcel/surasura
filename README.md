@@ -9,10 +9,6 @@ Whisperによる高精度な音声認識と、GPTによるインテリジェン�
 
 サイトは[こちら](https://www.sura2.net)です。
 
-## ベースプロジェクト
-
-本プロジェクトは [Amical](https://github.com/amicalhq/amical) をベースに開発されています。開発者の皆様に感謝いたします。
-
 ## 主な機能
 
 ### 音声入力
@@ -92,5 +88,9 @@ surasura 非商用ライセンス
 
 ---
 
+## 謝辞
+
 本プロジェクトは [Amical](https://github.com/amicalhq/amical)（MITライセンス）をベースに開発されています。
+素晴らしいプロジェクトを公開してくださった開発者の皆様に心より感謝いたします。
+
 オリジナルのライセンスについては [LICENSE_ORIGINAL_AMICAL](./LICENSE_ORIGINAL_AMICAL) を参照してください。

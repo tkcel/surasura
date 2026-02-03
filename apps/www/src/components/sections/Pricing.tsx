@@ -85,16 +85,6 @@ export function Pricing() {
           <div className="mt-6 pt-6 border-t border-nm-shadow/20">
             <p className="text-xs text-gray-400 leading-relaxed">
               ※ 本ソフトウェアは個人・教育・研究・非営利目的でのみ無料でご利用いただけます。商用利用をご希望の場合は別途ライセンスが必要です。
-              本ソフトウェアは{" "}
-              <a
-                href="https://github.com/amicalhq/amical"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-gray-600"
-              >
-                Amical
-              </a>
-              （MITライセンス）をベースに開発されています。
             </p>
           </div>
         </div>
