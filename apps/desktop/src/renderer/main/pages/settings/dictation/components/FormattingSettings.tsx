@@ -163,7 +163,7 @@ export function FormattingSettings() {
             {/* Preset List */}
             {!isEditMode && presets.length > 0 && (
               <div className="space-y-2">
-                {presets.map((preset) => {
+                {presets.map((preset, index) => {
                   const isActive = activePreset?.id === preset.id;
                   return (
                     <div
@@ -180,6 +180,9 @@ export function FormattingSettings() {
                         className="flex-1 text-left"
                       >
                         <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground w-4 text-center flex-shrink-0">
+                            {index + 1}
+                          </span>
                           {isActive ? (
                             <Check className="w-4 h-4 text-primary flex-shrink-0" />
                           ) : (
