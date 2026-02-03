@@ -10,7 +10,13 @@ export function Hero() {
 
   const handleMacDownload = (type: "arm" | "intel", url: string) => {
     setDownloadingMac(type);
-    window.location.href = url;
+    // Create a temporary link with download attribute to prompt save dialog
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = ""; // Triggers "Save As" dialog
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     setTimeout(() => {
       setDownloadingMac(null);
       setShowMacModal(false);
@@ -52,8 +58,8 @@ export function Hero() {
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-nm-surface text-primary-700 rounded-full text-sm font-medium shadow-nm-raised-sm border-0">
             基本使用料無料・月額課金なし
           </span>
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-nm-surface text-amber-700 rounded-full text-xs font-semibold shadow-nm-raised-sm border-0">
-            Beta v{RELEASE_VERSION}
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-nm-surface text-gray-600 rounded-full text-xs font-semibold shadow-nm-raised-sm border-0">
+            v{RELEASE_VERSION}
           </span>
         </div>
 
@@ -98,13 +104,20 @@ export function Hero() {
               確認中...
             </div>
           ) : isAvailable ? (
-            <a
-              href={DOWNLOAD_URLS.windows}
+            <button
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = DOWNLOAD_URLS.windows;
+                link.download = "";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
               className="group inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-700 font-semibold rounded-2xl hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-sm"
             >
               <Monitor size={22} className="group-hover:scale-110 transition-transform" />
               Windows版ダウンロード
-            </a>
+            </button>
           ) : (
             <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl cursor-not-allowed shadow-nm-inset-sm">
               <Monitor size={22} />
