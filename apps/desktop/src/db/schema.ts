@@ -189,9 +189,6 @@ export interface AppSettingsData {
       followed: boolean; // Whether user followed recommendation
     };
   };
-  guides?: {
-    hasSeenDictationFlow?: boolean; // 音声入力設定画面の処理フローガイドを見たか
-  };
 }
 
 // Export types for TypeScript

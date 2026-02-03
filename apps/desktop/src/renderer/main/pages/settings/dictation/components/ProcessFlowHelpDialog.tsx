@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import { ProcessFlowDiagram } from "./ProcessFlowDiagram";
-import { api } from "@/trpc/react";
 
 interface ProcessFlowHelpDialogProps {
   children?: React.ReactNode;
@@ -17,26 +16,9 @@ interface ProcessFlowHelpDialogProps {
 
 export function ProcessFlowHelpDialog({ children }: ProcessFlowHelpDialogProps) {
   const [open, setOpen] = useState(false);
-  const { data: guidesState, isLoading } = api.settings.getGuidesState.useQuery();
-  const markGuideSeenMutation = api.settings.markGuideSeen.useMutation();
-
-  // 初回アクセス時に自動でモーダルを開く
-  useEffect(() => {
-    if (!isLoading && guidesState && !guidesState.hasSeenDictationFlow) {
-      setOpen(true);
-    }
-  }, [isLoading, guidesState]);
-
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    // モーダルを閉じた時にガイドを見たとマーク
-    if (!newOpen && !guidesState?.hasSeenDictationFlow) {
-      markGuideSeenMutation.mutate({ guide: "dictationFlow" });
-    }
-  };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
           <button
@@ -94,7 +76,7 @@ export function ProcessFlowHelpDialog({ children }: ProcessFlowHelpDialogProps) 
           </div>
 
           <div className="flex justify-end pt-2">
-            <Button onClick={() => handleOpenChange(false)}>
+            <Button onClick={() => setOpen(false)}>
               閉じる
             </Button>
           </div>

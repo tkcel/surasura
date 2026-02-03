@@ -962,59 +962,5 @@ export const settingsRouter = createRouter({
       throw new Error("Failed to reset app");
     }
   }),
-
-  // Get guides state (which guides have been seen)
-  getGuidesState: procedure.query(async ({ ctx }) => {
-    try {
-      const settingsService = ctx.serviceManager.getService("settingsService");
-      if (!settingsService) {
-        throw new Error("SettingsService not available");
-      }
-      const allSettings = await settingsService.getAllSettings();
-      return allSettings.guides ?? {};
-    } catch (error) {
-      const logger = ctx.serviceManager.getLogger();
-      if (logger) {
-        logger.main.error("Error getting guides state:", error);
-      }
-      return {};
-    }
-  }),
-
-  // Mark a guide as seen
-  markGuideSeen: procedure
-    .input(z.object({ guide: z.enum(["dictationFlow"]) }))
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const settingsService =
-          ctx.serviceManager.getService("settingsService");
-        if (!settingsService) {
-          throw new Error("SettingsService not available");
-        }
-
-        const allSettings = await settingsService.getAllSettings();
-        const currentGuides = allSettings.guides ?? {};
-
-        const updatedGuides = {
-          ...currentGuides,
-          ...(input.guide === "dictationFlow" && { hasSeenDictationFlow: true }),
-        };
-
-        await settingsService.setGuidesState(updatedGuides);
-
-        const logger = ctx.serviceManager.getLogger();
-        if (logger) {
-          logger.main.info("Guide marked as seen:", { guide: input.guide });
-        }
-
-        return { success: true };
-      } catch (error) {
-        const logger = ctx.serviceManager.getLogger();
-        if (logger) {
-          logger.main.error("Error marking guide as seen:", error);
-        }
-        throw error;
-      }
-    }),
 });
 // This comment prevents prettier from removing the trailing newline
