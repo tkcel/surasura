@@ -1,12 +1,5 @@
 import { sql } from "drizzle-orm";
-import {
-  sqliteTable,
-  text,
-  integer,
-  real,
-  index,
-  primaryKey,
-} from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 // Transcriptions table
 export const transcriptions = sqliteTable("transcriptions", {
@@ -60,51 +53,6 @@ export const appSettings = sqliteTable("app_settings", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
-
-// Unified models table for all model types (Whisper, Language, Embedding)
-export const models = sqliteTable(
-  "models",
-  {
-    // Identity
-    id: text("id").notNull(),
-    provider: text("provider").notNull(), // "local-whisper", "openrouter", "ollama"
-
-    // Common fields
-    name: text("name").notNull(),
-    type: text("type").notNull(), // "speech", "language", "embedding"
-    size: text("size"), // Model size string (e.g., "7B", "Large", "~78 MB")
-    context: text("context"), // Context window (e.g., "32k", "128k")
-    description: text("description"),
-
-    // Local model fields (only for downloaded Whisper models)
-    localPath: text("local_path"), // Where file is stored on disk
-    sizeBytes: integer("size_bytes"), // Actual file size in bytes
-    checksum: text("checksum"), // SHA-1 hash for verification
-    downloadedAt: integer("downloaded_at", { mode: "timestamp" }),
-
-    // Remote model fields (OpenRouter/Ollama)
-    originalModel: text("original_model", { mode: "json" }), // Original API response
-
-    // Model characteristics (for UI display)
-    speed: real("speed"), // 1-5 rating
-    accuracy: real("accuracy"), // 1-5 rating
-
-    // Timestamps
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
-    updatedAt: integer("updated_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
-  },
-  (table) => [
-    // Composite primary key on (provider, id)
-    primaryKey({ columns: [table.provider, table.id] }),
-    // Indexes for efficient lookups
-    index("models_provider_idx").on(table.provider),
-    index("models_type_idx").on(table.type),
-  ],
-);
 
 // Define the shape of our settings JSON
 export interface AppSettingsData {
@@ -194,7 +142,5 @@ export type Transcription = typeof transcriptions.$inferSelect;
 export type NewTranscription = typeof transcriptions.$inferInsert;
 export type Vocabulary = typeof vocabulary.$inferSelect;
 export type NewVocabulary = typeof vocabulary.$inferInsert;
-export type Model = typeof models.$inferSelect;
-export type NewModel = typeof models.$inferInsert;
 export type AppSettings = typeof appSettings.$inferSelect;
 export type NewAppSettings = typeof appSettings.$inferInsert;

@@ -906,12 +906,12 @@ export const settingsRouter = createRouter({
       return true;
     }),
 
-  // Reset app - deletes database and models, then restarts
+  // Reset app - deletes all user data, then restarts
   resetApp: procedure.mutation(async ({ ctx }) => {
     try {
       const logger = ctx.serviceManager.getLogger();
       if (logger) {
-        logger.main.info("Resetting app - deleting database and models");
+        logger.main.info("Resetting app - deleting all user data");
       }
 
       // Close database connection before deleting
@@ -928,9 +928,17 @@ export const settingsRouter = createRouter({
       await fs.rm(`${dbFile}-wal`, { force: true }).catch(() => {});
       await fs.rm(`${dbFile}-shm`, { force: true }).catch(() => {});
 
-      // Delete models directory
-      const modelsDir = path.join(userDataPath, "models");
-      await fs.rm(modelsDir, { recursive: true, force: true }).catch(() => {});
+      // Delete audio directory
+      const audioDir = path.join(userDataPath, "audio");
+      await fs.rm(audioDir, { recursive: true, force: true }).catch(() => {});
+
+      // Delete logs directory
+      const logsDir = path.join(userDataPath, "logs");
+      await fs.rm(logsDir, { recursive: true, force: true }).catch(() => {});
+
+      // Delete system logs directory (production)
+      const systemLogsDir = app.getPath("logs");
+      await fs.rm(systemLogsDir, { recursive: true, force: true }).catch(() => {});
 
       // In development, also delete the local db file if it exists
       if (process.env.NODE_ENV === "development" || !app.isPackaged) {

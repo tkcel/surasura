@@ -439,6 +439,8 @@ export default function PreferencesSettingsPage() {
                           <li>すべての文字起こし履歴</li>
                           <li>辞書データ</li>
                           <li>すべての設定</li>
+                          <li>録音した音声ファイル</li>
+                          <li>ログファイル</li>
                         </ul>
                         <br />
                         アプリは初期状態で再起動されます。
