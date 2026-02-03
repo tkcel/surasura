@@ -5,9 +5,6 @@ import {
   Keyboard,
   ClipboardPaste,
   History,
-  Wand2,
-  BookText,
-  XCircle,
 } from "lucide-react";
 
 const features = [
@@ -46,24 +43,6 @@ const features = [
     title: "履歴管理",
     description: "過去の文字起こし結果を検索・閲覧・コピー",
     color: "bg-accent-500 text-white",
-  },
-  {
-    icon: Wand2,
-    title: "AIフォーマット",
-    description: "文字起こし結果をGPTで自動整形。用途に応じた文体に",
-    color: "bg-primary-600 text-white",
-  },
-  {
-    icon: BookText,
-    title: "辞書機能",
-    description: "カスタム単語の登録で認識精度を向上",
-    color: "bg-accent-500 text-white",
-  },
-  {
-    icon: XCircle,
-    title: "録音キャンセル",
-    description: "録音中でもワンタッチでキャンセル可能",
-    color: "bg-primary-600 text-white",
   },
 ];
 
