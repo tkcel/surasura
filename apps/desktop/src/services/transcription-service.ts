@@ -12,7 +12,7 @@ import { SettingsService } from "../services/settings-service";
 import type { NativeBridge } from "./platform/native-bridge-service";
 import type { OnboardingService } from "./onboarding-service";
 import { createTranscription } from "../db/transcriptions";
-import { getVocabulary } from "../db/vocabulary";
+import { getVocabulary, MAX_VOCABULARY_COUNT } from "../db/vocabulary";
 import { logger } from "../main/logger";
 import { v4 as uuid } from "uuid";
 import { VADService } from "./vad-service";
@@ -431,7 +431,7 @@ export class TranscriptionService {
     }
 
     // Load vocabulary and replacements
-    const vocabEntries = await getVocabulary({ limit: 50 });
+    const vocabEntries = await getVocabulary({ limit: MAX_VOCABULARY_COUNT });
     for (const entry of vocabEntries) {
       if (entry.isReplacement) {
         context.sharedData.replacements.set(

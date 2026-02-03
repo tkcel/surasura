@@ -3,7 +3,7 @@ import { db } from ".";
 import { vocabulary, type Vocabulary, type NewVocabulary } from "./schema";
 
 // 辞書の最大登録件数
-export const MAX_VOCABULARY_COUNT = 1000;
+export const MAX_VOCABULARY_COUNT = 500;
 
 // Create a new vocabulary word
 export async function createVocabularyWord(
