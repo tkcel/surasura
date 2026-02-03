@@ -275,30 +275,30 @@ jobs:
           body: |
             ## Surasura Desktop v${{ steps.package_version.outputs.version }}
 
-            ### What's New
-            - Please update this section with actual changes
+            ### 変更点
+            - このセクションを実際の変更内容に更新してください
 
-            ### Downloads
+            ### ダウンロード
 
             #### macOS
-            - **Apple Silicon (M1/M2/M3)**: Download the DMG or ZIP file for arm64
-            - **Intel**: Download the DMG or ZIP file for x64
+            - **Apple Silicon (M1/M2/M3)**: arm64用のDMGまたはZIPファイルをダウンロード
+            - **Intel**: x64用のDMGまたはZIPファイルをダウンロード
 
             #### Windows
-            - **Windows (x64)**: Download the .exe installer for 64-bit Windows
+            - **Windows (x64)**: 64ビットWindows用の.exeインストーラーをダウンロード
 
-            ### Installation
+            ### インストール方法
 
-            **macOS**: 
-            - **DMG**: Download and open the DMG file, then drag Surasura to your Applications folder
-            - **ZIP**: Download and extract the ZIP file, then drag Surasura to your Applications folder
+            **macOS**:
+            - **DMG**: DMGファイルをダウンロードして開き、Surasuraをアプリケーションフォルダにドラッグしてください
+            - **ZIP**: ZIPファイルをダウンロードして解凍し、Surasuraをアプリケーションフォルダにドラッグしてください
 
             **Windows**:
-            - Download and run the .exe installer
-            - Follow the installation wizard
-            - The app will be installed to your user AppData folder and a shortcut will be created
+            - .exeインストーラーをダウンロードして実行してください
+            - インストールウィザードに従ってください
+            - アプリはAppDataフォルダにインストールされ、ショートカットが作成されます
 
-            The ZIP files are primarily for automatic updates. We recommend using the DMG files for initial installation on macOS.
+            ZIPファイルは主に自動アップデート用です。macOSへの初回インストールにはDMGファイルの使用をおすすめします。
           files: |
             artifacts/macos-arm64/*.dmg
             artifacts/macos-arm64/zip/darwin/arm64/*.zip
