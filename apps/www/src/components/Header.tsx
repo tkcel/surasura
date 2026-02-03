@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Apple, X, Cpu, Check } from "lucide-react";
+import { Apple, X, Cpu, Check, Loader2 } from "lucide-react";
 import { DOWNLOAD_URLS } from "../constants/release";
+import { useReleaseAvailability } from "../hooks/useReleaseAvailability";
 
 export function Header() {
   const [showMacModal, setShowMacModal] = useState(false);
   const [downloadingMac, setDownloadingMac] = useState<string | null>(null);
+  const { isAvailable, isLoading } = useReleaseAvailability();
 
   const handleMacDownload = (type: "arm" | "intel", url: string) => {
     setDownloadingMac(type);
@@ -37,12 +39,23 @@ export function Header() {
                 </svg>
                 GitHub
               </a>
-              <button
-                onClick={() => setShowMacModal(true)}
-                className="px-5 py-2.5 text-sm font-semibold text-primary-600 bg-nm-surface rounded-xl hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-md"
-              >
-                ダウンロード
-              </button>
+              {isLoading ? (
+                <div className="px-5 py-2.5 text-sm font-semibold text-gray-400 bg-nm-surface rounded-xl shadow-nm-inset-sm flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" />
+                  確認中
+                </div>
+              ) : isAvailable ? (
+                <button
+                  onClick={() => setShowMacModal(true)}
+                  className="px-5 py-2.5 text-sm font-semibold text-primary-600 bg-nm-surface rounded-xl hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-md"
+                >
+                  ダウンロード
+                </button>
+              ) : (
+                <div className="px-5 py-2.5 text-sm font-semibold text-gray-400 bg-nm-surface rounded-xl shadow-nm-inset-sm cursor-not-allowed">
+                  準備中
+                </div>
+              )}
             </div>
           </div>
         </div>

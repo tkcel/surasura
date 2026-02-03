@@ -1,6 +1,9 @@
-import { Apple, Monitor, Github, MessageCircle } from "lucide-react";
+import { Apple, Monitor, Github, MessageCircle, Loader2 } from "lucide-react";
+import { useReleaseAvailability } from "../../hooks/useReleaseAvailability";
 
 export function CTA() {
+  const { isAvailable, isLoading } = useReleaseAvailability();
+
   return (
     <section className="py-20 md:py-32 bg-nm-surface">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -14,13 +17,25 @@ export function CTA() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              <a
-                href="https://github.com/tkcel/surasura/releases/latest"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Apple size={20} />
-                macOS版をダウンロード
-              </a>
+              {isLoading ? (
+                <div className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-xl shadow-nm-inset-sm">
+                  <Loader2 size={20} className="animate-spin" />
+                  確認中...
+                </div>
+              ) : isAvailable ? (
+                <a
+                  href="https://github.com/tkcel/surasura/releases/latest"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  <Apple size={20} />
+                  macOS版をダウンロード
+                </a>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-xl shadow-nm-inset-sm cursor-not-allowed">
+                  <Apple size={20} />
+                  macOS版 準備中
+                </div>
+              )}
               <div className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-xl shadow-nm-inset-sm cursor-not-allowed">
                 <Monitor size={20} />
                 Windows版 近日公開

@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Apple, Monitor, X, Cpu, Check } from "lucide-react";
+import { Apple, Monitor, X, Cpu, Check, Loader2 } from "lucide-react";
 import { RELEASE_VERSION, DOWNLOAD_URLS } from "../../constants/release";
+import { useReleaseAvailability } from "../../hooks/useReleaseAvailability";
 
 export function Hero() {
   const [showMacModal, setShowMacModal] = useState(false);
   const [downloadingMac, setDownloadingMac] = useState<string | null>(null);
+  const { isAvailable, isLoading } = useReleaseAvailability();
 
   const handleMacDownload = (type: "arm" | "intel", url: string) => {
     setDownloadingMac(type);
@@ -71,13 +73,25 @@ export function Hero() {
           id="download"
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6"
         >
-          <button
-            onClick={() => setShowMacModal(true)}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-primary-600 text-white font-semibold rounded-2xl hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            <Apple size={22} className="group-hover:scale-110 transition-transform" />
-            macOS版ダウンロード
-          </button>
+          {isLoading ? (
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl shadow-nm-inset-sm">
+              <Loader2 size={22} className="animate-spin" />
+              確認中...
+            </div>
+          ) : isAvailable ? (
+            <button
+              onClick={() => setShowMacModal(true)}
+              className="group inline-flex items-center gap-3 px-8 py-4 bg-primary-600 text-white font-semibold rounded-2xl hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              <Apple size={22} className="group-hover:scale-110 transition-transform" />
+              macOS版ダウンロード
+            </button>
+          ) : (
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl cursor-not-allowed shadow-nm-inset-sm">
+              <Apple size={22} />
+              macOS版 準備中
+            </div>
+          )}
           <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl cursor-not-allowed shadow-nm-inset-sm">
             <Monitor size={22} />
             Windows版 近日公開
