@@ -218,6 +218,13 @@ export class ServiceManager {
 
   private initializeAutoUpdater(): void {
     this.autoUpdaterService = new AutoUpdaterService();
+
+    // Run update check asynchronously to not block startup
+    this.autoUpdaterService
+      .checkForUpdatesAndNotify()
+      .catch((error) => {
+        logger.updater.error("Startup update check failed", { error });
+      });
   }
 
   /**
