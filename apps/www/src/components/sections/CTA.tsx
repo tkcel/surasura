@@ -1,5 +1,6 @@
 import { Apple, Monitor, Github, MessageCircle, Loader2 } from "lucide-react";
 import { useReleaseAvailability } from "../../hooks/useReleaseAvailability";
+import { DOWNLOAD_URLS } from "../../constants/release";
 
 export function CTA() {
   const { isAvailable, isLoading } = useReleaseAvailability();
@@ -36,10 +37,20 @@ export function CTA() {
                   macOS版 準備中
                 </div>
               )}
-              <div className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-xl shadow-nm-inset-sm cursor-not-allowed">
-                <Monitor size={20} />
-                Windows版 近日公開
-              </div>
+              {isAvailable ? (
+                <a
+                  href={DOWNLOAD_URLS.windows}
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-700 font-semibold rounded-xl hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-sm"
+                >
+                  <Monitor size={20} />
+                  Windows版をダウンロード
+                </a>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-xl shadow-nm-inset-sm cursor-not-allowed">
+                  <Monitor size={20} />
+                  Windows版 準備中
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-6">

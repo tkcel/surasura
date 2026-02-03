@@ -92,13 +92,28 @@ export function Hero() {
               macOS版 準備中
             </div>
           )}
-          <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl cursor-not-allowed shadow-nm-inset-sm">
-            <Monitor size={22} />
-            Windows版 近日公開
-          </div>
+          {isLoading ? (
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl shadow-nm-inset-sm">
+              <Loader2 size={22} className="animate-spin" />
+              確認中...
+            </div>
+          ) : isAvailable ? (
+            <a
+              href={DOWNLOAD_URLS.windows}
+              className="group inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-700 font-semibold rounded-2xl hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-sm"
+            >
+              <Monitor size={22} className="group-hover:scale-110 transition-transform" />
+              Windows版ダウンロード
+            </a>
+          ) : (
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-nm-surface text-gray-400 font-medium rounded-2xl cursor-not-allowed shadow-nm-inset-sm">
+              <Monitor size={22} />
+              Windows版 準備中
+            </div>
+          )}
         </div>
 
-        <p className="text-sm text-gray-400">macOS 12+ 対応（Windows版は近日公開）</p>
+        <p className="text-sm text-gray-400">macOS 12+ / Windows 10+ 対応</p>
       </div>
 
       {/* macOS選択モーダル */}

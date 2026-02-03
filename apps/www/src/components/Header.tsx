@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Apple, X, Cpu, Check, Loader2 } from "lucide-react";
+import { Apple, X, Cpu, Check, Loader2, Monitor } from "lucide-react";
 import { DOWNLOAD_URLS } from "../constants/release";
 import { useReleaseAvailability } from "../hooks/useReleaseAvailability";
 
@@ -134,18 +134,19 @@ export function Header() {
                 </div>
               </button>
 
-              {/* Windows - Coming Soon */}
-              <div className="w-full flex items-center gap-4 p-4 rounded-2xl bg-nm-surface shadow-nm-inset-sm opacity-60 cursor-not-allowed">
-                <div className="w-12 h-12 bg-nm-surface shadow-nm-inset-sm rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
-                  </svg>
+              {/* Windows */}
+              <a
+                href={DOWNLOAD_URLS.windows}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl bg-nm-surface shadow-nm-raised-sm hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 group text-left"
+              >
+                <div className="w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center group-hover:shadow-nm-raised-md transition-all duration-200">
+                  <Monitor size={24} className="text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-gray-500">Windows</p>
-                  <p className="text-sm text-gray-400">Coming Soon</p>
+                  <p className="font-semibold text-gray-900">Windows</p>
+                  <p className="text-sm text-gray-500">Windows 10以降</p>
                 </div>
-              </div>
+              </a>
             </div>
           </div>
         </div>
