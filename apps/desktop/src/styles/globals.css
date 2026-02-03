@@ -78,6 +78,10 @@ html {
   --nm-shadow-raised-lg: var(--nm-distance-lg) var(--nm-distance-lg) var(--nm-blur-lg) var(--nm-shadow),
     calc(-1 * var(--nm-distance-lg)) calc(-1 * var(--nm-distance-lg)) var(--nm-blur-lg) var(--nm-light);
 
+  /* カード用柔らかいシャドウ（距離しっかり、ブラー大きめ） */
+  --nm-shadow-raised-soft: 6px 6px 20px var(--nm-shadow),
+    -6px -6px 20px var(--nm-light);
+
   /* 凹型シャドウ（Inset） */
   --nm-shadow-inset-sm: inset var(--nm-distance-sm) var(--nm-distance-sm) var(--nm-blur-sm) var(--nm-shadow),
     inset calc(-1 * var(--nm-distance-sm)) calc(-1 * var(--nm-distance-sm)) var(--nm-blur-sm) var(--nm-light);
@@ -177,6 +181,7 @@ html {
   --shadow-nm-raised-sm: var(--nm-shadow-raised-sm);
   --shadow-nm-raised-md: var(--nm-shadow-raised-md);
   --shadow-nm-raised-lg: var(--nm-shadow-raised-lg);
+  --shadow-nm-raised-soft: var(--nm-shadow-raised-soft);
   --shadow-nm-inset-sm: var(--nm-shadow-inset-sm);
   --shadow-nm-inset-md: var(--nm-shadow-inset-md);
   --shadow-nm-flat: var(--nm-shadow-flat);
