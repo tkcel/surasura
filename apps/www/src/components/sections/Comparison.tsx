@@ -47,7 +47,7 @@ const comparisonItems = [
 
 export function Comparison() {
   return (
-    <section className="py-20 md:py-32 bg-gray-50">
+    <section className="py-20 md:py-32 bg-nm-surface">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -59,9 +59,9 @@ export function Comparison() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-2xl overflow-hidden shadow-sm">
+          <table className="w-full bg-nm-surface rounded-2xl overflow-hidden shadow-nm-raised-lg">
             <thead>
-              <tr className="border-b border-gray-100">
+              <tr className="border-b border-nm-shadow/20">
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
                   機能
                 </th>
@@ -77,7 +77,7 @@ export function Comparison() {
               {comparisonItems.map((item, index) => (
                 <tr
                   key={index}
-                  className={index !== comparisonItems.length - 1 ? "border-b border-gray-50" : ""}
+                  className={index !== comparisonItems.length - 1 ? "border-b border-nm-shadow/10" : ""}
                 >
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {item.feature}
@@ -85,7 +85,7 @@ export function Comparison() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       {item.surasuraHas && (
-                        <div className="w-5 h-5 bg-accent-500/10 rounded-full flex items-center justify-center">
+                        <div className="w-5 h-5 bg-nm-surface shadow-nm-raised-sm rounded-full flex items-center justify-center">
                           <Check size={12} className="text-accent-600" />
                         </div>
                       )}
@@ -95,7 +95,7 @@ export function Comparison() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       {!item.othersHas && (
-                        <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center">
+                        <div className="w-5 h-5 bg-nm-surface shadow-nm-inset-sm rounded-full flex items-center justify-center">
                           <X size={12} className="text-gray-400" />
                         </div>
                       )}

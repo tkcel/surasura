@@ -29,7 +29,7 @@ const problems = [
 
 export function Problem() {
   return (
-    <section className="py-20 md:py-32 bg-gray-50">
+    <section className="py-20 md:py-32 bg-nm-surface">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -44,10 +44,10 @@ export function Problem() {
           {problems.map((problem, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              className="bg-nm-surface rounded-2xl p-6 md:p-8 shadow-nm-raised-md hover:shadow-nm-raised-lg transition-all duration-200"
             >
               <div className="flex items-start gap-4">
-                <div className="shrink-0 w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+                <div className="shrink-0 w-12 h-12 bg-nm-surface shadow-nm-inset-sm rounded-xl flex items-center justify-center">
                   <problem.icon size={24} className="text-red-500" />
                 </div>
                 <div>

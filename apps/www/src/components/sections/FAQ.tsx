@@ -33,7 +33,7 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-20 md:py-32 bg-gray-50">
+    <section id="faq" className="py-20 md:py-32 bg-nm-surface">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -48,7 +48,9 @@ export function FAQ() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl border border-gray-100 overflow-hidden"
+              className={`bg-nm-surface rounded-xl overflow-hidden transition-all duration-200 ${
+                openIndex === index ? "shadow-nm-inset-sm" : "shadow-nm-raised-sm"
+              }`}
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
