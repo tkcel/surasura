@@ -31,7 +31,7 @@ export interface FormatPreset {
   name: string; // 最大20文字
   type?: PresetTypeId; // プリセットのタイプ（整形 or 回答）- 未設定の場合は "formatting" として扱う
   modelId: FormatterModelId;
-  instructions: string; // 最大2000文字
+  instructions: string; // 最大1000文字
   isDefault: boolean;
   color: PresetColorId; // プリセットの色
   createdAt: string; // ISO 8601

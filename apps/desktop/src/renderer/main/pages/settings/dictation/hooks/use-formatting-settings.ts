@@ -29,7 +29,7 @@ function preserveScrollPosition(action: () => void) {
 
 const MAX_PRESETS = 5;
 const MAX_NAME_LENGTH = 20;
-const MAX_INSTRUCTIONS_LENGTH = 2000;
+const MAX_INSTRUCTIONS_LENGTH = 1000;
 
 // タイプ別のデフォルト指示文
 const DEFAULT_INSTRUCTIONS_BY_TYPE: Record<PresetTypeId, string> = {

@@ -364,8 +364,8 @@ export class SettingsService extends EventEmitter {
       throw new Error("Preset name must be 20 characters or less");
     }
 
-    if (preset.instructions.length > 2000) {
-      throw new Error("Instructions must be 2000 characters or less");
+    if (preset.instructions.length > 1000) {
+      throw new Error("Instructions must be 1000 characters or less");
     }
 
     const now = new Date().toISOString();
@@ -410,9 +410,9 @@ export class SettingsService extends EventEmitter {
 
     if (
       updates.instructions !== undefined &&
-      updates.instructions.length > 2000
+      updates.instructions.length > 1000
     ) {
-      throw new Error("Instructions must be 2000 characters or less");
+      throw new Error("Instructions must be 1000 characters or less");
     }
 
     const updatedPreset: FormatPreset = {

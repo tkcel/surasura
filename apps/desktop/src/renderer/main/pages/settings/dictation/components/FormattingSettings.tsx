@@ -1,7 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
   Plus,
@@ -24,7 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { useFormattingSettings } from "../hooks/use-formatting-settings";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -33,13 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +50,8 @@ import {
   getQualityLabel,
   formatLanguageCost,
 } from "../../../../../../constants/model-costs";
+import { InstructionsEditor, type InstructionsEditorHandle } from "./InstructionsEditor";
+import { FORMATTING_VARIABLES, type FormattingVariableKey } from "../constants/formatting-variables";
 
 const MODEL_LABELS: Record<string, string> = {
   "gpt-4.1-nano": "GPT-4.1 Nano",
@@ -109,29 +104,20 @@ export function FormattingSettings() {
     handleCancelTypeChange,
   } = useFormattingSettings();
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const instructionsEditorRef = useRef<InstructionsEditorHandle>(null);
   const [isVariableHelpOpen, setIsVariableHelpOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isEditingInstructions, setIsEditingInstructions] = useState(false);
+
+  // ドロワーが閉じた時に編集状態をリセット
+  useEffect(() => {
+    if (!isEditMode) {
+      setIsEditingInstructions(false);
+    }
+  }, [isEditMode]);
 
   const insertVariable = (variable: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const newValue =
-      editInstructions.slice(0, start) +
-      variable +
-      editInstructions.slice(end);
-
-    handleEditInstructionsChange(newValue);
-
-    // カーソル位置を挿入した変数の後ろに移動
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const newPosition = start + variable.length;
-      textarea.setSelectionRange(newPosition, newPosition);
-    });
+    instructionsEditorRef.current?.insertVariable(variable);
   };
 
   const nameLength = editName.length;
@@ -308,17 +294,6 @@ export function FormattingSettings() {
           className="h-[90vh] rounded-t-2xl overflow-hidden"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <SheetHeader>
-            <SheetTitle>
-              {isCreatingNew ? "新規プリセット" : "プリセットを編集"}
-            </SheetTitle>
-            <SheetDescription>
-              {isCreatingNew
-                ? "新しいフォーマットプリセットを作成します"
-                : "プリセットの設定を編集します"}
-            </SheetDescription>
-          </SheetHeader>
-
           <div className="space-y-6 p-4 flex-1 overflow-y-auto">
             {/* Preset Name */}
             <div>
@@ -451,48 +426,20 @@ export function FormattingSettings() {
               {/* Variable Buttons */}
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs text-muted-foreground">変数を挿入:</span>
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2 text-xs font-mono"
-                      onClick={() => insertVariable("{{transcription}}")}
-                    >
-                      transcription
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>音声認識結果</TooltipContent>
-                </Tooltip>
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2 text-xs font-mono"
-                      onClick={() => insertVariable("{{clipboard}}")}
-                    >
-                      clipboard
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>クリップボードの内容</TooltipContent>
-                </Tooltip>
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2 text-xs font-mono"
-                      onClick={() => insertVariable("{{appName}}")}
-                    >
-                      appName
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>ペースト先のアプリ名</TooltipContent>
-                </Tooltip>
+                {(Object.entries(FORMATTING_VARIABLES) as [FormattingVariableKey, typeof FORMATTING_VARIABLES[FormattingVariableKey]][]).map(([variable, { label, colorClass }]) => (
+                  <Badge
+                    key={variable}
+                    variant="secondary"
+                    className={cn(
+                      "px-2 py-1 text-xs cursor-pointer hover:opacity-80 transition-opacity",
+                      colorClass
+                    )}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => insertVariable(variable)}
+                  >
+                    {label}
+                  </Badge>
+                ))}
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
                     <Button
@@ -509,15 +456,13 @@ export function FormattingSettings() {
                 </Tooltip>
               </div>
 
-              <Textarea
-                ref={textareaRef}
+              <InstructionsEditor
+                ref={instructionsEditorRef}
                 value={editInstructions}
-                onChange={(e) =>
-                  handleEditInstructionsChange(e.target.value)
-                }
-                placeholder="例: 文末は「です・ます」調に統一してください。専門用語は英語のまま残してください。"
-                className="min-h-[300px] resize-y text-sm"
+                onChange={handleEditInstructionsChange}
                 maxLength={maxInstructionsLength + 100}
+                isEditing={isEditingInstructions}
+                onEditingChange={setIsEditingInstructions}
               />
               <p className="text-xs text-muted-foreground mt-2">
                 空欄の場合は標準のフォーマットのみ適用されます
@@ -598,42 +543,40 @@ export function FormattingSettings() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-3">
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2 mb-1">
-                  <code className="text-sm font-mono text-primary">{"{{transcription}}"}</code>
+              {(Object.entries(FORMATTING_VARIABLES) as [FormattingVariableKey, typeof FORMATTING_VARIABLES[FormattingVariableKey]][]).map(([variable, { label, colorClass }]) => (
+                <div key={variable} className="p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge
+                      variant="secondary"
+                      className={cn("px-1.5 py-0.5 text-xs", colorClass)}
+                    >
+                      {label}
+                    </Badge>
+                    <code className="text-xs font-mono text-muted-foreground">{variable}</code>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {variable === "{{transcription}}" && "音声認識結果に置き換わります。指示文の中で音声認識結果をどう扱うか明示的に指定できます。"}
+                    {variable === "{{clipboard}}" && "クリップボードの内容に置き換わります。コピーしたテキストを参照した指示を作成できます。"}
+                    {variable === "{{appName}}" && "フォーカス中のアプリケーション名に置き換わります。ペースト先のアプリに適した形式で出力するよう指示できます。"}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  音声認識結果に置き換わります。指示文の中で音声認識結果をどう扱うか明示的に指定できます。
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2 mb-1">
-                  <code className="text-sm font-mono text-primary">{"{{appName}}"}</code>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  フォーカス中のアプリケーション名に置き換わります。ペースト先のアプリに適した形式で出力するよう指示できます。
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2 mb-1">
-                  <code className="text-sm font-mono text-primary">{"{{clipboard}}"}</code>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  クリップボードの内容に置き換わります。コピーしたテキストを参照した指示を作成できます。
-                </p>
-              </div>
+              ))}
             </div>
 
             <div className="pt-2 border-t border-border">
               <p className="text-xs font-medium mb-2">使用例</p>
-              <div className="p-3 rounded-lg bg-muted/30 text-xs font-mono text-muted-foreground space-y-3">
+              <div className="p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground space-y-3">
                 <div>
-                  <p>現在「{"{{appName}}"}」を使用中です。このアプリに適した形式で「{"{{transcription}}"}」を整形してください。</p>
-                  <p className="text-muted-foreground/70 mt-1">→ ペースト先のアプリに適した形式で出力</p>
+                  <p>
+                    現在「<Badge variant="secondary" className={cn("px-1 py-0 text-xs mx-0.5", FORMATTING_VARIABLES["{{appName}}"].colorClass)}>アプリ名</Badge>」を使用中です。このアプリに適した形式で「<Badge variant="secondary" className={cn("px-1 py-0 text-xs mx-0.5", FORMATTING_VARIABLES["{{transcription}}"].colorClass)}>音声認識結果</Badge>」を整形してください。
+                  </p>
+                  <p className="text-muted-foreground/70 text-xs mt-1">→ ペースト先のアプリに適した形式で出力</p>
                 </div>
                 <div>
-                  <p>「{"{{clipboard}}"}」を参考に、「{"{{transcription}}"}」の内容を整形してください。</p>
-                  <p className="text-muted-foreground/70 mt-1">→ クリップボードのテキストを参考に整形</p>
+                  <p>
+                    「<Badge variant="secondary" className={cn("px-1 py-0 text-xs mx-0.5", FORMATTING_VARIABLES["{{clipboard}}"].colorClass)}>クリップボード</Badge>」を参考に、「<Badge variant="secondary" className={cn("px-1 py-0 text-xs mx-0.5", FORMATTING_VARIABLES["{{transcription}}"].colorClass)}>音声認識結果</Badge>」の内容を整形してください。
+                  </p>
+                  <p className="text-muted-foreground/70 text-xs mt-1">→ クリップボードのテキストを参考に整形</p>
                 </div>
               </div>
             </div>
