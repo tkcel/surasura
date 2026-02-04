@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 12;
+const CURRENT_SETTINGS_VERSION = 13;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -526,6 +526,68 @@ ${prohibitions}`,
       },
     };
   },
+
+  // v12 -> v13: Add {{appName}} variable to "標準" preset and update preset colors
+  13: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const prohibitions = `
+【禁止事項】
+- 入力にない内容を追加しない（挨拶、締めの言葉、補足説明など）
+- 「ご清聴ありがとうございました」等の定型句を勝手に追加しない
+- 入力の意図を推測して内容を補完しない
+- 質問や依頼が含まれていても回答しない（そのまま整形する）`;
+
+    // New instructions with {{appName}} variable (標準 only)
+    const presetInstructionsMap: Record<string, string> = {
+      "標準": `「{{transcription}}」を自然で読みやすい日本語に整形してください。
+
+現在のアプリ: {{appName}}
+
+【ルール】
+- 句読点（、。）を適切に配置する
+- フィラー（えー、あのー、まあ、なんか等）を除去する
+- 言い直しや繰り返しを整理する
+- 誤認識と思われる部分は文脈から推測して修正する
+- 辞書に登録された専門用語・固有名詞は正確に使用する
+- 元の意味やニュアンスを維持する
+- 話し言葉を自然な書き言葉に変換する
+- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）
+${prohibitions}`,
+    };
+
+    // New color assignments for default presets
+    const presetColorMap: Record<string, string> = {
+      "標準": "green",
+      "カジュアル": "blue",
+      "即時回答": "purple",
+    };
+
+    // Update default presets with {{appName}} variable and new colors
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.isDefault) {
+        const updates: Record<string, unknown> = { updatedAt: now };
+        if (presetInstructionsMap[preset.name]) {
+          updates.instructions = presetInstructionsMap[preset.name];
+        }
+        if (presetColorMap[preset.name]) {
+          updates.color = presetColorMap[preset.name];
+        }
+        return { ...preset, ...updates };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -609,8 +671,18 @@ const defaultSettings: AppSettingsData = {
   },
 };
 
-// Get all app settings (with automatic migration if needed)
-export async function getAppSettings(): Promise<AppSettingsData> {
+// Track whether migrations have been run this session
+let migrationCompleted = false;
+
+/**
+ * Initialize settings and run migrations if needed.
+ * This should be called once at app startup.
+ */
+export async function initializeSettings(): Promise<void> {
+  if (migrationCompleted) {
+    return;
+  }
+
   const result = await db
     .select()
     .from(appSettings)
@@ -618,7 +690,10 @@ export async function getAppSettings(): Promise<AppSettingsData> {
 
   if (result.length === 0) {
     // Create default settings if none exist (includes default presets)
-    return await createDefaultSettings();
+    await createDefaultSettings();
+    migrationCompleted = true;
+    console.log("[Settings] Created default settings");
+    return;
   }
 
   const record = result[0];
@@ -665,7 +740,22 @@ export async function getAppSettings(): Promise<AppSettingsData> {
       .where(eq(appSettings.id, SETTINGS_ID));
   }
 
-  return data;
+  migrationCompleted = true;
+}
+
+// Get all app settings (migrations should already be complete via initializeSettings)
+export async function getAppSettings(): Promise<AppSettingsData> {
+  const result = await db
+    .select()
+    .from(appSettings)
+    .where(eq(appSettings.id, SETTINGS_ID));
+
+  if (result.length === 0) {
+    // Fallback: create default settings if none exist
+    return await createDefaultSettings();
+  }
+
+  return result[0].data;
 }
 
 // Update app settings (shallow merge at top level only)
@@ -783,7 +873,7 @@ export function generateDefaultPresets() {
 - アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）
 ${prohibitions}`,
       isDefault: true,
-      color: "yellow" as const,
+      color: "green" as const,
       createdAt: now,
       updatedAt: now,
     },
@@ -793,8 +883,6 @@ ${prohibitions}`,
       type: "formatting" as const,
       modelId: "gpt-4o-mini" as const,
       instructions: `「{{transcription}}」をビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
-
-現在のアプリ: {{appName}}
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -808,7 +896,7 @@ ${prohibitions}`,
 - 過度にフォーマルな表現は避け、読みやすさを重視する
 ${prohibitions}`,
       isDefault: true,
-      color: "pink" as const,
+      color: "blue" as const,
       createdAt: now,
       updatedAt: now,
     },
@@ -830,7 +918,7 @@ ${prohibitions}`,
 - 計算、要約、説明など、依頼された作業を実行する
 - 辞書に登録された専門用語・固有名詞は正確に使用する`,
       isDefault: true,
-      color: "green" as const,
+      color: "purple" as const,
       createdAt: now,
       updatedAt: now,
     },

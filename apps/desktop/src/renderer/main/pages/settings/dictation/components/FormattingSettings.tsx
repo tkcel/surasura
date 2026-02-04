@@ -461,12 +461,12 @@ export function FormattingSettings() {
                           variant="outline"
                           size="sm"
                           className="h-6 px-2 text-xs font-mono"
-                          onClick={() => insertVariable("{{selectedText}}")}
+                          onClick={() => insertVariable("{{clipboard}}")}
                         >
-                          selectedText
+                          clipboard
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>選択中のテキスト</TooltipContent>
+                      <TooltipContent>クリップボードの内容</TooltipContent>
                     </Tooltip>
                     <Tooltip delayDuration={100}>
                       <TooltipTrigger asChild>
@@ -480,7 +480,7 @@ export function FormattingSettings() {
                           appName
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>フォーカス中のアプリ名</TooltipContent>
+                      <TooltipContent>ペースト先のアプリ名</TooltipContent>
                     </Tooltip>
                     <Tooltip delayDuration={100}>
                       <TooltipTrigger asChild>
@@ -590,30 +590,34 @@ export function FormattingSettings() {
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-2 mb-1">
-                  <code className="text-sm font-mono text-primary">{"{{selectedText}}"}</code>
+                  <code className="text-sm font-mono text-primary">{"{{appName}}"}</code>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  音声入力時に選択されているテキストに置き換わります。選択テキストを参照した指示を作成できます。
+                  フォーカス中のアプリケーション名に置き換わります。ペースト先のアプリに適した形式で出力するよう指示できます。
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-2 mb-1">
-                  <code className="text-sm font-mono text-primary">{"{{appName}}"}</code>
+                  <code className="text-sm font-mono text-primary">{"{{clipboard}}"}</code>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  フォーカス中のアプリケーション名に置き換わります。アプリごとに異なる整形を適用できます。
+                  クリップボードの内容に置き換わります。コピーしたテキストを参照した指示を作成できます。
                 </p>
               </div>
             </div>
 
             <div className="pt-2 border-t border-border">
               <p className="text-xs font-medium mb-2">使用例</p>
-              <div className="p-3 rounded-lg bg-muted/30 text-xs font-mono text-muted-foreground space-y-2">
-                <p>「{"{{selectedText}}"}」を参考に、「{"{{transcription}}"}」の内容を整形してください。</p>
+              <div className="p-3 rounded-lg bg-muted/30 text-xs font-mono text-muted-foreground space-y-3">
+                <div>
+                  <p>現在「{"{{appName}}"}」を使用中です。このアプリに適した形式で「{"{{transcription}}"}」を整形してください。</p>
+                  <p className="text-muted-foreground/70 mt-1">→ ペースト先のアプリに適した形式で出力</p>
+                </div>
+                <div>
+                  <p>「{"{{clipboard}}"}」を参考に、「{"{{transcription}}"}」の内容を整形してください。</p>
+                  <p className="text-muted-foreground/70 mt-1">→ クリップボードのテキストを参考に整形</p>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                → 選択したテキストを参考にして、音声入力の内容を整形します。
-              </p>
             </div>
           </div>
         </DialogContent>

@@ -10,6 +10,7 @@ import { WindowManager } from "../core/window-manager";
 import { isMacOS, isWindows } from "../../utils/platform";
 import { OnboardingService } from "../../services/onboarding-service";
 import { runHistoryCleanup } from "../../utils/history-cleanup";
+import { initializeSettings } from "../../db/app-settings";
 
 /**
  * Service map for type-safe service access
@@ -53,6 +54,10 @@ export class ServiceManager {
     }
 
     try {
+      // Run database migrations first (before any service uses settings)
+      await initializeSettings();
+      logger.main.info("Settings migrations complete");
+
       this.initializeSettingsService();
       await this.initializeOnboardingService();
       this.initializePlatformServices();

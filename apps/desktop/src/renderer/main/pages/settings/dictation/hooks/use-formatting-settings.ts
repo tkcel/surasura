@@ -91,15 +91,13 @@ const DEFAULT_PRESETS: Record<string, { name: string; type: PresetTypeId; modelI
 - 話し言葉を自然な書き言葉に変換する
 - アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）
 ${PROHIBITIONS}`,
-    color: "yellow",
+    color: "green",
   },
   "カジュアル": {
     name: "カジュアル",
     type: "formatting",
     modelId: "gpt-4o-mini",
     instructions: `「{{transcription}}」をビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
-
-現在のアプリ: {{appName}}
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -112,7 +110,7 @@ ${PROHIBITIONS}`,
 - 「〜ですね」「〜しましょう」「〜かもしれません」など柔らかい表現を使う
 - 過度にフォーマルな表現は避け、読みやすさを重視する
 ${PROHIBITIONS}`,
-    color: "pink",
+    color: "blue",
   },
   "即時回答": {
     name: "即時回答",
@@ -130,7 +128,7 @@ ${PROHIBITIONS}`,
 - 質問の意図が不明確な場合は、最も可能性の高い解釈で回答する
 - 計算、要約、説明など、依頼された作業を実行する
 - 辞書に登録された専門用語・固有名詞は正確に使用する`,
-    color: "green",
+    color: "purple",
   },
 };
 

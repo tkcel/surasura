@@ -201,6 +201,23 @@ export class AppManager {
       },
     );
 
+    // Handle presets list updates (create, update, delete)
+    settingsService.on("presets-updated", () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      const widgetWindow = this.windowManager.getWidgetWindow();
+
+      const message = { type: "presets-updated" };
+
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("preset-notification", message);
+      }
+      if (widgetWindow && !widgetWindow.isDestroyed()) {
+        widgetWindow.webContents.send("preset-notification", message);
+      }
+
+      logger.main.debug("Presets updated notification sent to windows");
+    });
+
     logger.main.info("Settings event listeners set up");
   }
 

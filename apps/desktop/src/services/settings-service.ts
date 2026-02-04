@@ -383,6 +383,9 @@ export class SettingsService extends EventEmitter {
       presets: updatedPresets,
     });
 
+    // Emit event for cross-window sync
+    this.emit("presets-updated");
+
     return newPreset;
   }
 
@@ -427,7 +430,10 @@ export class SettingsService extends EventEmitter {
       presets: updatedPresets,
     });
 
-    // If the updated preset is the active one, emit event for cross-window sync
+    // Emit event for cross-window sync
+    this.emit("presets-updated");
+
+    // If the updated preset is the active one, also emit active-preset-changed
     if (config?.activePresetId === id) {
       this.emit("active-preset-changed", {
         presetId: id,
@@ -457,6 +463,9 @@ export class SettingsService extends EventEmitter {
       presets: updatedPresets,
       activePresetId,
     });
+
+    // Emit event for cross-window sync
+    this.emit("presets-updated");
   }
 
   /**
@@ -472,6 +481,9 @@ export class SettingsService extends EventEmitter {
       presets: defaultPresets,
       activePresetId: defaultPresets[0]?.id ?? null,
     });
+
+    // Emit event for cross-window sync
+    this.emit("presets-updated");
 
     return defaultPresets as FormatPreset[];
   }
