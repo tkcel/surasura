@@ -65,7 +65,7 @@ export function constructFormatterPrompt(
   transcriptionEmbedded: boolean;
   allowsAnswer: boolean;
 } {
-  const { vocabulary, accessibilityContext } = context;
+  const { vocabulary, accessibilityContext, clipboardText } = context;
 
   // プリセットの指示、なければデフォルト指示を使用
   let instructions = preset?.instructions?.trim() || DEFAULT_INSTRUCTIONS;
@@ -87,6 +87,7 @@ export function constructFormatterPrompt(
   instructions = replaceTemplateVariables(instructions, {
     accessibilityContext,
     transcription,
+    clipboardText,
   });
   parts.push(`\n## ユーザーからの指示\n${instructions}`);
 

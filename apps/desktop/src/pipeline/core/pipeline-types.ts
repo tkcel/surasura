@@ -33,6 +33,7 @@ export interface FormatParams {
     style?: string;
     vocabulary?: string[];
     accessibilityContext?: GetAccessibilityContextResult | null;
+    clipboardText?: string;
     previousChunk?: string;
     aggregatedTranscription?: string;
     preset?: FormatPreset | null;

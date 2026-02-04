@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 11;
+const CURRENT_SETTINGS_VERSION = 12;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -483,6 +483,49 @@ ${prohibitions}`,
       },
     };
   },
+
+  // v11 -> v12: Add {{clipboard}} variable to "即時回答" preset and remove "翻訳" preset
+  12: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // New instructions for "即時回答" with {{clipboard}}
+    const instantAnswerInstructions = `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
+
+【参考情報】
+クリップボード: {{clipboard}}
+
+【ルール】
+- 元の発言内容は出力に含めない
+- 回答のみを簡潔に返す
+- 参考情報がある場合は、それを踏まえて回答する
+- 質問の意図が不明確な場合は、最も可能性の高い解釈で回答する
+- 計算、要約、説明など、依頼された作業を実行する
+- 辞書に登録された専門用語・固有名詞は正確に使用する`;
+
+    // Update "即時回答" preset and remove "翻訳" preset
+    const updatedPresets = oldData.formatterConfig?.presets
+      ?.filter((preset) => !(preset.isDefault && preset.name === "翻訳"))
+      ?.map((preset) => {
+        if (preset.isDefault && preset.name === "即時回答") {
+          return {
+            ...preset,
+            instructions: instantAnswerInstructions,
+            updatedAt: now,
+          };
+        }
+        return preset;
+      });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -777,7 +820,7 @@ ${prohibitions}`,
       instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
-{{selectedText}}
+クリップボード: {{clipboard}}
 
 【ルール】
 - 元の発言内容は出力に含めない
@@ -788,28 +831,6 @@ ${prohibitions}`,
 - 辞書に登録された専門用語・固有名詞は正確に使用する`,
       isDefault: true,
       color: "green" as const,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: crypto.randomUUID(),
-      name: "翻訳",
-      type: "answering" as const,
-      modelId: "gpt-4o-mini" as const,
-      instructions: `以下のテキストを翻訳してください。
-
-【翻訳対象】
-{{selectedText}}
-{{transcription}}
-
-【ルール】
-- 日本語のテキストは英語に翻訳する
-- 英語のテキストは日本語に翻訳する
-- 翻訳結果のみを出力する（説明や元のテキストは含めない）
-- 自然で読みやすい表現にする
-- 専門用語は適切に訳す`,
-      isDefault: true,
-      color: "blue" as const,
       createdAt: now,
       updatedAt: now,
     },

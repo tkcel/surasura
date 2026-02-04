@@ -52,7 +52,7 @@ const DEFAULT_INSTRUCTIONS_BY_TYPE: Record<PresetTypeId, string> = {
   answering: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
-{{selectedText}}
+クリップボード: {{clipboard}}
 
 【ルール】
 - 元の発言内容は出力に含めない
@@ -121,7 +121,7 @@ ${PROHIBITIONS}`,
     instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
-{{selectedText}}
+クリップボード: {{clipboard}}
 
 【ルール】
 - 元の発言内容は出力に含めない
@@ -131,24 +131,6 @@ ${PROHIBITIONS}`,
 - 計算、要約、説明など、依頼された作業を実行する
 - 辞書に登録された専門用語・固有名詞は正確に使用する`,
     color: "green",
-  },
-  "翻訳": {
-    name: "翻訳",
-    type: "answering",
-    modelId: "gpt-4o-mini",
-    instructions: `以下のテキストを翻訳してください。
-
-【翻訳対象】
-{{selectedText}}
-{{transcription}}
-
-【ルール】
-- 日本語のテキストは英語に翻訳する
-- 英語のテキストは日本語に翻訳する
-- 翻訳結果のみを出力する（説明や元のテキストは含めない）
-- 自然で読みやすい表現にする
-- 専門用語は適切に訳す`,
-    color: "blue",
   },
 };
 

@@ -18,7 +18,7 @@ import { logger } from "../main/logger";
 import { v4 as uuid } from "uuid";
 import { VADService } from "./vad-service";
 import { Mutex } from "async-mutex";
-import { dialog } from "electron";
+import { dialog, clipboard } from "electron";
 
 /**
  * Service for audio transcription and optional formatting
@@ -558,6 +558,14 @@ export class TranscriptionService {
     // Get active preset for custom formatting instructions
     const activePreset = await this.settingsService.getActivePreset();
 
+    // Get clipboard content for {{clipboard}} template variable
+    let clipboardText: string | undefined;
+    try {
+      clipboardText = clipboard.readText();
+    } catch (error) {
+      logger.transcription.warn("Failed to read clipboard", { error });
+    }
+
     try {
       const formattedText = await provider.format({
         text,
@@ -565,6 +573,7 @@ export class TranscriptionService {
           style,
           vocabulary: session.context.sharedData.vocabulary,
           accessibilityContext: session.context.sharedData.accessibilityContext,
+          clipboardText,
           previousChunk:
             session.transcriptionResults.length > 1
               ? session.transcriptionResults[

@@ -8,9 +8,9 @@ export const TEMPLATE_VARIABLES = {
     name: "transcription",
     description: "音声認識結果",
   },
-  selectedText: {
-    name: "selectedText",
-    description: "選択中のテキスト",
+  clipboard: {
+    name: "clipboard",
+    description: "クリップボードの内容",
   },
   appName: {
     name: "appName",
@@ -26,6 +26,7 @@ export type TemplateVariableName = keyof typeof TEMPLATE_VARIABLES;
 export interface TemplateContext {
   accessibilityContext?: GetAccessibilityContextResult | null;
   transcription?: string;
+  clipboardText?: string;
 }
 
 /**
@@ -40,14 +41,17 @@ function getVariableValue(
     return context.transcription ?? "";
   }
 
+  // clipboardも特別に処理（accessibilityContextに依存しない）
+  if (variableName === "clipboard") {
+    return context.clipboardText ?? "";
+  }
+
   const axContext = context.accessibilityContext?.context;
   if (!axContext) {
     return "";
   }
 
   switch (variableName) {
-    case "selectedText":
-      return axContext.textSelection?.selectedText ?? "";
     case "appName":
       return axContext.application?.name ?? "";
     default:
