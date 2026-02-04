@@ -55,7 +55,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="hover:text-gray-600 transition-colors"
             >
-              作者: @tkcel9
+              Made with ♥ by @tkcel9
             </a>
           </div>
         </div>
