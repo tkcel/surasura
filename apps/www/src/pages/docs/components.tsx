@@ -1,5 +1,26 @@
-import { Link } from "react-router-dom";
-import { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ReactNode, useState, useCallback } from "react";
+import { Link as LinkIcon, Check, ChevronRight } from "lucide-react";
+
+// childrenからテキストを抽出してslugを生成
+function getTextContent(children: ReactNode): string {
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(getTextContent).join("");
+  if (children && typeof children === "object" && "props" in children) {
+    return getTextContent((children as { props: { children?: ReactNode } }).props.children);
+  }
+  return "";
+}
+
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 // ドキュメントのセクション見出し
 export function DocsH1({ children }: { children: ReactNode }) {
@@ -11,14 +32,40 @@ export function DocsH1({ children }: { children: ReactNode }) {
 }
 
 export function DocsH2({ children, id }: { children: ReactNode; id?: string }) {
+  const location = useLocation();
+  const [copied, setCopied] = useState(false);
+
+  const text = getTextContent(children);
+  const slug = id || generateSlug(text);
+
+  const handleCopyLink = useCallback(() => {
+    const url = `${window.location.origin}${location.pathname}#${slug}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [location.pathname, slug]);
+
   return (
     <>
       <hr className="mt-12 mb-8 border-gray-200" />
       <h2
-        id={id}
-        className="text-xl sm:text-2xl font-bold mb-4 text-gray-900 border-l-4 border-primary-500 pl-4"
+        id={slug}
+        className="group text-xl sm:text-2xl font-bold mb-4 text-gray-900 border-l-4 border-primary-500 pl-4 flex items-center gap-2"
       >
-        {children}
+        <span>{children}</span>
+        <button
+          onClick={handleCopyLink}
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-100"
+          title="リンクをコピー"
+          aria-label="リンクをコピー"
+        >
+          {copied ? (
+            <Check size={18} className="text-green-500" />
+          ) : (
+            <LinkIcon size={18} className="text-gray-400" />
+          )}
+        </button>
       </h2>
     </>
   );
@@ -230,7 +277,6 @@ export function Kbd({ children }: { children: ReactNode }) {
 }
 
 // 次へナビゲーション
-import { ChevronRight } from "lucide-react";
 import { docsSections, type DocsSectionId } from "./config";
 
 export function NextPage({ current }: { current: DocsSectionId }) {
