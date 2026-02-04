@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { api } from "@/trpc/react";
-import { RefreshCw, Check, Download, Loader2, FileText, Shield, ExternalLink } from "lucide-react";
+import { RefreshCw, Check, Download, Loader2, FileText, Shield, ExternalLink, BookOpen } from "lucide-react";
 import { LegalDocumentDialog } from "@/components/legal-document-dialog";
 import {
   getPrivacyPolicy,
@@ -24,6 +24,7 @@ import {
 } from "@surasura/legal";
 
 const DISCORD_URL = "https://discord.gg/ffpmWv5d";
+const DOCS_URL = "https://www.sura2.net/docs";
 
 type UpdateStatus =
   | "idle"
@@ -85,6 +86,12 @@ export default function AboutSettingsPage() {
   const handleOpenDiscord = async () => {
     if (window.electronAPI?.openExternal) {
       await window.electronAPI.openExternal(DISCORD_URL);
+    }
+  };
+
+  const handleOpenDocs = async () => {
+    if (window.electronAPI?.openExternal) {
+      await window.electronAPI.openExternal(DOCS_URL);
     }
   };
 
@@ -256,6 +263,19 @@ export default function AboutSettingsPage() {
             </CardContent>
           </Card>
         )}
+
+        <Card>
+          <CardContent className="space-y-3">
+            <div className="text-lg font-semibold">使い方</div>
+            <p className="text-sm text-muted-foreground">
+              基本的な使い方やよくある質問についてはドキュメントをご覧ください。
+            </p>
+            <Button variant="outline" onClick={handleOpenDocs}>
+              <BookOpen className="w-4 h-4 mr-2" />
+              使い方を見る
+            </Button>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardContent className="space-y-3">

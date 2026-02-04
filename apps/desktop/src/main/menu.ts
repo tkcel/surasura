@@ -138,6 +138,14 @@ export const setupApplicationMenu = (
       label: "ヘルプ",
       role: "help" as const,
       submenu: [
+        {
+          label: "使い方を見る",
+          click: async () => {
+            const { shell } = await import("electron");
+            shell.openExternal("https://www.sura2.net/docs");
+          },
+        },
+        { type: "separator" as const },
         ...(checkForUpdates
           ? [
               {
@@ -148,10 +156,10 @@ export const setupApplicationMenu = (
             ]
           : []),
         {
-          label: "詳しく見る",
+          label: "公式サイトを見る",
           click: async () => {
             const { shell } = await import("electron");
-            shell.openExternal("https://electronjs.org");
+            shell.openExternal("https://www.sura2.net");
           },
         },
       ],
