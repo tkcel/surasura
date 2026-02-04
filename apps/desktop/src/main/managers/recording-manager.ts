@@ -297,6 +297,10 @@ export class RecordingManager extends EventEmitter {
       const startTime = performance.now();
       logger.audio.info("RecordingManager: doStart called", { mode });
 
+      // Move widget to current cursor display before recording starts
+      const windowManager = this.serviceManager.getService("windowManager");
+      windowManager.moveWidgetToCursorDisplay();
+
       // Sync state broadcast
       this.setState("starting");
       this.setMode(mode);

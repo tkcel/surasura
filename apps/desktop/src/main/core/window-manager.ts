@@ -205,14 +205,17 @@ export class WindowManager {
   }
 
   async createWidgetWindow(): Promise<void> {
-    const mainScreen = screen.getPrimaryDisplay();
-    const widgetBounds = this.getWidgetBounds(mainScreen.workArea);
+    // Use cursor position to determine initial display (instead of primary display)
+    const cursorPoint = screen.getCursorScreenPoint();
+    const initialDisplay = screen.getDisplayNearestPoint(cursorPoint);
+    const widgetBounds = this.getWidgetBounds(initialDisplay.workArea);
 
     logger.main.info("Creating widget window", {
-      display: mainScreen.id,
-      workArea: mainScreen.workArea,
+      display: initialDisplay.id,
+      workArea: initialDisplay.workArea,
       widgetBounds,
       edgeInset: this.widgetEdgeInset,
+      cursorPoint,
     });
 
     this.widgetWindow = new BrowserWindow({
@@ -235,7 +238,7 @@ export class WindowManager {
       },
     });
 
-    this.widgetDisplayId = mainScreen.id;
+    this.widgetDisplayId = initialDisplay.id;
 
     // Set ignore mouse events with forward option - clicks go through except on widget
     this.widgetWindow.setIgnoreMouseEvents(true, { forward: true });
@@ -385,6 +388,41 @@ export class WindowManager {
     }
   }
 
+  /** Move widget to the display where the cursor is currently located */
+  moveWidgetToCursorDisplay(): void {
+    if (!this.widgetWindow || this.widgetWindow.isDestroyed()) return;
+
+    const cursorPoint = screen.getCursorScreenPoint();
+    const cursorDisplay = screen.getDisplayNearestPoint(cursorPoint);
+
+    if (cursorDisplay.id === this.widgetDisplayId) {
+      return;
+    }
+
+    logger.main.info("Moving widget to cursor display", {
+      previousDisplayId: this.widgetDisplayId,
+      newDisplayId: cursorDisplay.id,
+      cursorPoint,
+    });
+
+    this.widgetDisplayId = cursorDisplay.id;
+    this.widgetWindow.setBounds(this.getWidgetBounds(cursorDisplay.workArea));
+  }
+
+  /** Enable mouse capture on widget (clicks are captured by widget) */
+  enableWidgetMouseCapture(): void {
+    if (!this.widgetWindow || this.widgetWindow.isDestroyed()) return;
+    this.widgetWindow.setIgnoreMouseEvents(false);
+    logger.main.debug("Widget mouse capture enabled");
+  }
+
+  /** Disable mouse capture on widget (clicks pass through) */
+  disableWidgetMouseCapture(): void {
+    if (!this.widgetWindow || this.widgetWindow.isDestroyed()) return;
+    this.widgetWindow.setIgnoreMouseEvents(true, { forward: true });
+    logger.main.debug("Widget mouse capture disabled");
+  }
+
   private setupDisplayChangeNotifications(): void {
     // Set up comprehensive display event listeners
     screen.on("display-added", () => this.handleDisplayChange("display-added"));
@@ -398,8 +436,7 @@ export class WindowManager {
     // Set up focus-based display detection
     this.setupFocusBasedDisplayDetection();
 
-    // Set up cursor polling to detect when user moves to different display
-    // we want to avoid polling mechanisms, we will get back to this if current soln doesn't work
+    // Cursor polling disabled - widget moves on recording start instead
     // this.startCursorPolling();
 
     // macOS-specific workspace change notifications

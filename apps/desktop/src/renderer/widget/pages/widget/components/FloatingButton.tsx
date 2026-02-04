@@ -104,11 +104,11 @@ export const FloatingButton: React.FC = () => {
   const shouldEnableCapture = useCallback(() => {
     // Preset menu needs capture
     if (showPresetMenu) return true;
-    // Not hovering = no capture
+    // Not hovering = no capture (allows clicking other apps)
     if (!isHovered) return false;
-    // Idle = capture for interaction
+    // Hovering + idle = capture for start button
     if (isIdle) return true;
-    // Hands-free recording = capture for buttons
+    // Hovering + hands-free recording = capture for stop/cancel buttons
     if (isHandsFreeMode && isRecording) return true;
     // Everything else = no capture
     return false;
@@ -123,21 +123,23 @@ export const FloatingButton: React.FC = () => {
     }
   }, [shouldEnableCapture, enableCapture, disableCapture]);
 
-  // Force disable on recording state changes (safety measure)
+  // Handle recording state changes - only close preset menu
   const prevRecordingStateRef = useRef(recordingStatus.state);
   useEffect(() => {
     const prevState = prevRecordingStateRef.current;
     const currentState = recordingStatus.state;
     prevRecordingStateRef.current = currentState;
 
-    // On any state transition, force disable and reset hover
     if (prevState !== currentState) {
       console.log(`[FloatingButton] State change: ${prevState} -> ${currentState}`);
-      setIsHovered(false);
       setShowPresetMenu(false);
-      forceDisable();
+
+      // Reset hover when going to idle (recording finished)
+      if (currentState === "idle") {
+        setIsHovered(false);
+      }
     }
-  }, [recordingStatus.state, forceDisable]);
+  }, [recordingStatus.state]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -221,6 +223,9 @@ export const FloatingButton: React.FC = () => {
 
   const expanded = isRecording || isStopping || isHovered;
 
+  // Show pointer cursor when clickable
+  const isClickable = expanded && (isIdle || (isHandsFreeMode && isRecording));
+
   const getExpandedWidth = () => {
     if (!expanded) return "w-[48px]";
     if (isRecording && isHandsFreeMode) return "w-[120px]";
@@ -299,7 +304,7 @@ export const FloatingButton: React.FC = () => {
           ${expanded ? "h-[24px]" : "h-[8px]"} ${getExpandedWidth()}
           bg-black/70 rounded-[24px] backdrop-blur-md ring-[1px] ring-black/60 shadow-[0px_0px_15px_0px_rgba(0,0,0,0.40)]
           before:content-[''] before:absolute before:inset-[1px] before:rounded-[23px] before:outline before:outline-white/15 before:pointer-events-none
-          mb-2 cursor-pointer select-none
+          mb-2 select-none ${isClickable ? "cursor-pointer" : "cursor-default"}
         `}
         style={{ pointerEvents: "auto" }}
       >
