@@ -22,12 +22,12 @@ export function Waveform({
   const midHeight = minHeight + (maxHeight - minHeight) * 0.6;
 
   if (!isRecording) {
-    return <div className="h-[15%] w-1 rounded-full bg-white" />;
+    return <div className="h-[15%] w-[2px] rounded-full bg-white" />;
   }
 
   return (
     <motion.div
-      className="w-1 rounded-full bg-white gap-0.5"
+      className="w-[2px] rounded-full bg-white"
       style={{ height: `${silentHeight}%` }}
       animate={{
         height: voiceDetected
@@ -41,11 +41,11 @@ export function Waveform({
           : `${silentHeight}%`,
       }}
       transition={{
-        duration: voiceDetected ? 0.8 : 0.3,
+        duration: voiceDetected ? 0.6 : 0.3,
         ease: "easeInOut",
         repeat: voiceDetected ? Number.POSITIVE_INFINITY : 0,
         repeatType: "loop",
-        delay: index * 0.06,
+        delay: index * 0.03,
         type: "tween",
       }}
     />

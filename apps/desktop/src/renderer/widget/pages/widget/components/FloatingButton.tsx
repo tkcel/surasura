@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Square, X, Sparkles } from "lucide-react";
+import { Square, X, Sparkles, Play } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Waveform } from "@/components/Waveform";
 import { useRecording } from "@/hooks/useRecording";
 import { api } from "@/trpc/react";
@@ -12,7 +13,20 @@ function getPresetColorClass(colorId: PresetColorId | undefined): string {
   return color?.class ?? "text-yellow-500";
 }
 
-const NUM_WAVEFORM_BARS = 6;
+function getPresetBgColorClass(colorId: PresetColorId | undefined): string {
+  const colorMap: Record<string, string> = {
+    yellow: "bg-yellow-500",
+    blue: "bg-blue-500",
+    green: "bg-green-500",
+    pink: "bg-pink-500",
+    purple: "bg-purple-500",
+    orange: "bg-orange-500",
+  };
+  return colorMap[colorId ?? "yellow"] ?? "bg-yellow-500";
+}
+
+const NUM_WAVEFORM_BARS = 12;
+const NUM_PROCESSING_DOTS = 6;
 const HOVER_DEBOUNCE_MS = 100;
 
 const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
@@ -39,13 +53,28 @@ const CancelButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
   </button>
 );
 
-const ProcessingIndicator: React.FC = () => (
-  <div className="flex gap-[4px] items-center justify-center flex-1 h-6">
-    <div className="w-[4px] h-[4px] bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-    <div className="w-[4px] h-[4px] bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-    <div className="w-[4px] h-[4px] bg-blue-500 rounded-full animate-bounce" />
-  </div>
-);
+const ProcessingIndicator: React.FC<{ colorId?: PresetColorId }> = ({ colorId }) => {
+  const bgColor = getPresetBgColorClass(colorId);
+  return (
+    <div className="flex gap-[4px] items-center justify-center flex-1 h-6">
+      {Array.from({ length: NUM_PROCESSING_DOTS }).map((_, index) => (
+        <motion.div
+          key={index}
+          className={`w-1 h-1 ${bgColor} rounded-full`}
+          animate={{
+            y: [0, -3, 0],
+          }}
+          transition={{
+            duration: 0.6,
+            ease: "easeInOut",
+            repeat: Infinity,
+            delay: index * 0.08,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const WaveformVisualization: React.FC<{
   isRecording: boolean;
@@ -226,28 +255,59 @@ export const FloatingButton: React.FC = () => {
   // Show pointer cursor when clickable
   const isClickable = expanded && (isIdle || (isHandsFreeMode && isRecording));
 
-  const getExpandedWidth = () => {
-    if (!expanded) return "w-[48px]";
-    if (isRecording && isHandsFreeMode) return "w-[120px]";
-    if (isRecording) return "w-[96px]";
-    if (isFormatterEnabled && activePreset) return "w-[140px]";
-    return "w-[96px]";
+  const getWidthStyle = (): { width: string } | undefined => {
+    if (!expanded) return { width: "48px" };
+    if (isRecording || isStopping) return { width: "120px" };
+    return undefined;
+  };
+
+  const contentVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
+
+  const getContentKey = () => {
+    if (isStopping) return "stopping";
+    if (isRecording && isHandsFreeMode) return "recording-handsfree";
+    if (isRecording) return "recording";
+    return "idle";
   };
 
   const renderWidgetContent = () => {
     if (!expanded) return null;
 
     if (isStopping) {
-      return <ProcessingIndicator />;
+      return (
+        <motion.div
+          key="stopping"
+          variants={contentVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.15 }}
+          className="flex h-full w-full justify-center items-center"
+        >
+          <ProcessingIndicator colorId={activePreset?.color} />
+        </motion.div>
+      );
     }
 
     if (isRecording && isHandsFreeMode) {
       return (
-        <>
+        <motion.div
+          key="recording-handsfree"
+          variants={contentVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.15 }}
+          className="flex h-full w-full"
+        >
           <div className="h-full items-center flex ml-2">
             <CancelButton onClick={handleCancelClick} />
           </div>
-          <div className="justify-center items-center flex flex-1 gap-1">
+          <div className="justify-center items-center flex flex-1 gap-[1px]">
             <WaveformVisualization
               isRecording={isRecording}
               voiceDetected={voiceDetected}
@@ -256,40 +316,51 @@ export const FloatingButton: React.FC = () => {
           <div className="h-full items-center flex mr-2">
             <StopButton onClick={handleStopClick} />
           </div>
-        </>
+        </motion.div>
       );
     }
 
     if (isRecording) {
       return (
-        <div className="justify-center items-center flex flex-1 gap-1">
+        <motion.div
+          key="recording"
+          variants={contentVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.15 }}
+          className="justify-center items-center flex flex-1 gap-[1px]"
+        >
           <WaveformVisualization
             isRecording={isRecording}
             voiceDetected={voiceDetected}
           />
-        </div>
+        </motion.div>
       );
     }
 
     return (
-      <button
-        className="justify-center items-center flex flex-1 gap-1 h-full w-full px-2"
+      <motion.button
+        key="idle"
+        variants={contentVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        transition={{ duration: 0.15 }}
+        className="items-center flex h-full px-4 gap-2.5"
         role="button"
         onClick={handleButtonClick}
       >
         {isFormatterEnabled && activePreset && (
-          <div className="flex items-center gap-1 text-xs text-white/70 shrink-0">
+          <div className="flex items-center gap-1 text-xs text-white/70">
             <Sparkles
               className={`w-3 h-3 ${getPresetColorClass(activePreset.color)}`}
             />
-            <span className="max-w-[60px] truncate">{activePreset.name}</span>
+            <span className="truncate">{activePreset.name}</span>
           </div>
         )}
-        <WaveformVisualization
-          isRecording={isRecording}
-          voiceDetected={voiceDetected}
-        />
-      </button>
+        <Play className="w-3 h-3 text-white fill-white" />
+      </motion.button>
     );
   };
 
@@ -301,17 +372,17 @@ export const FloatingButton: React.FC = () => {
         onContextMenu={handleContextMenu}
         className={`
           transition-all duration-200 ease-in-out
-          ${expanded ? "h-[24px]" : "h-[8px]"} ${getExpandedWidth()}
+          ${expanded ? "h-[24px]" : "h-[8px]"}
           bg-black/70 rounded-[24px] backdrop-blur-md ring-[1px] ring-black/60 shadow-[0px_0px_15px_0px_rgba(0,0,0,0.40)]
           before:content-[''] before:absolute before:inset-[1px] before:rounded-[23px] before:outline before:outline-white/15 before:pointer-events-none
           mb-2 select-none ${isClickable ? "cursor-pointer" : "cursor-default"}
         `}
-        style={{ pointerEvents: "auto" }}
+        style={{ pointerEvents: "auto", ...getWidthStyle() }}
       >
         {expanded && (
-          <div className="flex gap-[2px] h-full w-full justify-between">
+          <AnimatePresence mode="wait">
             {renderWidgetContent()}
-          </div>
+          </AnimatePresence>
         )}
       </div>
 
