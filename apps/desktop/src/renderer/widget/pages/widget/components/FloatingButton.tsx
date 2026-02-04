@@ -329,7 +329,7 @@ export const FloatingButton: React.FC = () => {
           animate="animate"
           exit="exit"
           transition={{ duration: 0.15 }}
-          className="justify-center items-center flex flex-1 gap-[1px]"
+          className="justify-center items-center flex flex-1 gap-[1px] h-full"
         >
           <WaveformVisualization
             isRecording={isRecording}
