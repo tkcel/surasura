@@ -15,7 +15,7 @@ const FormatPresetSchema = z.object({
   modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]),
   instructions: z.string().max(2000),
   isDefault: z.boolean(),
-  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]),
+  color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -36,7 +36,7 @@ const CreateFormatPresetSchema = z.object({
   modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]),
   instructions: z.string().max(2000),
   isDefault: z.boolean().default(false),
-  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]).default("yellow"),
+  color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]).default("yellow"),
 });
 
 // Update preset input schema
@@ -47,7 +47,7 @@ const UpdateFormatPresetSchema = z.object({
   modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]).optional(),
   instructions: z.string().max(2000).optional(),
   isDefault: z.boolean().optional(),
-  color: z.enum(["yellow", "blue", "green", "pink", "purple", "orange"]).optional(),
+  color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]).optional(),
 });
 
 // Shortcut schema (array of key names)

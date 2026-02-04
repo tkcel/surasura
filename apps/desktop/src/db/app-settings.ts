@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 13;
+const CURRENT_SETTINGS_VERSION = 14;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -117,7 +117,7 @@ const migrations: Record<number, MigrationFn> = {
         instructions:
           "カジュアルで親しみやすい文体に変換してください。敬語は使わず、友達に話しかけるような口調にしてください。",
         isDefault: true,
-        color: "pink" as const,
+        color: "red" as const,
         createdAt: now,
         updatedAt: now,
       },
@@ -245,9 +245,9 @@ const migrations: Record<number, MigrationFn> = {
     const oldData = data as AppSettingsData;
 
     // Default colors for existing presets
-    const presetColorMap: Record<string, "yellow" | "blue" | "green" | "pink" | "purple" | "orange"> = {
+    const presetColorMap: Record<string, "yellow" | "blue" | "green" | "red" | "purple" | "orange"> = {
       "標準": "yellow",
-      "カジュアル": "pink",
+      "カジュアル": "red",
       "Markdown": "blue",
       "即時回答": "green",
     };
@@ -560,7 +560,7 @@ ${prohibitions}`,
     // New color assignments for default presets
     const presetColorMap: Record<string, string> = {
       "標準": "green",
-      "カジュアル": "blue",
+      "カジュアル": "red",
       "即時回答": "purple",
     };
 
@@ -575,6 +575,33 @@ ${prohibitions}`,
           updates.color = presetColorMap[preset.name];
         }
         return { ...preset, ...updates };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
+
+  // v13 -> v14: Change "カジュアル" preset color from blue to red
+  14: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // Update "カジュアル" preset color to red
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.isDefault && preset.name === "カジュアル") {
+        return {
+          ...preset,
+          color: "red" as const,
+          updatedAt: now,
+        };
       }
       return preset;
     });
@@ -896,7 +923,7 @@ ${prohibitions}`,
 - 過度にフォーマルな表現は避け、読みやすさを重視する
 ${prohibitions}`,
       isDefault: true,
-      color: "blue" as const,
+      color: "red" as const,
       createdAt: now,
       updatedAt: now,
     },

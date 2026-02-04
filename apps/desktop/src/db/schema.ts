@@ -67,7 +67,7 @@ export interface AppSettingsData {
       modelId: "gpt-4.1-nano" | "gpt-4o-mini" | "gpt-4.1-mini" | "gpt-4.1" | "gpt-4o";
       instructions: string; // 最大2000文字
       isDefault: boolean;
-      color: "yellow" | "blue" | "green" | "pink" | "purple" | "orange"; // プリセットの色
+      color: "yellow" | "blue" | "green" | "red" | "purple" | "orange"; // プリセットの色
       createdAt: string; // ISO 8601
       updatedAt: string;
     }>; // 最大5つ

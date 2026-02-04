@@ -3,7 +3,7 @@ export const PRESET_COLORS = [
   { id: "yellow", label: "イエロー", class: "text-yellow-500" },
   { id: "blue", label: "ブルー", class: "text-blue-500" },
   { id: "green", label: "グリーン", class: "text-green-500" },
-  { id: "pink", label: "ピンク", class: "text-pink-500" },
+  { id: "red", label: "レッド", class: "text-red-500" },
   { id: "purple", label: "パープル", class: "text-purple-500" },
   { id: "orange", label: "オレンジ", class: "text-orange-500" },
 ] as const;
