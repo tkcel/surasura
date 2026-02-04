@@ -257,6 +257,20 @@ export function NextPage({ current }: { current: DocsSectionId }) {
   );
 }
 
+// 折りたたみ（details/summary）
+export function DocsDetails({ summary, children }: { summary: string; children: ReactNode }) {
+  return (
+    <details className="my-4 border border-gray-200 rounded-lg overflow-hidden">
+      <summary className="px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors font-medium text-gray-800 select-none">
+        {summary}
+      </summary>
+      <div className="px-4 py-3 bg-white border-t border-gray-200">
+        {children}
+      </div>
+    </details>
+  );
+}
+
 // 関連ページリンク
 export function RelatedPages({ links }: { links: { to: string; title: string; description: string }[] }) {
   return (
