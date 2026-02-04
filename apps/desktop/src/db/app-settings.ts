@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 15;
+const CURRENT_SETTINGS_VERSION = 16;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -663,6 +663,33 @@ ${prohibitions}`;
       },
     };
   },
+
+  // v15 -> v16: Update "即時回答" preset to use gpt-4o for better quality
+  16: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // Update "即時回答" preset to use gpt-4o
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.isDefault && preset.name === "即時回答") {
+        return {
+          ...preset,
+          modelId: "gpt-4o" as const,
+          updatedAt: now,
+        };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -979,7 +1006,7 @@ ${prohibitions}`,
       id: crypto.randomUUID(),
       name: "即時回答",
       type: "answering" as const,
-      modelId: "gpt-4o-mini" as const,
+      modelId: "gpt-4o" as const,
       instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
