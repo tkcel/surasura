@@ -13,6 +13,7 @@ import {
   Check,
   RotateCcw,
   Sparkles,
+  HelpCircle,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -24,7 +25,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
 import { useFormattingSettings } from "../hooks/use-formatting-settings";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
 import {
   getLanguageModelCost,
@@ -78,6 +87,30 @@ export function FormattingSettings() {
     handleEditColorChange,
     editColor,
   } = useFormattingSettings();
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isVariableHelpOpen, setIsVariableHelpOpen] = useState(false);
+
+  const insertVariable = (variable: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newValue =
+      editInstructions.slice(0, start) +
+      variable +
+      editInstructions.slice(end);
+
+    handleEditInstructionsChange(newValue);
+
+    // カーソル位置を挿入した変数の後ろに移動
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPosition = start + variable.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    });
+  };
 
   const nameLength = editName.length;
   const instructionsLength = editInstructions.length;
@@ -363,7 +396,70 @@ export function FormattingSettings() {
                       {instructionsLength}/{maxInstructionsLength}
                     </span>
                   </div>
+
+                  {/* Variable Buttons */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-muted-foreground">変数を挿入:</span>
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable("{{transcription}}")}
+                        >
+                          transcription
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>音声認識結果</TooltipContent>
+                    </Tooltip>
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable("{{selectedText}}")}
+                        >
+                          selectedText
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>選択中のテキスト</TooltipContent>
+                    </Tooltip>
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable("{{appName}}")}
+                        >
+                          appName
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>フォーカス中のアプリ名</TooltipContent>
+                    </Tooltip>
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => setIsVariableHelpOpen(true)}
+                        >
+                          <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>変数の使い方</TooltipContent>
+                    </Tooltip>
+                  </div>
+
                   <Textarea
+                    ref={textareaRef}
                     value={editInstructions}
                     onChange={(e) =>
                       handleEditInstructionsChange(e.target.value)
@@ -432,6 +528,56 @@ export function FormattingSettings() {
           </div>
         </div>
       )}
+
+      {/* Variable Help Modal */}
+      <Dialog open={isVariableHelpOpen} onOpenChange={setIsVariableHelpOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>変数の使い方</DialogTitle>
+            <DialogDescription>
+              フォーマット指示内で変数を使うと、音声入力時の状況に応じた動的な指示が可能になります。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2 mb-1">
+                  <code className="text-sm font-mono text-primary">{"{{transcription}}"}</code>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  音声認識結果に置き換わります。指示文の中で音声認識結果をどう扱うか明示的に指定できます。
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2 mb-1">
+                  <code className="text-sm font-mono text-primary">{"{{selectedText}}"}</code>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  音声入力時に選択されているテキストに置き換わります。選択テキストを参照した指示を作成できます。
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2 mb-1">
+                  <code className="text-sm font-mono text-primary">{"{{appName}}"}</code>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  フォーカス中のアプリケーション名に置き換わります。アプリごとに異なる整形を適用できます。
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-border">
+              <p className="text-xs font-medium mb-2">使用例</p>
+              <div className="p-3 rounded-lg bg-muted/30 text-xs font-mono text-muted-foreground space-y-2">
+                <p>「{"{{selectedText}}"}」を参考に、「{"{{transcription}}"}」の内容を整形してください。</p>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                → 選択したテキストを参考にして、音声入力の内容を整形します。
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

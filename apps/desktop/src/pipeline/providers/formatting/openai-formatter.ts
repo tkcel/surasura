@@ -22,7 +22,11 @@ export class OpenAIFormatter implements FormattingProvider {
       const { text, context } = params;
 
       // Construct the formatter prompt using the extracted function
-      const { systemPrompt } = constructFormatterPrompt(context, context.preset);
+      const { systemPrompt } = constructFormatterPrompt(
+        context,
+        context.preset,
+        text,
+      );
 
       logger.pipeline.info("Formatting request", {
         model: this.model,
@@ -46,7 +50,7 @@ export class OpenAIFormatter implements FormattingProvider {
         maxTokens: 2000,
       });
 
-      logger.pipeline.debug("Formatting raw response", {
+      logger.pipeline.info("Formatting raw response", {
         model: this.model,
         rawResponse: aiResponse,
       });
