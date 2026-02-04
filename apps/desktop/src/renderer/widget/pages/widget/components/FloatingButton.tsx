@@ -20,10 +20,10 @@ const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center justify-center w-[20px] h-[20px] rounded transition-colors"
+    className="flex items-center justify-center w-[28px] h-[18px] rounded bg-red-500/20 hover:bg-red-500/40 active:bg-red-500/60 transition-colors"
     aria-label="Stop recording"
   >
-    <Square className="w-[12px] h-[12px] text-red-500 fill-red-500" />
+    <Square className="w-[10px] h-[10px] text-red-500 fill-red-500" />
   </button>
 );
 
@@ -100,28 +100,28 @@ export const FloatingButton: React.FC = () => {
     }
   }, []);
 
-  // Determine if capture should be enabled
-  const shouldEnableCapture = useCallback(() => {
-    // Preset menu needs capture
-    if (showPresetMenu) return true;
-    // Not hovering = no capture (allows clicking other apps)
-    if (!isHovered) return false;
-    // Hovering + idle = capture for start button
-    if (isIdle) return true;
-    // Hovering + hands-free recording = capture for stop/cancel buttons
-    if (isHandsFreeMode && isRecording) return true;
-    // Everything else = no capture
-    return false;
-  }, [showPresetMenu, isHovered, isIdle, isHandsFreeMode, isRecording]);
+  // Capture enabled when hovering or preset menu is open
+  const captureEnabled = showPresetMenu || isHovered;
 
   // Sync capture state
   useEffect(() => {
-    if (shouldEnableCapture()) {
+    if (captureEnabled) {
       enableCapture();
     } else {
       disableCapture();
     }
-  }, [shouldEnableCapture, enableCapture, disableCapture]);
+  }, [captureEnabled, enableCapture, disableCapture]);
+
+  // Keep resetting failsafe timer while capture is enabled
+  useEffect(() => {
+    if (!captureEnabled) return;
+
+    const interval = setInterval(() => {
+      enableCapture();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [captureEnabled, enableCapture]);
 
   // Handle recording state changes - only close preset menu
   const prevRecordingStateRef = useRef(recordingStatus.state);

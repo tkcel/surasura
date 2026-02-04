@@ -52,19 +52,17 @@ export const MouseEventProvider: React.FC<{ children: React.ReactNode }> = ({
     (ignore: boolean) => {
       const newCapturing = !ignore;
 
-      // Skip if already in desired state
-      if (isCapturingRef.current === newCapturing) {
-        return;
-      }
-
-      isCapturingRef.current = newCapturing;
-      console.log(`[MouseCapture] setIgnoreMouseEvents: ${ignore}`);
-      mutateRef.current({ ignore });
-
-      // Clear any existing failsafe timer
+      // Clear any existing failsafe timer first
       clearFailsafeTimer();
 
-      // If enabling capture, set failsafe timer to auto-release
+      // Skip API call if already in desired state
+      if (isCapturingRef.current !== newCapturing) {
+        isCapturingRef.current = newCapturing;
+        console.log(`[MouseCapture] setIgnoreMouseEvents: ${ignore}`);
+        mutateRef.current({ ignore });
+      }
+
+      // Always reset failsafe timer when enabling capture (even if already capturing)
       if (newCapturing) {
         failsafeTimerRef.current = setTimeout(() => {
           console.warn(

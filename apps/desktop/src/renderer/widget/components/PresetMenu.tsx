@@ -70,6 +70,7 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-40"
+        style={{ pointerEvents: "auto" }}
         onClick={onClose}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -84,6 +85,7 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
           left: position.x,
           top: position.y,
           transform: "translate(-50%, -100%)",
+          pointerEvents: "auto",
         }}
         onContextMenu={(e) => {
           e.preventDefault();
