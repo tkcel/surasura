@@ -32,6 +32,7 @@ const FormatterConfigSchema = z.object({
 // Create preset input schema
 const CreateFormatPresetSchema = z.object({
   name: z.string().min(1).max(20),
+  type: z.enum(["formatting", "answering"]).default("formatting"),
   modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]),
   instructions: z.string().max(2000),
   isDefault: z.boolean().default(false),
@@ -42,6 +43,7 @@ const CreateFormatPresetSchema = z.object({
 const UpdateFormatPresetSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(20).optional(),
+  type: z.enum(["formatting", "answering"]).optional(),
   modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]).optional(),
   instructions: z.string().max(2000).optional(),
   isDefault: z.boolean().optional(),
@@ -272,6 +274,41 @@ export const settingsRouter = createRouter({
         if (error instanceof Error) {
           throw new TRPCError({
             code: "BAD_REQUEST",
+            message: error.message,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  // Reset all presets to default
+  resetAllPresetsToDefault: procedure
+    .mutation(async ({ ctx }) => {
+      try {
+        const settingsService =
+          ctx.serviceManager.getService("settingsService");
+        if (!settingsService) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "SettingsService not available",
+          });
+        }
+
+        const presets = await settingsService.resetAllPresetsToDefault();
+
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.info("All format presets reset to default", {
+          presetCount: presets.length,
+        });
+
+        return { success: true, presets };
+      } catch (error) {
+        const logger = ctx.serviceManager.getLogger();
+        logger?.main.error("Error resetting format presets:", error);
+
+        if (error instanceof Error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
             message: error.message,
           });
         }

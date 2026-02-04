@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -24,10 +25,12 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { FolderOpen, CheckCircle, XCircle, ExternalLink, RefreshCw } from "lucide-react";
+import { FolderOpen, CheckCircle, XCircle, ExternalLink, RefreshCw, RotateCcw, Loader2, Sparkles } from "lucide-react";
 
 export default function PreferencesSettingsPage() {
   const [isResetting, setIsResetting] = useState(false);
+  const [isResettingPresets, setIsResettingPresets] = useState(false);
+  const [showResetPresetsConfirm, setShowResetPresetsConfirm] = useState(false);
   const utils = api.useUtils();
   const isMac = window.electronAPI.platform === "darwin";
 
@@ -119,6 +122,23 @@ export default function PreferencesSettingsPage() {
   const showFileInFolderMutation = api.settings.showFileInFolder.useMutation({
     onError: (error) => {
       toast.error(`ファイルの場所を開けませんでした: ${error.message}`);
+    },
+  });
+
+  const resetAllPresetsMutation = api.settings.resetAllPresetsToDefault.useMutation({
+    onMutate: () => {
+      setIsResettingPresets(true);
+    },
+    onSuccess: () => {
+      toast.success("プリセットをデフォルトにリセットしました");
+      utils.settings.getFormatterConfig.invalidate();
+      setIsResettingPresets(false);
+      setShowResetPresetsConfirm(false);
+    },
+    onError: (error) => {
+      setIsResettingPresets(false);
+      console.error("Failed to reset presets:", error);
+      toast.error("プリセットのリセットに失敗しました");
     },
   });
 
@@ -399,6 +419,56 @@ export default function PreferencesSettingsPage() {
                   ダウンロード
                 </Button>
               </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-muted-foreground" />
+                <div className="space-y-1">
+                  <Label className="text-base font-medium text-foreground">
+                    プリセットをリセット
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    すべてのAIフォーマットプリセットをデフォルトに戻します
+                  </p>
+                </div>
+              </div>
+              <AlertDialog open={showResetPresetsConfirm} onOpenChange={setShowResetPresetsConfirm}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isResettingPresets}
+                  >
+                    {isResettingPresets ? (
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4 mr-1.5" />
+                    )}
+                    リセット
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>すべてのプリセットをリセット</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      すべてのプリセットをデフォルトに戻します。
+                      <br /><br />
+                      現在のプリセット設定はすべて失われ、デフォルトの4つのプリセット（標準、カジュアル、即時回答、翻訳）に置き換わります。
+                      <br /><br />
+                      この操作は取り消せません。よろしいですか？
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => resetAllPresetsMutation.mutate()}>
+                      リセットする
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </CardContent>
         </Card>

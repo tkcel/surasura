@@ -10,6 +10,14 @@ export const PRESET_COLORS = [
 
 export type PresetColorId = (typeof PRESET_COLORS)[number]["id"];
 
+// プリセットのタイプ
+export const PRESET_TYPES = [
+  { id: "formatting", label: "整形", description: "話し言葉を整えて出力します。質問形式でも回答しません。" },
+  { id: "answering", label: "回答", description: "質問や依頼として解釈し、AIが回答を生成します。" },
+] as const;
+
+export type PresetTypeId = (typeof PRESET_TYPES)[number]["id"];
+
 // サポートされるモデルID
 export type FormatterModelId =
   | "gpt-4.1-nano"
@@ -21,6 +29,7 @@ export type FormatterModelId =
 export interface FormatPreset {
   id: string;
   name: string; // 最大20文字
+  type?: PresetTypeId; // プリセットのタイプ（整形 or 回答）- 未設定の場合は "formatting" として扱う
   modelId: FormatterModelId;
   instructions: string; // 最大2000文字
   isDefault: boolean;

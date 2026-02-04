@@ -708,7 +708,7 @@ export async function resetAppSettings(): Promise<AppSettingsData> {
 }
 
 // Generate default format presets
-function generateDefaultPresets() {
+export function generateDefaultPresets() {
   const now = new Date().toISOString();
 
   // 共通の禁止事項（即時回答以外で使用）
@@ -723,8 +723,11 @@ function generateDefaultPresets() {
     {
       id: crypto.randomUUID(),
       name: "標準",
+      type: "formatting" as const,
       modelId: "gpt-4o-mini" as const,
       instructions: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
+
+現在のアプリ: {{appName}}
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -734,7 +737,7 @@ function generateDefaultPresets() {
 - 辞書に登録された専門用語・固有名詞は正確に使用する
 - 元の意味やニュアンスを維持する
 - 話し言葉を自然な書き言葉に変換する
-- 適切な段落分けを行う
+- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）
 ${prohibitions}`,
       isDefault: true,
       color: "yellow" as const,
@@ -744,8 +747,11 @@ ${prohibitions}`,
     {
       id: crypto.randomUUID(),
       name: "カジュアル",
+      type: "formatting" as const,
       modelId: "gpt-4o-mini" as const,
       instructions: `「{{transcription}}」をビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
+
+現在のアプリ: {{appName}}
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -766,17 +772,44 @@ ${prohibitions}`,
     {
       id: crypto.randomUUID(),
       name: "即時回答",
+      type: "answering" as const,
       modelId: "gpt-4o-mini" as const,
       instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
+
+【参考情報】
+{{selectedText}}
 
 【ルール】
 - 元の発言内容は出力に含めない
 - 回答のみを簡潔に返す
+- 参考情報がある場合は、それを踏まえて回答する
 - 質問の意図が不明確な場合は、最も可能性の高い解釈で回答する
-- 計算、翻訳、要約、説明など、依頼された作業を実行する
+- 計算、要約、説明など、依頼された作業を実行する
 - 辞書に登録された専門用語・固有名詞は正確に使用する`,
       isDefault: true,
       color: "green" as const,
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      id: crypto.randomUUID(),
+      name: "翻訳",
+      type: "answering" as const,
+      modelId: "gpt-4o-mini" as const,
+      instructions: `以下のテキストを翻訳してください。
+
+【翻訳対象】
+{{selectedText}}
+{{transcription}}
+
+【ルール】
+- 日本語のテキストは英語に翻訳する
+- 英語のテキストは日本語に翻訳する
+- 翻訳結果のみを出力する（説明や元のテキストは含めない）
+- 自然で読みやすい表現にする
+- 専門用語は適切に訳す`,
+      isDefault: true,
+      color: "blue" as const,
       createdAt: now,
       updatedAt: now,
     },

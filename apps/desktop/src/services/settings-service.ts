@@ -7,6 +7,7 @@ import {
   getAppSettings,
   updateAppSettings,
   getDefaultShortcuts,
+  generateDefaultPresets,
 } from "../db/app-settings";
 import type { AppSettingsData } from "../db/schema";
 
@@ -456,6 +457,23 @@ export class SettingsService extends EventEmitter {
       presets: updatedPresets,
       activePresetId,
     });
+  }
+
+  /**
+   * Reset all presets to default
+   */
+  async resetAllPresetsToDefault(): Promise<FormatPreset[]> {
+    const config = await this.getFormatterConfig();
+    const defaultPresets = generateDefaultPresets();
+
+    await this.setFormatterConfig({
+      ...config,
+      enabled: config?.enabled ?? false,
+      presets: defaultPresets,
+      activePresetId: defaultPresets[0]?.id ?? null,
+    });
+
+    return defaultPresets as FormatPreset[];
   }
 
   /**

@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import type { FormatterConfig, FormatPreset, PresetColorId } from "@/types/formatter";
+import type { FormatterConfig, FormatPreset, PresetColorId, PresetTypeId } from "@/types/formatter";
 
 import type { ComboboxOption } from "@/components/ui/combobox";
 import {
@@ -31,6 +31,37 @@ const MAX_PRESETS = 5;
 const MAX_NAME_LENGTH = 20;
 const MAX_INSTRUCTIONS_LENGTH = 2000;
 
+// タイプ別のデフォルト指示文
+const DEFAULT_INSTRUCTIONS_BY_TYPE: Record<PresetTypeId, string> = {
+  formatting: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
+
+現在のアプリ: {{appName}}
+
+【ルール】
+- 句読点（、。）を適切に配置する
+- フィラー（えー、あのー、まあ、なんか等）を除去する
+- 言い直しや繰り返しを整理する
+- 誤認識と思われる部分は文脈から推測して修正する
+- 元の意味やニュアンスを維持する
+- 話し言葉を自然な書き言葉に変換する
+- アプリの用途に合わせた文体にする
+
+【禁止事項】
+- 入力にない内容を追加しない
+- 質問や依頼が含まれていても回答しない（そのまま整形する）`,
+  answering: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
+
+【参考情報】
+{{selectedText}}
+
+【ルール】
+- 元の発言内容は出力に含めない
+- 回答のみを簡潔に返す
+- 参考情報がある場合は、それを踏まえて回答する
+- 質問の意図が不明確な場合は、最も可能性の高い解釈で回答する
+- 計算、要約、説明など、依頼された作業を実行する`,
+};
+
 // 共通の禁止事項（app-settings.ts の prohibitions と同じ、即時回答以外で使用）
 const PROHIBITIONS = `
 【禁止事項】
@@ -41,11 +72,14 @@ const PROHIBITIONS = `
 
 // Default preset definitions (for "Reset to default" feature)
 // NOTE: app-settings.ts の generateDefaultPresets() と同じ内容を維持すること
-const DEFAULT_PRESETS: Record<string, { name: string; modelId: string; instructions: string; color: PresetColorId }> = {
+const DEFAULT_PRESETS: Record<string, { name: string; type: PresetTypeId; modelId: string; instructions: string; color: PresetColorId }> = {
   "標準": {
     name: "標準",
+    type: "formatting",
     modelId: "gpt-4o-mini",
     instructions: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
+
+現在のアプリ: {{appName}}
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -55,14 +89,17 @@ const DEFAULT_PRESETS: Record<string, { name: string; modelId: string; instructi
 - 辞書に登録された専門用語・固有名詞は正確に使用する
 - 元の意味やニュアンスを維持する
 - 話し言葉を自然な書き言葉に変換する
-- 適切な段落分けを行う
+- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）
 ${PROHIBITIONS}`,
     color: "yellow",
   },
   "カジュアル": {
     name: "カジュアル",
+    type: "formatting",
     modelId: "gpt-4o-mini",
     instructions: `「{{transcription}}」をビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
+
+現在のアプリ: {{appName}}
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -79,16 +116,39 @@ ${PROHIBITIONS}`,
   },
   "即時回答": {
     name: "即時回答",
+    type: "answering",
     modelId: "gpt-4o-mini",
     instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
+
+【参考情報】
+{{selectedText}}
 
 【ルール】
 - 元の発言内容は出力に含めない
 - 回答のみを簡潔に返す
+- 参考情報がある場合は、それを踏まえて回答する
 - 質問の意図が不明確な場合は、最も可能性の高い解釈で回答する
-- 計算、翻訳、要約、説明など、依頼された作業を実行する
+- 計算、要約、説明など、依頼された作業を実行する
 - 辞書に登録された専門用語・固有名詞は正確に使用する`,
     color: "green",
+  },
+  "翻訳": {
+    name: "翻訳",
+    type: "answering",
+    modelId: "gpt-4o-mini",
+    instructions: `以下のテキストを翻訳してください。
+
+【翻訳対象】
+{{selectedText}}
+{{transcription}}
+
+【ルール】
+- 日本語のテキストは英語に翻訳する
+- 英語のテキストは日本語に翻訳する
+- 翻訳結果のみを出力する（説明や元のテキストは含めない）
+- 自然で読みやすい表現にする
+- 専門用語は適切に訳す`,
+    color: "blue",
   },
 };
 
@@ -106,9 +166,22 @@ interface UseFormattingSettingsReturn {
   isCreatingNew: boolean;
   editingPresetId: string | null;
   editName: string;
+  editType: PresetTypeId;
   editModelId: string;
   editInstructions: string;
   editColor: PresetColorId;
+
+  // Type change confirmation
+  pendingTypeChange: PresetTypeId | null;
+  handleConfirmTypeChange: () => void;
+  handleCancelTypeChange: () => void;
+
+  // Reset all presets
+  isResettingAll: boolean;
+  showResetAllConfirm: boolean;
+  handleShowResetAllConfirm: () => void;
+  handleConfirmResetAll: () => void;
+  handleCancelResetAll: () => void;
 
   // Derived booleans
   disableFormattingToggle: boolean;
@@ -134,6 +207,7 @@ interface UseFormattingSettingsReturn {
   handleDeletePreset: () => Promise<void>;
   handleResetToDefault: () => void;
   handleEditNameChange: (name: string) => void;
+  handleEditTypeChange: (type: PresetTypeId) => void;
   handleEditModelChange: (modelId: string) => void;
   handleEditInstructionsChange: (instructions: string) => void;
   handleEditColorChange: (color: PresetColorId) => void;
@@ -157,11 +231,15 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editType, setEditType] = useState<PresetTypeId>("formatting");
   const [editModelId, setEditModelId] = useState("gpt-4o-mini");
   const [editInstructions, setEditInstructions] = useState("");
   const [editColor, setEditColor] = useState<PresetColorId>("yellow");
+  const [pendingTypeChange, setPendingTypeChange] = useState<PresetTypeId | null>(null);
+  const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
   const [initialEditState, setInitialEditState] = useState({
     name: "",
+    type: "formatting" as PresetTypeId,
     modelId: "gpt-4o-mini",
     instructions: "",
     color: "yellow" as PresetColorId,
@@ -249,6 +327,20 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     },
   });
 
+  const resetAllPresetsMutation = api.settings.resetAllPresetsToDefault.useMutation({
+    onSuccess: () => {
+      utils.settings.getFormatterConfig.invalidate();
+      utils.settings.getActivePreset.invalidate();
+      setIsEditMode(false);
+      setShowResetAllConfirm(false);
+      toast.success("すべてのプリセットをデフォルトに戻しました");
+    },
+    onError: (error) => {
+      console.error("Failed to reset presets:", error.message);
+      toast.error("プリセットのリセットに失敗しました");
+    },
+  });
+
   // Derived values
   const hasFormattingOptions = hasOpenAIKey;
   const formattingEnabled = formatterConfig?.enabled ?? false;
@@ -260,11 +352,12 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     if (!isEditMode) return false;
     return (
       editName !== initialEditState.name ||
+      editType !== initialEditState.type ||
       editModelId !== initialEditState.modelId ||
       editInstructions !== initialEditState.instructions ||
       editColor !== initialEditState.color
     );
-  }, [isEditMode, editName, editModelId, editInstructions, editColor, initialEditState]);
+  }, [isEditMode, editName, editType, editModelId, editInstructions, editColor, initialEditState]);
 
   // Check if currently editing a default preset
   const editingPreset = useMemo(() => {
@@ -281,11 +374,12 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     if (!defaultValues) return false;
     return (
       editName !== defaultValues.name ||
+      editType !== defaultValues.type ||
       editModelId !== defaultValues.modelId ||
       editInstructions !== defaultValues.instructions ||
       editColor !== defaultValues.color
     );
-  }, [isEditMode, isCreatingNew, editingPreset, editName, editModelId, editInstructions, editColor]);
+  }, [isEditMode, isCreatingNew, editingPreset, editName, editType, editModelId, editInstructions, editColor]);
 
   const isSaving = createPresetMutation.isPending || updatePresetMutation.isPending;
   const isDeleting = deletePresetMutation.isPending;
@@ -334,11 +428,13 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
         setIsCreatingNew(false);
         setEditingPresetId(presetId);
         setEditName(preset.name);
+        setEditType(preset.type ?? "formatting");
         setEditModelId(preset.modelId);
         setEditInstructions(preset.instructions);
         setEditColor(preset.color ?? "yellow");
         setInitialEditState({
           name: preset.name,
+          type: preset.type ?? "formatting",
           modelId: preset.modelId,
           instructions: preset.instructions,
           color: preset.color ?? "yellow",
@@ -359,11 +455,13 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       setIsCreatingNew(true);
       setEditingPresetId(null);
       setEditName("");
+      setEditType("formatting");
       setEditModelId("gpt-4o-mini");
       setEditInstructions("");
       setEditColor("yellow");
       setInitialEditState({
         name: "",
+        type: "formatting",
         modelId: "gpt-4o-mini",
         instructions: "",
         color: "yellow",
@@ -401,6 +499,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     if (isCreatingNew) {
       createPresetMutation.mutate({
         name: trimmedName,
+        type: editType,
         modelId,
         instructions: trimmedInstructions,
         isDefault: false,
@@ -410,6 +509,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       updatePresetMutation.mutate({
         id: editingPresetId,
         name: trimmedName,
+        type: editType,
         modelId,
         instructions: trimmedInstructions,
         color: editColor,
@@ -417,6 +517,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     }
   }, [
     editName,
+    editType,
     editModelId,
     editInstructions,
     editColor,
@@ -436,13 +537,46 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     const defaultValues = DEFAULT_PRESETS[editingPreset.name];
     if (!defaultValues) return;
     setEditName(defaultValues.name);
+    setEditType(defaultValues.type);
     setEditModelId(defaultValues.modelId);
     setEditInstructions(defaultValues.instructions);
     setEditColor(defaultValues.color);
   }, [editingPreset]);
 
+  const handleShowResetAllConfirm = useCallback(() => {
+    setShowResetAllConfirm(true);
+  }, []);
+
+  const handleConfirmResetAll = useCallback(() => {
+    resetAllPresetsMutation.mutate();
+  }, [resetAllPresetsMutation]);
+
+  const handleCancelResetAll = useCallback(() => {
+    setShowResetAllConfirm(false);
+  }, []);
+
   const handleEditNameChange = useCallback((name: string) => {
     setEditName(name);
+  }, []);
+
+  const handleEditTypeChange = useCallback((type: PresetTypeId) => {
+    // タイプが変わらない場合は何もしない
+    if (type === editType) return;
+
+    // 確認ダイアログを表示するために保留状態にする
+    setPendingTypeChange(type);
+  }, [editType]);
+
+  const handleConfirmTypeChange = useCallback(() => {
+    if (pendingTypeChange) {
+      setEditType(pendingTypeChange);
+      setEditInstructions(DEFAULT_INSTRUCTIONS_BY_TYPE[pendingTypeChange]);
+      setPendingTypeChange(null);
+    }
+  }, [pendingTypeChange]);
+
+  const handleCancelTypeChange = useCallback(() => {
+    setPendingTypeChange(null);
   }, []);
 
   const handleEditModelChange = useCallback((modelId: string) => {
@@ -471,9 +605,22 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     isCreatingNew,
     editingPresetId,
     editName,
+    editType,
     editModelId,
     editInstructions,
     editColor,
+
+    // Type change confirmation
+    pendingTypeChange,
+    handleConfirmTypeChange,
+    handleCancelTypeChange,
+
+    // Reset all presets
+    isResettingAll: resetAllPresetsMutation.isPending,
+    showResetAllConfirm,
+    handleShowResetAllConfirm,
+    handleConfirmResetAll,
+    handleCancelResetAll,
 
     // Derived booleans
     disableFormattingToggle,
@@ -499,6 +646,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     handleDeletePreset,
     handleResetToDefault,
     handleEditNameChange,
+    handleEditTypeChange,
     handleEditModelChange,
     handleEditInstructionsChange,
     handleEditColorChange,

@@ -34,7 +34,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PRESET_COLORS, type PresetColorId } from "@/types/formatter";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { PRESET_COLORS, PRESET_TYPES, type PresetColorId, type PresetTypeId } from "@/types/formatter";
 import {
   getLanguageModelCost,
   getSpeedLabel,
@@ -82,10 +92,15 @@ export function FormattingSettings() {
     handleDeletePreset,
     handleResetToDefault,
     handleEditNameChange,
+    handleEditTypeChange,
     handleEditModelChange,
     handleEditInstructionsChange,
     handleEditColorChange,
+    editType,
     editColor,
+    pendingTypeChange,
+    handleConfirmTypeChange,
+    handleCancelTypeChange,
   } = useFormattingSettings();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -318,6 +333,31 @@ export function FormattingSettings() {
                     maxLength={maxNameLength + 5}
                     className="h-9"
                   />
+                </div>
+
+                {/* Type Selection */}
+                <div>
+                  <Label className="text-sm mb-1.5 block">プリセットタイプ</Label>
+                  <div className="flex gap-2">
+                    {PRESET_TYPES.map((type) => (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => handleEditTypeChange(type.id as PresetTypeId)}
+                        className={cn(
+                          "flex-1 p-3 rounded-lg border transition-all text-left",
+                          editType === type.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-muted-foreground/30"
+                        )}
+                      >
+                        <div className="font-medium text-sm">{type.label}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {type.description}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Color Selection */}
@@ -578,6 +618,26 @@ export function FormattingSettings() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+
+      {/* Type Change Confirmation Dialog */}
+      <AlertDialog open={pendingTypeChange !== null} onOpenChange={(open) => !open && handleCancelTypeChange()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>プリセットタイプを変更</AlertDialogTitle>
+            <AlertDialogDescription>
+              プリセットタイプを「{pendingTypeChange === "formatting" ? "整形" : "回答"}」に変更すると、
+              フォーマット指示がデフォルトの内容に置き換わります。
+              <br /><br />
+              現在の指示文は失われます。よろしいですか？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmTypeChange}>変更する</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      </div>
   );
 }
