@@ -26,7 +26,6 @@ function getPresetBgColorClass(colorId: PresetColorId | undefined): string {
 }
 
 const NUM_WAVEFORM_BARS = 12;
-const NUM_PROCESSING_DOTS = 6;
 const HOVER_DEBOUNCE_MS = 100;
 
 const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
@@ -34,7 +33,7 @@ const StopButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center justify-center w-[28px] h-[18px] rounded bg-red-500/20 hover:bg-red-500/40 active:bg-red-500/60 transition-colors"
+    className="flex items-center justify-center w-[28px] h-[18px] rounded bg-red-500/20 hover:bg-red-500/40 active:bg-red-500/60 transition-colors cursor-pointer"
     aria-label="Stop recording"
   >
     <Square className="w-[10px] h-[10px] text-red-500 fill-red-500" />
@@ -46,7 +45,7 @@ const CancelButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center justify-center w-[20px] h-[20px] rounded transition-colors hover:bg-white/10"
+    className="flex items-center justify-center w-[20px] h-[20px] rounded transition-colors hover:bg-white/10 cursor-pointer"
     aria-label="Cancel recording"
   >
     <X className="w-[12px] h-[12px] text-gray-400" />
@@ -56,18 +55,20 @@ const CancelButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({
 const ProcessingIndicator: React.FC<{ colorId?: PresetColorId }> = ({ colorId }) => {
   const bgColor = getPresetBgColorClass(colorId);
   return (
-    <div className="flex gap-[4px] items-center justify-center flex-1 h-6">
-      {Array.from({ length: NUM_PROCESSING_DOTS }).map((_, index) => (
+    <div className="flex gap-[1px] items-center justify-center flex-1 h-full">
+      {Array.from({ length: NUM_WAVEFORM_BARS }).map((_, index) => (
         <motion.div
           key={index}
-          className={`w-1 h-1 ${bgColor} rounded-full`}
+          className={`w-[2px] ${bgColor} rounded-full`}
+          style={{ height: "20%" }}
           animate={{
-            y: [0, -3, 0],
+            height: ["20%", "60%", "20%"],
           }}
           transition={{
-            duration: 0.6,
+            duration: 0.4,
             ease: "easeInOut",
             repeat: Infinity,
+            repeatDelay: 0.6,
             delay: index * 0.08,
           }}
         />
@@ -347,7 +348,7 @@ export const FloatingButton: React.FC = () => {
         animate="animate"
         exit="exit"
         transition={{ duration: 0.15 }}
-        className="items-center flex h-full px-4 gap-2.5"
+        className="items-center flex h-full px-4 gap-2.5 cursor-pointer"
         role="button"
         onClick={handleButtonClick}
       >
