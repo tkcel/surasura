@@ -32,7 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -288,10 +288,9 @@ export function FormattingSettings() {
       )}
 
       {/* Edit Preset Drawer */}
-      <Sheet open={isEditMode} onOpenChange={(open) => !open && handleCancelEdit()}>
-        <SheetContent
-          side="bottom"
-          className="h-[90vh] rounded-t-2xl overflow-hidden"
+      <Drawer open={isEditMode} onOpenChange={(open) => !open && handleCancelEdit()}>
+        <DrawerContent
+          className="h-[90vh] max-h-[90vh] rounded-t-2xl overflow-hidden"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <div className="space-y-6 p-4 flex-1 overflow-y-auto">
@@ -529,8 +528,8 @@ export function FormattingSettings() {
               </Button>
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
       {/* Variable Help Modal */}
       <Dialog open={isVariableHelpOpen} onOpenChange={setIsVariableHelpOpen}>
