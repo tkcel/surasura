@@ -105,7 +105,7 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
             <button
               key={preset.id}
               onClick={() => handleSelectPreset(preset.id)}
-              className="w-full px-3 py-1.5 text-sm text-white/90 hover:bg-white/10 flex items-center justify-between gap-2 transition-colors"
+              className="w-full px-3 py-1.5 text-sm text-white/90 hover:bg-white/10 flex items-center justify-between gap-2 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 {activePresetId === preset.id ? (

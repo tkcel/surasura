@@ -26,6 +26,13 @@
       align-items: flex-end; /* Align to bottom */
       justify-content: center; /* Center horizontally */
     }
+    /* Ensure cursor styles work for interactive elements in widget */
+    button, [role="button"] {
+      cursor: pointer !important;
+    }
+    button:disabled, [role="button"][aria-disabled="true"] {
+      cursor: not-allowed !important;
+    }
   </style>
 </head>
 <body>

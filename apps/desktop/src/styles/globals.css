@@ -194,4 +194,24 @@ html {
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Ensure cursor styles work correctly for interactive elements */
+  button,
+  [role="button"],
+  [type="checkbox"],
+  [type="radio"],
+  input[type="checkbox"],
+  input[type="radio"],
+  label,
+  select,
+  summary,
+  [tabindex]:not([tabindex="-1"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  [disabled] {
+    cursor: not-allowed;
+  }
 }
