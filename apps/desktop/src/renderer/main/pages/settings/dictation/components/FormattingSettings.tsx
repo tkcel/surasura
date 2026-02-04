@@ -8,7 +8,6 @@ import {
   Save,
   Loader2,
   Trash2,
-  X,
   Pencil,
   Check,
   RotateCcw,
@@ -34,6 +33,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -105,6 +111,7 @@ export function FormattingSettings() {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isVariableHelpOpen, setIsVariableHelpOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const insertVariable = (variable: string) => {
     const textarea = textareaRef.current;
@@ -182,34 +189,32 @@ export function FormattingSettings() {
                   使用するプリセットを選択（{presets.length}/{maxPresets}）
                 </p>
               </div>
-              {!isEditMode && (
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleStartCreating();
-                      }}
-                      disabled={!canCreatePreset}
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      新規作成
-                    </Button>
-                  </TooltipTrigger>
-                  {!canCreatePreset && (
-                    <TooltipContent>
-                      プリセットは{maxPresets}個まで作成できます
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              )}
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleStartCreating();
+                    }}
+                    disabled={!canCreatePreset}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    新規作成
+                  </Button>
+                </TooltipTrigger>
+                {!canCreatePreset && (
+                  <TooltipContent>
+                    プリセットは{maxPresets}個まで作成できます
+                  </TooltipContent>
+                )}
+              </Tooltip>
             </div>
 
             {/* Preset List */}
-            {!isEditMode && presets.length > 0 && (
+            {presets.length > 0 && (
               <div className="space-y-2">
                 {presets.map((preset, index) => {
                   const isActive = activePreset?.id === preset.id;
@@ -284,7 +289,7 @@ export function FormattingSettings() {
             )}
 
             {/* Empty State */}
-            {!isEditMode && presets.length === 0 && (
+            {presets.length === 0 && (
               <div className="py-6 text-center text-sm text-muted-foreground">
                 <p>プリセットがありません</p>
                 <p className="text-xs mt-1">
@@ -292,282 +297,295 @@ export function FormattingSettings() {
                 </p>
               </div>
             )}
-
-            {/* Edit Form */}
-            {isEditMode && (
-              <div className="pt-4 border-t border-border space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium">
-                    {isCreatingNew ? "新規プリセット" : "プリセットを編集"}
-                  </h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                    className="h-8"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    閉じる
-                  </Button>
-                </div>
-
-                {/* Preset Name */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <Label className="text-sm">プリセット名</Label>
-                    <span
-                      className={cn(
-                        "text-xs",
-                        nameLength > maxNameLength
-                          ? "text-destructive"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {nameLength}/{maxNameLength}
-                    </span>
-                  </div>
-                  <Input
-                    value={editName}
-                    onChange={(e) => handleEditNameChange(e.target.value)}
-                    placeholder="例: ビジネスメール用"
-                    maxLength={maxNameLength + 5}
-                    className="h-9"
-                  />
-                </div>
-
-                {/* Type Selection */}
-                <div>
-                  <Label className="text-sm mb-1.5 block">プリセットタイプ</Label>
-                  <div className="flex gap-2">
-                    {PRESET_TYPES.map((type) => (
-                      <button
-                        key={type.id}
-                        type="button"
-                        onClick={() => handleEditTypeChange(type.id as PresetTypeId)}
-                        className={cn(
-                          "flex-1 p-3 rounded-lg border transition-all text-left",
-                          editType === type.id
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-muted-foreground/30"
-                        )}
-                      >
-                        <div className="font-medium text-sm">{type.label}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {type.description}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Color Selection */}
-                <div>
-                  <Label className="text-sm mb-1.5 block">アイコンの色</Label>
-                  <div className="flex gap-1.5">
-                    {PRESET_COLORS.map((color) => (
-                      <Tooltip key={color.id} delayDuration={100}>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => handleEditColorChange(color.id as PresetColorId)}
-                            className={cn(
-                              "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                              "hover:bg-muted focus:outline-none",
-                              editColor === color.id && "bg-muted scale-110"
-                            )}
-                          >
-                            <Sparkles className={cn("w-5 h-5", color.class)} />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {color.label}
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Model Selection */}
-                <div>
-                  <Label className="text-sm mb-1.5 block">使用モデル</Label>
-                  <div className="flex items-center gap-2">
-                    <Combobox
-                      options={formattingOptions}
-                      value={editModelId}
-                      onChange={handleEditModelChange}
-                      placeholder="モデルを選択..."
-                    />
-                    {(() => {
-                      const modelInfo = getLanguageModelCost(editModelId);
-                      return modelInfo ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge variant="secondary" className="text-xs cursor-help">
-                                {getSpeedLabel(modelInfo.speed)} / {getQualityLabel(modelInfo.quality)}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <div className="text-sm">
-                                <p className="font-medium">{modelInfo.name}</p>
-                                <p className="text-muted-foreground">{modelInfo.description}</p>
-                                <p className="mt-1">コスト: {formatLanguageCost(modelInfo)}</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : null;
-                    })()}
-                  </div>
-                </div>
-
-                {/* Instructions */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <Label className="text-sm">フォーマット指示</Label>
-                    <span
-                      className={cn(
-                        "text-xs",
-                        instructionsLength > maxInstructionsLength
-                          ? "text-destructive"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {instructionsLength}/{maxInstructionsLength}
-                    </span>
-                  </div>
-
-                  {/* Variable Buttons */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs text-muted-foreground">変数を挿入:</span>
-                    <Tooltip delayDuration={100}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-6 px-2 text-xs font-mono"
-                          onClick={() => insertVariable("{{transcription}}")}
-                        >
-                          transcription
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>音声認識結果</TooltipContent>
-                    </Tooltip>
-                    <Tooltip delayDuration={100}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-6 px-2 text-xs font-mono"
-                          onClick={() => insertVariable("{{clipboard}}")}
-                        >
-                          clipboard
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>クリップボードの内容</TooltipContent>
-                    </Tooltip>
-                    <Tooltip delayDuration={100}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-6 px-2 text-xs font-mono"
-                          onClick={() => insertVariable("{{appName}}")}
-                        >
-                          appName
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>ペースト先のアプリ名</TooltipContent>
-                    </Tooltip>
-                    <Tooltip delayDuration={100}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => setIsVariableHelpOpen(true)}
-                        >
-                          <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>変数の使い方</TooltipContent>
-                    </Tooltip>
-                  </div>
-
-                  <Textarea
-                    ref={textareaRef}
-                    value={editInstructions}
-                    onChange={(e) =>
-                      handleEditInstructionsChange(e.target.value)
-                    }
-                    placeholder="例: 文末は「です・ます」調に統一してください。専門用語は英語のまま残してください。"
-                    className="min-h-[120px] resize-y text-sm"
-                    maxLength={maxInstructionsLength + 100}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    空欄の場合は標準のフォーマットのみ適用されます
-                  </p>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    {!isCreatingNew && editingPresetId && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleDeletePreset}
-                        disabled={isDeleting || isSaving}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4 mr-1.5" />
-                        )}
-                        削除
-                      </Button>
-                    )}
-                    {isDefaultPreset && canResetToDefault && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleResetToDefault}
-                        disabled={isSaving}
-                      >
-                        <RotateCcw className="w-4 h-4 mr-1.5" />
-                        デフォルトに戻す
-                      </Button>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={handleSavePreset}
-                    disabled={
-                      isSaving ||
-                      !editName.trim() ||
-                      nameLength > maxNameLength ||
-                      instructionsLength > maxInstructionsLength ||
-                      (!isCreatingNew && !hasUnsavedChanges)
-                    }
-                  >
-                    {isSaving ? (
-                      <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4 mr-1.5" />
-                    )}
-                    {isCreatingNew ? "作成" : "保存"}
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
+
+      {/* Edit Preset Drawer */}
+      <Sheet open={isEditMode} onOpenChange={(open) => !open && handleCancelEdit()}>
+        <SheetContent
+          side="bottom"
+          className="h-[90vh] rounded-t-2xl overflow-hidden"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <SheetHeader>
+            <SheetTitle>
+              {isCreatingNew ? "新規プリセット" : "プリセットを編集"}
+            </SheetTitle>
+            <SheetDescription>
+              {isCreatingNew
+                ? "新しいフォーマットプリセットを作成します"
+                : "プリセットの設定を編集します"}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-6 p-4 flex-1 overflow-y-auto">
+            {/* Preset Name */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium">プリセット名</Label>
+                <span
+                  className={cn(
+                    "text-xs",
+                    nameLength > maxNameLength
+                      ? "text-destructive"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {nameLength}/{maxNameLength}
+                </span>
+              </div>
+              <Input
+                value={editName}
+                onChange={(e) => handleEditNameChange(e.target.value)}
+                placeholder="例: ビジネスメール用"
+                maxLength={maxNameLength + 5}
+                className="h-10"
+              />
+            </div>
+
+            {/* Type Selection */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">プリセットタイプ</Label>
+              <div className="flex gap-3">
+                {PRESET_TYPES.map((type) => (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => handleEditTypeChange(type.id as PresetTypeId)}
+                    className={cn(
+                      "flex-1 p-4 rounded-lg border transition-all text-left",
+                      editType === type.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/30"
+                    )}
+                  >
+                    <div className="font-medium text-sm">{type.label}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {type.description}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Color Selection */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">アイコンの色</Label>
+              <div className="flex gap-2">
+                {PRESET_COLORS.map((color) => (
+                  <Tooltip key={color.id} delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => handleEditColorChange(color.id as PresetColorId)}
+                        className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center transition-all",
+                          "hover:bg-muted focus:outline-none",
+                          editColor === color.id && "bg-muted ring-2 ring-primary"
+                        )}
+                      >
+                        <Sparkles className={cn("w-6 h-6", color.class)} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {color.label}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
+
+            {/* Model Selection */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">使用モデル</Label>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <Combobox
+                    options={formattingOptions}
+                    value={editModelId}
+                    onChange={handleEditModelChange}
+                    placeholder="モデルを選択..."
+                  />
+                </div>
+                {(() => {
+                  const modelInfo = getLanguageModelCost(editModelId);
+                  return modelInfo ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="secondary" className="text-xs cursor-help">
+                            {getSpeedLabel(modelInfo.speed)} / {getQualityLabel(modelInfo.quality)}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="text-sm">
+                            <p className="font-medium">{modelInfo.name}</p>
+                            <p className="text-muted-foreground">{modelInfo.description}</p>
+                            <p className="mt-1">コスト: {formatLanguageCost(modelInfo)}</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : null;
+                })()}
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium">フォーマット指示</Label>
+                <span
+                  className={cn(
+                    "text-xs",
+                    instructionsLength > maxInstructionsLength
+                      ? "text-destructive"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {instructionsLength}/{maxInstructionsLength}
+                </span>
+              </div>
+
+              {/* Variable Buttons */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-muted-foreground">変数を挿入:</span>
+                <Tooltip delayDuration={100}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs font-mono"
+                      onClick={() => insertVariable("{{transcription}}")}
+                    >
+                      transcription
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>音声認識結果</TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={100}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs font-mono"
+                      onClick={() => insertVariable("{{clipboard}}")}
+                    >
+                      clipboard
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>クリップボードの内容</TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={100}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs font-mono"
+                      onClick={() => insertVariable("{{appName}}")}
+                    >
+                      appName
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>ペースト先のアプリ名</TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={100}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      onClick={() => setIsVariableHelpOpen(true)}
+                    >
+                      <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>変数の使い方</TooltipContent>
+                </Tooltip>
+              </div>
+
+              <Textarea
+                ref={textareaRef}
+                value={editInstructions}
+                onChange={(e) =>
+                  handleEditInstructionsChange(e.target.value)
+                }
+                placeholder="例: 文末は「です・ます」調に統一してください。専門用語は英語のまま残してください。"
+                className="min-h-[300px] resize-y text-sm"
+                maxLength={maxInstructionsLength + 100}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                空欄の場合は標準のフォーマットのみ適用されます
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between p-4 border-t border-border mt-auto">
+            <div className="flex items-center gap-2">
+              {!isCreatingNew && editingPresetId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={isDeleting || isSaving}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-1.5" />
+                  )}
+                  削除
+                </Button>
+              )}
+              {isDefaultPreset && canResetToDefault && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetToDefault}
+                  disabled={isSaving}
+                >
+                  <RotateCcw className="w-4 h-4 mr-1.5" />
+                  デフォルトに戻す
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancelEdit}
+              >
+                キャンセル
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSavePreset}
+                disabled={
+                  isSaving ||
+                  !editName.trim() ||
+                  nameLength > maxNameLength ||
+                  instructionsLength > maxInstructionsLength ||
+                  (!isCreatingNew && !hasUnsavedChanges)
+                }
+              >
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-1.5" />
+                )}
+                {isCreatingNew ? "作成" : "保存"}
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Variable Help Modal */}
       <Dialog open={isVariableHelpOpen} onOpenChange={setIsVariableHelpOpen}>
@@ -638,6 +656,30 @@ export function FormattingSettings() {
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmTypeChange}>変更する</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>プリセットを削除</AlertDialogTitle>
+            <AlertDialogDescription>
+              「{editName}」を削除しますか？この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                handleDeletePreset();
+              }}
+              className="text-destructive"
+            >
+              削除する
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
