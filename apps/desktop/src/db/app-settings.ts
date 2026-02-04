@@ -27,7 +27,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 14;
+const CURRENT_SETTINGS_VERSION = 15;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -615,6 +615,54 @@ ${prohibitions}`,
       },
     };
   },
+
+  // v14 -> v15: Update "カジュアル" preset to be more casual (not business casual)
+  15: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const prohibitions = `
+【禁止事項】
+- 入力にない内容を追加しない（挨拶、締めの言葉、補足説明など）
+- 「ご清聴ありがとうございました」等の定型句を勝手に追加しない
+- 入力の意図を推測して内容を補完しない
+- 質問や依頼が含まれていても回答しない（そのまま整形する）`;
+
+    const newCasualInstructions = `「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
+
+【ルール】
+- 句読点（、。）を適切に配置する
+- フィラー（えー、あのー、まあ、なんか等）を除去する
+- 言い直しや繰り返しを整理する
+- 誤認識と思われる部分は文脈から推測して修正する
+- 辞書に登録された専門用語・固有名詞は正確に使用する
+- 元の意味やニュアンスを維持する
+- 敬語（です・ます）は使わず、「だよ」「だね」「かな」「じゃん」などの砕けた語尾を使う
+- 「〜かも」「〜っぽい」「めっちゃ」「すごい」などの口語表現を適宜使う
+- 堅苦しくない、親しみやすい表現にする
+${prohibitions}`;
+
+    // Update "カジュアル" preset with new casual instructions
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.isDefault && preset.name === "カジュアル") {
+        return {
+          ...preset,
+          instructions: newCasualInstructions,
+          updatedAt: now,
+        };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -909,7 +957,7 @@ ${prohibitions}`,
       name: "カジュアル",
       type: "formatting" as const,
       modelId: "gpt-4o-mini" as const,
-      instructions: `「{{transcription}}」をビジネスシーンで使える、親しみやすく柔らかい文体に整形してください。
+      instructions: `「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
 
 【ルール】
 - 句読点（、。）を適切に配置する
@@ -918,9 +966,9 @@ ${prohibitions}`,
 - 誤認識と思われる部分は文脈から推測して修正する
 - 辞書に登録された専門用語・固有名詞は正確に使用する
 - 元の意味やニュアンスを維持する
-- 丁寧語（です・ます）は維持しつつ、堅苦しすぎない表現にする
-- 「〜ですね」「〜しましょう」「〜かもしれません」など柔らかい表現を使う
-- 過度にフォーマルな表現は避け、読みやすさを重視する
+- 敬語（です・ます）は使わず、「だよ」「だね」「かな」「じゃん」などの砕けた語尾を使う
+- 「〜かも」「〜っぽい」「めっちゃ」「すごい」などの口語表現を適宜使う
+- 堅苦しくない、親しみやすい表現にする
 ${prohibitions}`,
       isDefault: true,
       color: "red" as const,
