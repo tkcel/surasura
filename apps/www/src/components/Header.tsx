@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Apple, X, Cpu, Check, Loader2, Monitor } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Apple, X, Cpu, Check, Loader2, Monitor, BookOpen } from "lucide-react";
 import { DOWNLOAD_URLS } from "../constants/release";
 import { useReleaseAvailability } from "../hooks/useReleaseAvailability";
 
@@ -28,6 +29,13 @@ export function Header() {
             </a>
 
             <div className="flex items-center gap-3">
+              <Link
+                to="/docs"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <BookOpen size={18} />
+                ドキュメント
+              </Link>
               <a
                 href="https://github.com/tkcel/surasura"
                 target="_blank"

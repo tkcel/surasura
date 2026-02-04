@@ -22,8 +22,16 @@ export function Footer() {
             </a>
           </div>
 
-          {/* 法的情報リンク */}
+          {/* リンク */}
           <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">
+            <Link to="/" className="hover:text-gray-700 transition-colors">
+              ダウンロード
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link to="/docs" className="hover:text-gray-700 transition-colors">
+              使い方ガイド
+            </Link>
+            <span className="text-gray-300">|</span>
             <Link to="/privacy" className="hover:text-gray-700 transition-colors">
               プライバシーポリシー
             </Link>
