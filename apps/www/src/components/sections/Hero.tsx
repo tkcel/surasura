@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { Apple, Monitor, X, Cpu, Check, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Apple, Monitor, X, Cpu, Check, Loader2, BookOpen } from "lucide-react";
 import { RELEASE_VERSION, DOWNLOAD_URLS } from "../../constants/release";
+// XXX: スポンサーが集まり次第解放
+// import { SPONSORS, PLACEHOLDER_SPONSORS } from "../../constants/sponsors";
 import { useReleaseAvailability } from "../../hooks/useReleaseAvailability";
 
 export function Hero() {
@@ -24,7 +27,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative pt-40 pb-32 md:pt-52 md:pb-44 min-h-screen flex items-center bg-nm-surface overflow-hidden">
+    <section className="relative pt-40 pb-48 md:pt-52 md:pb-56 min-h-screen flex items-center bg-nm-surface overflow-hidden">
       {/* ドットパターン背景 */}
       <div
         className="absolute inset-0 opacity-[0.4]"
@@ -126,8 +129,65 @@ export function Hero() {
           )}
         </div>
 
-        <p className="text-sm text-gray-400">macOS 12+ / Windows 10+ 対応</p>
+        <p className="text-sm text-gray-400 mb-6">macOS 12+ / Windows 10+ 対応</p>
+
+        <Link
+          to="/docs"
+          className="group inline-flex items-center gap-2 px-6 py-3 bg-nm-surface text-gray-700 font-semibold rounded-2xl hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-sm"
+        >
+          <BookOpen size={20} className="text-primary-600 group-hover:scale-110 transition-transform" />
+          使い方ガイドを見る
+        </Link>
       </div>
+
+      {/* XXX: スポンサーが集まり次第解放 */}
+      {/* <div className="absolute bottom-24 left-0 right-0">
+        <p className="text-xs text-gray-400 text-center mb-4">
+          ご支援いただいている企業様・個人様
+        </p>
+        <div className="relative overflow-x-clip overflow-y-visible pb-2 mx-auto max-w-2xl">
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-nm-surface via-nm-surface/80 to-transparent z-10 pointer-events-none backdrop-blur-sm" style={{ maskImage: 'linear-gradient(to right, black, transparent)' }} />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-nm-surface via-nm-surface/80 to-transparent z-10 pointer-events-none backdrop-blur-sm" style={{ maskImage: 'linear-gradient(to left, black, transparent)' }} />
+          <div className="flex w-max animate-marquee">
+            {[...Array(2)].map((_, setIndex) => (
+              <div key={setIndex} className="flex">
+                {SPONSORS.map((sponsor, i) => (
+                  <a
+                    key={`sponsor-${i}`}
+                    href={sponsor.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 mx-4 px-4 py-2 bg-nm-surface rounded-xl shadow-nm-raised-sm hover:shadow-nm-raised-md transition-shadow"
+                  >
+                    {sponsor.logo ? (
+                      <img
+                        src={sponsor.logo}
+                        alt={sponsor.name}
+                        className="h-8 w-auto"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-600 whitespace-nowrap">
+                        {sponsor.name}
+                      </span>
+                    )}
+                  </a>
+                ))}
+                {SPONSORS.length < 5 &&
+                  PLACEHOLDER_SPONSORS.slice(0, 5 - SPONSORS.length).map((text, i) => (
+                    <div
+                      key={`placeholder-${i}`}
+                      className="flex-shrink-0 mx-4 px-6 py-2 bg-nm-surface rounded-xl shadow-nm-raised-sm"
+                    >
+                      <span className="text-sm text-gray-400 whitespace-nowrap">
+                        {text}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div> */}
 
       {/* macOS選択モーダル */}
       {showMacModal && (
