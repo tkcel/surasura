@@ -71,7 +71,7 @@ export function DocsPage() {
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24">
               <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">
-                ドキュメント
+                使い方ガイド
               </h2>
               <DocsSidebar />
             </div>

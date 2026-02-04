@@ -96,7 +96,7 @@ export function GettingStarted() {
 
       <DocsNote>
         <Strong>料金について</Strong>: OpenAI APIは従量課金制です。
-        surasuraの通常使用では、1時間の音声入力で約$0.01〜0.05程度です。
+        surasuraの通常使用では、1時間の音声入力で約$0.01〜0.02程度です。
         詳しくは<DocsLink to="/docs/faq">FAQ</DocsLink>をご覧ください。
       </DocsNote>
 

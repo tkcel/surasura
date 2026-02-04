@@ -48,15 +48,15 @@ export function FAQ() {
         <tbody>
           <tr>
             <DocsTd>軽い使用（1日10回程度）</DocsTd>
-            <DocsTd>$0.50〜$1</DocsTd>
+            <DocsTd>$0.20〜$0.50</DocsTd>
           </tr>
           <tr>
             <DocsTd>普通の使用（1日30回程度）</DocsTd>
-            <DocsTd>$1〜$3</DocsTd>
+            <DocsTd>$0.50〜$1.50</DocsTd>
           </tr>
           <tr>
             <DocsTd>ヘビーユーザー（1日100回以上）</DocsTd>
-            <DocsTd>$5〜$10</DocsTd>
+            <DocsTd>$2〜$5</DocsTd>
           </tr>
         </tbody>
       </DocsTable>
