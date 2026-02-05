@@ -1,4 +1,4 @@
-import { app } from "electron";
+import { app, safeStorage } from "electron";
 import { EventEmitter } from "events";
 import { FormatterConfig, FormatPreset } from "../types/formatter";
 import {
@@ -221,12 +221,46 @@ export class SettingsService extends EventEmitter {
     await updateSettingsSection("modelProvidersConfig", config);
   }
 
+  private static readonly ENCRYPTED_PREFIX = "enc:v1:";
+
+  private encryptApiKey(plainText: string): string {
+    if (!plainText || plainText.startsWith(SettingsService.ENCRYPTED_PREFIX)) {
+      return plainText;
+    }
+    if (!safeStorage.isEncryptionAvailable()) {
+      return plainText;
+    }
+    const encrypted = safeStorage.encryptString(plainText);
+    return SettingsService.ENCRYPTED_PREFIX + encrypted.toString("base64");
+  }
+
+  private decryptApiKey(stored: string): string {
+    if (!stored || !stored.startsWith(SettingsService.ENCRYPTED_PREFIX)) {
+      return stored;
+    }
+    try {
+      const base64 = stored.slice(SettingsService.ENCRYPTED_PREFIX.length);
+      const buffer = Buffer.from(base64, "base64");
+      return safeStorage.decryptString(buffer);
+    } catch (e) {
+      console.error(
+        "[SettingsService] Failed to decrypt API key, returning empty string. User will need to re-enter the key.",
+        e,
+      );
+      return "";
+    }
+  }
+
   /**
    * Get OpenAI configuration
    */
   async getOpenAIConfig(): Promise<{ apiKey: string } | undefined> {
     const config = await this.getModelProvidersConfig();
-    return config?.openai;
+    if (!config?.openai) return undefined;
+    return {
+      ...config.openai,
+      apiKey: this.decryptApiKey(config.openai.apiKey),
+    };
   }
 
   /**
@@ -236,7 +270,10 @@ export class SettingsService extends EventEmitter {
     const currentConfig = await this.getModelProvidersConfig();
     await this.setModelProvidersConfig({
       ...currentConfig,
-      openai: config,
+      openai: {
+        ...config,
+        apiKey: this.encryptApiKey(config.apiKey),
+      },
     });
   }
 

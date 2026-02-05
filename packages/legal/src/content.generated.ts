@@ -116,7 +116,7 @@ export const privacyPolicyRaw = `# プライバシーポリシー
 
 ## 8. セキュリティ
 
-本アプリはデータをローカルに保存しますが、暗号化は行っていません。APIキー等の機密情報の管理はユーザーの責任となります。
+APIキー等の機密情報は、OS標準の暗号化機能（macOSではKeychain Services、WindowsではDPAPI）を使用して暗号化した上でローカルに保存されます。ただし、OSの暗号化サービスが利用できない環境では、暗号化されずに保存される場合があります。
 
 ---
 
@@ -273,7 +273,7 @@ export const externalServicesRaw = `# 付録: 外部サービス一覧
 `;
 
 export const config = {
-  "lastUpdated": "2026-02-03",
+  "lastUpdated": "2026-02-05",
   "contactInfo": "[X: @tkcel9](https://x.com/tkcel9) / [Discord](https://discord.gg/ffpmWv5d) / t.nemoto@kyo-toku.com",
   "appName": "surasura"
 } as const;

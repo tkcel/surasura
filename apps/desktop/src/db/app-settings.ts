@@ -17,6 +17,7 @@
  * - Migrations run automatically when loading settings with an older version
  */
 
+import { safeStorage } from "electron";
 import { eq } from "drizzle-orm";
 import { db } from ".";
 import {
@@ -27,7 +28,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 16;
+const CURRENT_SETTINGS_VERSION = 17;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -689,6 +690,46 @@ ${prohibitions}`;
         presets: updatedPresets,
       },
     };
+  },
+
+  // v16 -> v17: Encrypt existing plaintext API keys using safeStorage
+  17: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const ENCRYPTED_PREFIX = "enc:v1:";
+
+    const apiKey = oldData.modelProvidersConfig?.openai?.apiKey;
+    if (!apiKey || apiKey.startsWith(ENCRYPTED_PREFIX)) {
+      return oldData;
+    }
+
+    try {
+      if (!safeStorage.isEncryptionAvailable()) {
+        console.log(
+          "[Settings] safeStorage not available, skipping API key encryption",
+        );
+        return oldData;
+      }
+      const encrypted = safeStorage.encryptString(apiKey);
+      const encryptedKey =
+        ENCRYPTED_PREFIX + encrypted.toString("base64");
+
+      return {
+        ...oldData,
+        modelProvidersConfig: {
+          ...oldData.modelProvidersConfig,
+          openai: {
+            ...oldData.modelProvidersConfig?.openai,
+            apiKey: encryptedKey,
+          },
+        },
+      };
+    } catch (e) {
+      console.error(
+        "[Settings] Failed to encrypt API key during migration, keeping plaintext",
+        e,
+      );
+      return oldData;
+    }
   },
 };
 
