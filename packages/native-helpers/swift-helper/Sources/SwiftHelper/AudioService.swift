@@ -73,6 +73,7 @@ class AudioService: NSObject, AVAudioPlayerDelegate {
         do {
             audioPlayer = try AVAudioPlayer(data: soundData)
             audioPlayer?.delegate = self
+            audioPlayer?.volume = 0.5
 
             if audioPlayer?.play() == true {
                 logToStderr("[AudioService] Playing sound: \(soundName).mp3. Delegate will handle completion.")

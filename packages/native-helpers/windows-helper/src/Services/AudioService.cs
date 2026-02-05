@@ -105,6 +105,7 @@ namespace WindowsHelper.Services
                 using var audioFile = new Mp3FileReader(memoryStream);
 
                 waveOut = new WaveOutEvent();
+                waveOut.Volume = 0.5f;
                 waveOut.Init(audioFile);
 
                 // Set up completion handler
