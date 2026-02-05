@@ -20,7 +20,6 @@ export class WindowManager {
   private widgetWindow: BrowserWindow | null = null;
   private onboardingWindow: BrowserWindow | null = null;
   private widgetDisplayId: number | null = null;
-  private cursorPollingInterval: NodeJS.Timeout | null = null;
   private themeListenerSetup: boolean = false;
 
   // On Windows, inset from all edges to allow taskbar auto-hide detection
@@ -436,22 +435,23 @@ export class WindowManager {
     // Set up focus-based display detection
     this.setupFocusBasedDisplayDetection();
 
-    this.startCursorPolling();
-
-    // macOS-specific workspace change notifications
+    // macOS-specific: detect app activation & space changes to move widget
     if (process.platform === "darwin") {
-      try {
-        systemPreferences.subscribeWorkspaceNotification(
-          "NSWorkspaceActiveDisplayDidChangeNotification",
-          () => {
-            this.handleDisplayChange("workspace-change");
-          },
-        );
-      } catch (error) {
-        logger.main.warn(
-          "Failed to subscribe to workspace notifications:",
-          error,
-        );
+      const notifications = [
+        "NSWorkspaceDidActivateApplicationNotification",
+        "NSWorkspaceActiveSpaceDidChangeNotification",
+      ];
+      for (const name of notifications) {
+        try {
+          systemPreferences.subscribeWorkspaceNotification(name, () => {
+            this.handleDisplayChange(name);
+          });
+        } catch (error) {
+          logger.main.warn(
+            `Failed to subscribe to ${name}:`,
+            error,
+          );
+        }
       }
     }
 
@@ -487,34 +487,6 @@ export class WindowManager {
         );
       }
     });
-  }
-
-  private startCursorPolling(): void {
-    // Poll cursor position every 500ms to detect display changes
-    this.cursorPollingInterval = setInterval(() => {
-      if (!this.widgetWindow || this.widgetWindow.isDestroyed()) return;
-
-      const cursorPoint = screen.getCursorScreenPoint();
-      const cursorDisplay = screen.getDisplayNearestPoint(cursorPoint);
-
-      if (cursorDisplay.id === this.widgetDisplayId) {
-        return;
-      }
-
-      // If cursor moved to a different display
-      logger.main.info("Active display changed due to cursor movement", {
-        previousDisplayId: this.widgetDisplayId,
-        newDisplayId: cursorDisplay.id,
-        cursorPoint,
-      });
-
-      this.widgetDisplayId = cursorDisplay.id;
-
-      // Update widget window bounds to new display
-      this.widgetWindow.setBounds(this.getWidgetBounds(cursorDisplay.workArea));
-    }, 500); // Poll every 500ms
-
-    logger.main.info("Started cursor polling for display detection");
   }
 
   private handleDisplayChange(event: string): void {
@@ -568,13 +540,6 @@ export class WindowManager {
   }
 
   cleanup(): void {
-    // Stop cursor polling
-    if (this.cursorPollingInterval) {
-      clearInterval(this.cursorPollingInterval);
-      this.cursorPollingInterval = null;
-      logger.main.info("Stopped cursor polling");
-    }
-
     // Remove display event listeners
     screen.removeAllListeners("display-added");
     screen.removeAllListeners("display-removed");

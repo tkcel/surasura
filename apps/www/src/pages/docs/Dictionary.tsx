@@ -75,24 +75,25 @@ export function Dictionary() {
 
       <DocsRealImage src="/images/docs/辞書設定画面.png" alt="辞書設定画面" />
 
-      <DocsH3>認識ヒントの登録</DocsH3>
+      <DocsP>
+        設定画面の「辞書機能」タブから、「+ 単語を追加」ボタンをクリックすると登録ダイアログが開きます。
+      </DocsP>
+
+      <DocsH3>認識ヒントとして登録する場合</DocsH3>
 
       <DocsOrderedList>
-        <DocsListItem>設定画面を開く</DocsListItem>
-        <DocsListItem>「辞書」タブを選択</DocsListItem>
-        <DocsListItem>「認識ヒント」セクションで「追加」をクリック</DocsListItem>
-        <DocsListItem>認識させたい言葉を入力</DocsListItem>
-        <DocsListItem>「保存」をクリック</DocsListItem>
+        <DocsListItem>「+ 単語を追加」をクリック</DocsListItem>
+        <DocsListItem>「置換を有効にする」トグルが<Strong>オフ</Strong>のまま、認識させたい単語を入力</DocsListItem>
+        <DocsListItem>「追加」をクリック</DocsListItem>
       </DocsOrderedList>
 
-      <DocsH3>置換ルールの登録</DocsH3>
+      <DocsH3>置換ルールとして登録する場合</DocsH3>
 
       <DocsOrderedList>
-        <DocsListItem>設定画面を開く</DocsListItem>
-        <DocsListItem>「辞書」タブを選択</DocsListItem>
-        <DocsListItem>「置換ルール」セクションで「追加」をクリック</DocsListItem>
-        <DocsListItem>「変換前」と「変換後」を入力</DocsListItem>
-        <DocsListItem>「保存」をクリック</DocsListItem>
+        <DocsListItem>「+ 単語を追加」をクリック</DocsListItem>
+        <DocsListItem>「置換を有効にする」トグルを<Strong>オン</Strong>にする</DocsListItem>
+        <DocsListItem>「置換前」と「置換後」の単語をそれぞれ入力</DocsListItem>
+        <DocsListItem>「追加」をクリック</DocsListItem>
       </DocsOrderedList>
 
       <DocsH2>活用例</DocsH2>
@@ -168,7 +169,7 @@ export function Dictionary() {
 
       <DocsH3>注意点</DocsH3>
       <DocsList>
-        <DocsListItem>登録数が多すぎると処理が遅くなる場合があります</DocsListItem>
+        <DocsListItem>登録は最大500件までです</DocsListItem>
         <DocsListItem>置換ルールは完全一致で動作します</DocsListItem>
         <DocsListItem>大文字/小文字は区別されます</DocsListItem>
       </DocsList>
