@@ -1,6 +1,6 @@
 import {
   BookOpen,
-  Mic,
+
   Sparkles,
   Book,
   History,
@@ -14,11 +14,6 @@ export const docsSections = [
     id: "getting-started",
     title: "はじめに",
     icon: BookOpen,
-  },
-  {
-    id: "recording-modes",
-    title: "音声入力モード",
-    icon: Mic,
   },
   {
     id: "presets",

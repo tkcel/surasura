@@ -9,7 +9,7 @@ import {
   DocsTable,
   DocsTh,
   DocsTd,
-  DocsImage,
+  DocsRealImage,
   DocsNote,
   Steps,
   Step,
@@ -94,7 +94,7 @@ export function Presets() {
 
       <DocsH2>AIフォーマットの切り替え</DocsH2>
 
-      <DocsImage alt="AIフォーマット選択メニュー" />
+      <DocsRealImage src="/images/docs/AIフォーマット選択メニュー.png" alt="AIフォーマット選択メニュー" />
 
       <DocsP>
         AIフォーマットはいつでも簡単に切り替えることができます。
@@ -114,7 +114,7 @@ export function Presets() {
 
       <DocsH2>カスタムAIフォーマット作成</DocsH2>
 
-      <DocsImage alt="AIフォーマット編集画面" />
+      <DocsRealImage src="/images/docs/AIフォーマット編集画面.png" alt="AIフォーマット編集画面" />
 
       <DocsP>
         独自のAIフォーマットを作成して、特定の用途に最適化された出力を得ることができます。

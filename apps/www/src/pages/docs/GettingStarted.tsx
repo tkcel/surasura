@@ -9,7 +9,7 @@ import {
   DocsNote,
   DocsLink,
   ExternalLink,
-  DocsImage,
+  DocsRealImage,
   Steps,
   Step,
   Strong,
@@ -83,7 +83,7 @@ export function GettingStarted() {
 
       <DocsH3>surasuraへの設定</DocsH3>
 
-      <DocsImage alt="APIキー設定画面" />
+      <DocsRealImage src="/images/docs/APIキー設定画面.png" alt="APIキー設定画面" />
 
       <Steps>
         <Step number={1} title="surasuraを起動" />
@@ -102,7 +102,7 @@ export function GettingStarted() {
 
       <DocsH2>基本的な使い方</DocsH2>
 
-      <DocsImage alt="フローティングボタンの状態変化" />
+      <DocsRealImage src="/images/docs/フローティングボタンの状態変化.png" alt="フローティングボタンの状態変化" />
 
       <DocsH3>1. 音声入力を開始</DocsH3>
       <DocsP>

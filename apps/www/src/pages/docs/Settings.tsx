@@ -10,7 +10,7 @@ import {
   DocsTh,
   DocsTd,
   DocsNote,
-  DocsImage,
+  DocsRealImage,
   DocsLink,
   Strong,
   Kbd,
@@ -29,7 +29,7 @@ export function Settings() {
 
       <DocsH2>ショートカットキー</DocsH2>
 
-      <DocsImage alt="ショートカット設定" />
+      <DocsRealImage src="/images/docs/ショートカット設定.png" alt="ショートカット設定" />
 
       <DocsH3>設定可能なショートカット</DocsH3>
 
@@ -84,7 +84,7 @@ export function Settings() {
 
       <DocsH2>テーマ</DocsH2>
 
-      <DocsImage alt="テーマ設定" />
+      <DocsRealImage src="/images/docs/テーマ設定.png" alt="テーマ設定" />
 
       <DocsP>
         surasuraの外観を変更できます。
@@ -207,7 +207,6 @@ export function Settings() {
 
       <RelatedPages
         links={[
-          { to: "/docs/recording-modes", title: "音声入力モード", description: "音声入力モードの切り替え" },
           { to: "/docs/presets", title: "AIフォーマット（プリセット）", description: "整形スタイルの設定" },
         ]}
       />

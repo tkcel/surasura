@@ -9,7 +9,7 @@ import {
   DocsTable,
   DocsTh,
   DocsTd,
-  DocsImage,
+  DocsRealImage,
   Strong,
   NextPage,
   RelatedPages,
@@ -73,7 +73,7 @@ export function Dictionary() {
 
       <DocsH2>辞書の登録方法</DocsH2>
 
-      <DocsImage alt="辞書設定画面" />
+      <DocsRealImage src="/images/docs/辞書設定画面.png" alt="辞書設定画面" />
 
       <DocsH3>認識ヒントの登録</DocsH3>
 

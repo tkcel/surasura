@@ -116,7 +116,6 @@ export function History() {
 
       <RelatedPages
         links={[
-          { to: "/docs/recording-modes", title: "音声入力モード", description: "音声入力の使い方" },
           { to: "/docs/settings", title: "設定", description: "ショートカットキーの設定" },
         ]}
       />

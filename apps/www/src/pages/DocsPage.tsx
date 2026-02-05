@@ -5,7 +5,7 @@ import { DocsSidebar } from "../components/docs/DocsSidebar";
 import { DocsMobileNav } from "../components/docs/DocsMobileNav";
 import { Footer } from "../components/Footer";
 import { GettingStarted } from "./docs/GettingStarted";
-import { RecordingModes } from "./docs/RecordingModes";
+
 import { Presets } from "./docs/Presets";
 import { Dictionary } from "./docs/Dictionary";
 import { History } from "./docs/History";
@@ -15,7 +15,6 @@ import { Troubleshooting } from "./docs/Troubleshooting";
 
 const sectionComponents: Record<DocsSectionId, React.ComponentType> = {
   "getting-started": GettingStarted,
-  "recording-modes": RecordingModes,
   presets: Presets,
   dictionary: Dictionary,
   history: History,
