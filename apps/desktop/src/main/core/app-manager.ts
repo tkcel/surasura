@@ -131,6 +131,8 @@ export class AppManager {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data:",
       `connect-src ${connectSrc}`,
+      "worker-src 'self' blob:",
+      "media-src 'self' blob:",
     ].join("; ");
 
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
