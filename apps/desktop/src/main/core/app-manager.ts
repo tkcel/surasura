@@ -1,4 +1,4 @@
-import { app, ipcMain, session, shell, systemPreferences } from "electron";
+import { app, ipcMain, shell, systemPreferences } from "electron";
 import { initializeDatabase } from "../../db";
 import { logger } from "../logger";
 import { WindowManager } from "./window-manager";
@@ -30,9 +30,6 @@ export class AppManager {
 
   async initialize(): Promise<void> {
     await this.initializeDatabase();
-
-    // Setup Content Security Policy
-    this.setupContentSecurityPolicy();
 
     // Clean up old audio files on startup
     await cleanupAudioFiles();
@@ -112,39 +109,6 @@ export class AppManager {
     // Auto-update is now handled by update-electron-app in main.ts
 
     logger.main.info("Application initialized successfully");
-  }
-
-  private setupContentSecurityPolicy(): void {
-    const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
-
-    const scriptSrc = isDev
-      ? "'self' 'unsafe-inline' 'unsafe-eval'"
-      : "'self'";
-    const connectSrc = isDev
-      ? "'self' ws://localhost:* http://localhost:*"
-      : "'self'";
-
-    const csp = [
-      "default-src 'self'",
-      `script-src ${scriptSrc}`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data:",
-      `connect-src ${connectSrc}`,
-      "worker-src 'self' blob:",
-      "media-src 'self' blob:",
-    ].join("; ");
-
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-      callback({
-        responseHeaders: {
-          ...details.responseHeaders,
-          "Content-Security-Policy": [csp],
-        },
-      });
-    });
-
-    logger.main.info("Content Security Policy configured", { isDev });
   }
 
   private async initializeDatabase(): Promise<void> {
