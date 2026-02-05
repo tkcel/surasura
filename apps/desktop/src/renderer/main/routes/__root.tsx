@@ -1,5 +1,5 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+// import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { api, trpcClient } from "@/trpc/react";
 import { usePresetNotifications } from "@/hooks/usePresetNotifications";
@@ -27,9 +27,9 @@ function AppShell() {
     <>
       <PermissionWarningBanner />
       <Outlet />
-      {process.env.NODE_ENV === "development" && (
+      {/* {process.env.NODE_ENV === "development" && (
         <TanStackRouterDevtools position="bottom-right" />
-      )}
+      )} */}
     </>
   );
 }
