@@ -102,21 +102,31 @@ export function GettingStarted() {
 
       <DocsH2>基本的な使い方</DocsH2>
 
+      <DocsP>
+        音声入力の開始方法は、フローティングウィジェットを使う方法とショートカットキーを使う方法の2つがあります。
+      </DocsP>
+
+      <DocsH3>ウィジェットで操作する</DocsH3>
+
       <DocsRealImage src="/images/docs/フローティングボタンの状態変化.png" alt="フローティングボタンの状態変化" />
 
-      <DocsH3>1. 音声入力を開始</DocsH3>
+      <DocsOrderedList>
+        <DocsListItem>フローティングウィジェットにカーソルを合わせると、再生ボタンが表示される</DocsListItem>
+        <DocsListItem>再生ボタンをクリックすると音声入力が開始</DocsListItem>
+        <DocsListItem>停止ボタンをクリックすると音声入力が終了し、AIフォーマット処理が開始</DocsListItem>
+        <DocsListItem>整形が完了すると、カーソル位置にテキストが自動的にペーストされる</DocsListItem>
+      </DocsOrderedList>
+
+      <DocsH3>ショートカットキーで操作する</DocsH3>
+
       <DocsP>
-        デフォルトのショートカットキー <Kbd>Fn</Kbd>（macOS）または <Kbd>Ctrl + Win</Kbd>（Windows）を押しながら話します。
+        <Kbd>Fn</Kbd>（macOS）または <Kbd>Ctrl + Win</Kbd>（Windows）を<Strong>押している間</Strong>音声入力されます。
+        キーを離すと音声入力が終了し、AIフォーマット処理後にテキストが自動でペーストされます。
       </DocsP>
 
-      <DocsH3>2. 音声入力を終了</DocsH3>
       <DocsP>
-        キーを離すと音声入力が終了し、自動的にAIが整形を開始します。
-      </DocsP>
-
-      <DocsH3>3. テキストがペースト</DocsH3>
-      <DocsP>
-        整形が完了すると、現在カーソルがある位置にテキストが自動的にペーストされます。
+        <Kbd>Fn + Space</Kbd>（macOS）または <Kbd>Ctrl + Win + Space</Kbd>（Windows）で、
+        キーを1回押すと開始、もう1回押すと終了するハンズフリーモードも使えます。
       </DocsP>
 
       <DocsH2>クイックスタート</DocsH2>
