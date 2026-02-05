@@ -92,6 +92,10 @@ export function GettingStarted() {
         </Step>
         <Step number={3} title="「APIキー」欄に取得したキーを貼り付け" />
         <Step number={4} title="「保存」をクリック" />
+        <Step number={5} title="キーチェーンアクセスを許可（macOSのみ）">
+          APIキーの保存時に「キーチェーンアクセス」のダイアログが表示されます。
+          ここで<Strong>「常に許可」</Strong>を選択すると、次回以降アプリを開くたびにパスワードを求められることなく、スムーズに利用できます。
+        </Step>
       </Steps>
 
       <DocsNote>
