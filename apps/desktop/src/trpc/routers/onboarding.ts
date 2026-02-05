@@ -7,6 +7,10 @@ import {
   type OnboardingFeatureFlags,
 } from "../../types/onboarding";
 import { logger } from "../../main/logger";
+import {
+  getAccessibilityStatus,
+  invalidateAccessibilityCache,
+} from "../../services/onboarding-service";
 
 export const onboardingRouter = createRouter({
   // --------------------------------------------------------------------------
@@ -290,13 +294,7 @@ export const onboardingRouter = createRouter({
    */
   checkAccessibilityPermission: procedure.query(async (): Promise<boolean> => {
     try {
-      // For non-macOS platforms, accessibility permission is not required
-      if (process.platform !== "darwin") {
-        return true;
-      }
-
-      const hasPermission =
-        systemPreferences.isTrustedAccessibilityClient(false);
+      const hasPermission = getAccessibilityStatus();
       logger.main.debug("Accessibility permission status:", hasPermission);
       return hasPermission;
     } catch (error) {
@@ -327,10 +325,7 @@ export const onboardingRouter = createRouter({
     }> => {
       try {
         const micStatus = systemPreferences.getMediaAccessStatus("microphone");
-        const accessibilityStatus =
-          process.platform === "darwin"
-            ? systemPreferences.isTrustedAccessibilityClient(false)
-            : true;
+        const accessibilityStatus = getAccessibilityStatus();
 
         const { serviceManager } = ctx;
         let hasApiKey = false;
@@ -386,6 +381,9 @@ export const onboardingRouter = createRouter({
         if (process.platform === "darwin") {
           // Prompt for accessibility permission (shows system dialog)
           systemPreferences.isTrustedAccessibilityClient(true);
+
+          // Invalidate cache so the next query picks up the fresh status
+          invalidateAccessibilityCache();
 
           // Open System Preferences to Privacy & Security > Accessibility
           await shell.openExternal(

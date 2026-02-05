@@ -22,7 +22,7 @@ function getPresetBgColorClass(colorId: PresetColorId | undefined): string {
     purple: "bg-purple-500",
     orange: "bg-orange-500",
   };
-  return colorMap[colorId ?? "yellow"] ?? "bg-yellow-500";
+  return colorMap[colorId ?? ""] ?? "bg-white";
 }
 
 const NUM_WAVEFORM_BARS = 12;

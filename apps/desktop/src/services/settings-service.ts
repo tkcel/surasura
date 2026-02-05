@@ -42,13 +42,32 @@ export class SettingsService extends EventEmitter {
    */
   async getFormatterConfig(): Promise<FormatterConfig | null> {
     const formatterConfig = await getSettingsSection("formatterConfig");
-    return formatterConfig || null;
+    if (!formatterConfig) return null;
+
+    // プリセットが消失している場合はデフォルトを復元
+    if (!formatterConfig.presets || formatterConfig.presets.length === 0) {
+      const defaultPresets = generateDefaultPresets();
+      const recovered: FormatterConfig = {
+        ...formatterConfig,
+        presets: defaultPresets as FormatterConfig["presets"],
+        activePresetId:
+          formatterConfig.activePresetId ?? defaultPresets[0]?.id ?? null,
+      };
+      await updateSettingsSection("formatterConfig", recovered);
+      return recovered;
+    }
+
+    return formatterConfig;
   }
 
   /**
    * Set formatter configuration
    */
   async setFormatterConfig(config: FormatterConfig): Promise<void> {
+    // 有効化時にactivePresetIdが未設定なら最初のプリセットを自動選択
+    if (config.enabled && !config.activePresetId && config.presets?.length) {
+      config = { ...config, activePresetId: config.presets[0].id };
+    }
     await updateSettingsSection("formatterConfig", config);
   }
 
@@ -230,8 +249,16 @@ export class SettingsService extends EventEmitter {
     if (!safeStorage.isEncryptionAvailable()) {
       return plainText;
     }
-    const encrypted = safeStorage.encryptString(plainText);
-    return SettingsService.ENCRYPTED_PREFIX + encrypted.toString("base64");
+    try {
+      const encrypted = safeStorage.encryptString(plainText);
+      return SettingsService.ENCRYPTED_PREFIX + encrypted.toString("base64");
+    } catch (e) {
+      console.error(
+        "[SettingsService] Failed to encrypt API key, storing as plaintext",
+        e,
+      );
+      return plainText;
+    }
   }
 
   private decryptApiKey(stored: string): string {
@@ -257,10 +284,23 @@ export class SettingsService extends EventEmitter {
   async getOpenAIConfig(): Promise<{ apiKey: string } | undefined> {
     const config = await this.getModelProvidersConfig();
     if (!config?.openai) return undefined;
-    return {
-      ...config.openai,
-      apiKey: this.decryptApiKey(config.openai.apiKey),
-    };
+
+    const storedKey = config.openai.apiKey;
+    const decryptedKey = this.decryptApiKey(storedKey);
+
+    // 復号失敗（暗号化済みの値があるのに復号結果が空）→ 破損値をクリア
+    if (!decryptedKey && storedKey?.startsWith(SettingsService.ENCRYPTED_PREFIX)) {
+      console.error(
+        "[SettingsService] Clearing corrupted encrypted API key from DB",
+      );
+      await this.setModelProvidersConfig({
+        ...config,
+        openai: { ...config.openai, apiKey: "" },
+      });
+      return { ...config.openai, apiKey: "" };
+    }
+
+    return { ...config.openai, apiKey: decryptedKey };
   }
 
   /**
@@ -275,6 +315,7 @@ export class SettingsService extends EventEmitter {
         apiKey: this.encryptApiKey(config.apiKey),
       },
     });
+    this.emit("api-key-changed");
   }
 
   /**

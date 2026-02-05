@@ -102,6 +102,8 @@ export function FormattingSettings() {
     pendingTypeChange,
     handleConfirmTypeChange,
     handleCancelTypeChange,
+    handleConfirmResetAll,
+    isResettingAll,
   } = useFormattingSettings();
 
   const instructionsEditorRef = useRef<InstructionsEditorHandle>(null);
@@ -281,6 +283,20 @@ export function FormattingSettings() {
                 <p className="text-xs mt-1">
                   「新規作成」をクリックして作成してください
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleConfirmResetAll}
+                  disabled={isResettingAll}
+                  className="mt-3"
+                >
+                  {isResettingAll ? (
+                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-4 h-4 mr-1.5" />
+                  )}
+                  デフォルトに復元
+                </Button>
               </div>
             )}
           </div>

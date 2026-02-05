@@ -1,4 +1,4 @@
-import { ipcMain, app, clipboard } from "electron";
+import { ipcMain, app, clipboard, systemPreferences } from "electron";
 import { EventEmitter } from "node:events";
 import { Mutex } from "async-mutex";
 import { logger, logPerformance } from "../logger";
@@ -6,6 +6,7 @@ import type { ServiceManager } from "@/main/managers/service-manager";
 import type { RecordingState } from "../../types/recording";
 import type { ShortcutManager } from "./shortcut-manager";
 import { StreamingWavWriter } from "../../utils/streaming-wav-writer";
+import { getAccessibilityStatus } from "../../services/onboarding-service";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -291,6 +292,23 @@ export class RecordingManager extends EventEmitter {
           currentState: this.recordingState,
         });
         this.recordingInitiatedAt = null;
+        return;
+      }
+
+      // Safety gate: verify all prerequisites before starting
+      const settingsService = this.serviceManager.getService("settingsService");
+      const openaiConfig = await settingsService.getOpenAIConfig();
+      if (!openaiConfig?.apiKey) {
+        logger.audio.warn("Cannot start recording - API key not configured");
+        return;
+      }
+      const micStatus = systemPreferences.getMediaAccessStatus("microphone");
+      if (micStatus !== "granted") {
+        logger.audio.warn("Cannot start recording - microphone not granted");
+        return;
+      }
+      if (process.platform === "darwin" && !getAccessibilityStatus()) {
+        logger.audio.warn("Cannot start recording - accessibility not granted");
         return;
       }
 

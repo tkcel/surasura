@@ -14,9 +14,7 @@ export default function LanguageTab() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-
-  // Formatter config (for disabling when API key is removed)
-  const { data: formatterConfig } = trpc.settings.getFormatterConfig.useQuery();
+  const utils = trpc.useUtils();
 
   // Get existing OpenAI config
   const { data: openaiConfig, isLoading: isLoadingConfig } =
@@ -26,7 +24,6 @@ export default function LanguageTab() {
   const setOpenAIConfig = trpc.settings.setOpenAIConfig.useMutation();
   const validateConnection =
     trpc.settings.validateOpenAIConnection.useMutation();
-  const setFormatterConfig = trpc.settings.setFormatterConfig.useMutation();
 
   // Initialize from stored config
   useEffect(() => {
@@ -49,6 +46,7 @@ export default function LanguageTab() {
       if (result.success) {
         await setOpenAIConfig.mutateAsync({ apiKey });
         setIsConnected(true);
+        utils.onboarding.checkAllRequirements.invalidate();
         toast.success("OpenAI APIキーを保存しました");
       } else {
         setIsConnected(false);
@@ -67,13 +65,7 @@ export default function LanguageTab() {
       await setOpenAIConfig.mutateAsync({ apiKey: "" });
       setApiKey("");
       setIsConnected(false);
-      // Disable formatter if it was enabled
-      if (formatterConfig?.enabled) {
-        await setFormatterConfig.mutateAsync({
-          enabled: false,
-          modelId: undefined,
-        });
-      }
+      utils.onboarding.checkAllRequirements.invalidate();
       toast.success("OpenAI APIキーを削除しました");
     } catch (error) {
       toast.error("APIキーの削除に失敗しました");

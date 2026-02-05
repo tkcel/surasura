@@ -80,7 +80,7 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
 
       {/* Menu */}
       <div
-        className="fixed z-50 min-w-[180px] rounded-lg bg-black py-1"
+        className="fixed z-50 min-w-[180px] rounded-lg bg-black/90 backdrop-blur-md border border-white/10 shadow-2xl py-1"
         style={{
           left: position.x,
           top: position.y,

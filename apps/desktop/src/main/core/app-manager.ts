@@ -1,4 +1,4 @@
-import { app, ipcMain, session, shell } from "electron";
+import { app, ipcMain, session, shell, systemPreferences } from "electron";
 import { initializeDatabase } from "../../db";
 import { logger } from "../logger";
 import { WindowManager } from "./window-manager";
@@ -9,7 +9,10 @@ import { createIPCHandler } from "electron-trpc-experimental/main";
 import { router } from "../../trpc/router";
 import { createContext } from "../../trpc/context";
 import { cleanupAudioFiles } from "../../utils/audio-file-cleanup";
-import type { OnboardingService } from "../../services/onboarding-service";
+import {
+  type OnboardingService,
+  getAccessibilityStatus,
+} from "../../services/onboarding-service";
 import type { RecordingManager } from "../managers/recording-manager";
 import type { SettingsService } from "../../services/settings-service";
 
@@ -267,16 +270,46 @@ export class AppManager {
       logger.main.debug("Presets updated notification sent to windows");
     });
 
+    // Handle API key changes for widget visibility gating
+    settingsService.on("api-key-changed", () => {
+      this.checkAndUpdateWidgetVisibility();
+    });
+
     logger.main.info("Settings event listeners set up");
+  }
+
+  private async checkAndUpdateWidgetVisibility(): Promise<void> {
+    const recordingManager = this.serviceManager.getService("recordingManager");
+    if (recordingManager.getState() !== "idle") return; // 録音中は変更しない
+
+    const settingsService = this.serviceManager.getService("settingsService");
+    const openaiConfig = await settingsService.getOpenAIConfig();
+    const hasApiKey = !!openaiConfig?.apiKey;
+
+    const hasMic =
+      systemPreferences.getMediaAccessStatus("microphone") === "granted";
+
+    const hasAccessibility = getAccessibilityStatus();
+
+    if (hasApiKey && hasMic && hasAccessibility) {
+      this.windowManager.showWidget();
+    } else {
+      this.windowManager.hideWidget();
+    }
   }
 
   private async setupWindows(): Promise<void> {
     await this.windowManager.createWidgetWindow();
-
-    // Always show widget
-    this.windowManager.showWidget();
-
     this.windowManager.createOrShowMainWindow();
+
+    // 要件を満たしている場合のみウィジェットを表示
+    await this.checkAndUpdateWidgetVisibility();
+
+    // メインウィンドウフォーカス時に再チェック（権限変更の検知）
+    const mainWindow = this.windowManager.getMainWindow();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.on("focus", () => this.checkAndUpdateWidgetVisibility());
+    }
   }
 
   private async setupMenu(): Promise<void> {
@@ -361,16 +394,14 @@ export class AppManager {
     if (allWindows.every((w) => !w || w.isDestroyed())) {
       // All windows destroyed - recreate widget
       await this.windowManager.createWidgetWindow();
-      this.windowManager.showWidget();
+      await this.checkAndUpdateWidgetVisibility();
     } else {
       const widgetWindow = this.windowManager.getWidgetWindow();
       if (!widgetWindow || widgetWindow.isDestroyed()) {
         // Widget destroyed - recreate
         await this.windowManager.createWidgetWindow();
-        this.windowManager.showWidget();
-      } else {
-        widgetWindow.show();
       }
+      await this.checkAndUpdateWidgetVisibility();
       this.windowManager.createOrShowMainWindow();
     }
   }

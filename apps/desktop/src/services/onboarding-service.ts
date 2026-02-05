@@ -24,13 +24,64 @@ type OnboardingStateDb = {
   featureInterests?: string[];
 };
 
+// ---------------------------------------------------------------------------
+// Cached accessibility permission check
+// ---------------------------------------------------------------------------
+// systemPreferences.isTrustedAccessibilityClient(false) is a synchronous
+// macOS API that can block the Electron main process — sometimes indefinitely
+// — when accessibility permission has been denied or revoked.
+//
+// To prevent OS-level freezes we cache the result and re-use it for a short
+// window so that polling loops and multiple concurrent callers never hammer
+// the system API.
+// ---------------------------------------------------------------------------
+
+let accessibilityStatusCache: { value: boolean; timestamp: number } | null =
+  null;
+const ACCESSIBILITY_CACHE_TTL_MS = 5_000; // 5 seconds
+
+/**
+ * Return the cached accessibility permission status.
+ * The underlying system API is called at most once per TTL window.
+ */
+export function getAccessibilityStatus(): boolean {
+  if (process.platform !== "darwin") return true;
+
+  const now = Date.now();
+  if (
+    accessibilityStatusCache &&
+    now - accessibilityStatusCache.timestamp < ACCESSIBILITY_CACHE_TTL_MS
+  ) {
+    return accessibilityStatusCache.value;
+  }
+
+  try {
+    const value = systemPreferences.isTrustedAccessibilityClient(false);
+    accessibilityStatusCache = { value, timestamp: now };
+    return value;
+  } catch (e) {
+    logger.main.error(
+      "[OnboardingService] Failed to check accessibility permission:",
+      e,
+    );
+    // Return last known value, or false if no cache exists
+    return accessibilityStatusCache?.value ?? false;
+  }
+}
+
+/**
+ * Invalidate the accessibility status cache so the next call to
+ * `getAccessibilityStatus()` will perform a fresh system check.
+ */
+export function invalidateAccessibilityCache(): void {
+  accessibilityStatusCache = null;
+}
+
 export class OnboardingService extends EventEmitter {
   private static instance: OnboardingService | null = null;
   private settingsService: SettingsService;
   private currentState: Partial<OnboardingState> = {};
   private isOnboardingInProgress = false;
-  private permissionMonitorInterval: NodeJS.Timeout | null = null;
-  private lastAccessibilityStatus: boolean | null = null;
 
   constructor(settingsService: SettingsService) {
     super();
@@ -218,10 +269,7 @@ export class OnboardingService extends EventEmitter {
     const microphone =
       systemPreferences.getMediaAccessStatus("microphone") === "granted";
 
-    const accessibility =
-      process.platform === "darwin"
-        ? systemPreferences.isTrustedAccessibilityClient(false)
-        : true; // Non-macOS platforms don't need accessibility permission
+    const accessibility = getAccessibilityStatus();
 
     return { microphone, accessibility };
   }
@@ -396,69 +444,28 @@ export class OnboardingService extends EventEmitter {
   // ============================================
 
   /**
-   * Start monitoring accessibility permission
-   * NOTE: Currently disabled due to system freeze issues when checking
-   * accessibility permission status after it's been revoked.
-   * TODO: Find alternative approach for permission monitoring
+   * Start monitoring accessibility permission.
+   * Currently a no-op — permission status is checked on demand via the
+   * cached `getAccessibilityStatus()` function which is safe to call
+   * frequently without risking an OS freeze.
    */
   startPermissionMonitoring(): void {
-    // Temporarily disabled - causes OS freeze when permission is revoked
     logger.main.info(
-      "Accessibility permission monitoring is currently disabled",
+      "Accessibility permission is checked on demand via cached accessor",
     );
-    return;
-
-    // Only monitor on macOS
-    if (process.platform !== "darwin") {
-      return;
-    }
-
-    // Don't start if already monitoring
-    if (this.permissionMonitorInterval) {
-      return;
-    }
-
-    // Initialize last status
-    this.lastAccessibilityStatus =
-      systemPreferences.isTrustedAccessibilityClient(false);
-
-    logger.main.info("Starting accessibility permission monitoring", {
-      initialStatus: this.lastAccessibilityStatus,
-    });
-
-    this.permissionMonitorInterval = setInterval(() => {
-      const currentStatus =
-        systemPreferences.isTrustedAccessibilityClient(false);
-
-      // Check if permission was lost (was true, now false)
-      if (this.lastAccessibilityStatus === true && currentStatus === false) {
-        logger.main.warn("Accessibility permission was revoked");
-        this.emit("accessibility-permission-lost");
-      }
-
-      this.lastAccessibilityStatus = currentStatus;
-    }, 10000); // Check every 10 seconds
   }
 
   /**
-   * Stop monitoring accessibility permission
+   * Stop monitoring accessibility permission (no-op, kept for API compat).
    */
   stopPermissionMonitoring(): void {
-    if (this.permissionMonitorInterval) {
-      clearInterval(this.permissionMonitorInterval);
-      this.permissionMonitorInterval = null;
-      this.lastAccessibilityStatus = null;
-      logger.main.info("Stopped accessibility permission monitoring");
-    }
+    // No interval to clear — monitoring is done via cached on-demand checks.
   }
 
   /**
-   * Check current accessibility permission status
+   * Check current accessibility permission status (cached).
    */
   checkAccessibilityPermission(): boolean {
-    if (process.platform !== "darwin") {
-      return true;
-    }
-    return systemPreferences.isTrustedAccessibilityClient(false);
+    return getAccessibilityStatus();
   }
 }

@@ -436,8 +436,7 @@ export class WindowManager {
     // Set up focus-based display detection
     this.setupFocusBasedDisplayDetection();
 
-    // Cursor polling disabled - widget moves on recording start instead
-    // this.startCursorPolling();
+    this.startCursorPolling();
 
     // macOS-specific workspace change notifications
     if (process.platform === "darwin") {

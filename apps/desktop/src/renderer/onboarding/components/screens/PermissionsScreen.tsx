@@ -47,12 +47,13 @@ export function PermissionsScreen({
     permissions.microphone === "granted" &&
     (permissions.accessibility || platform !== "darwin");
 
-  // Poll for permission changes continuously to keep UI in sync
+  // Poll for permission changes to keep UI in sync.
+  // The backend caches the accessibility check (5s TTL) to avoid
+  // repeatedly calling the potentially-blocking macOS API.
   useEffect(() => {
-    // Always poll to detect permission changes in real-time
     const interval = setInterval(async () => {
       await checkPermissions();
-    }, 2000);
+    }, 3000);
 
     // Show polling indicator only when permissions are not all granted
     setIsPolling(!allPermissionsGranted);

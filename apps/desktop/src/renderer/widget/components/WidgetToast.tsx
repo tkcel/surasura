@@ -26,7 +26,7 @@ export const WidgetToast: React.FC<WidgetToastProps> = ({
   onDismiss,
 }) => {
   return (
-    <Card className="relative min-w-[300px] gap-3 py-4 shadow-lg">
+    <Card className="relative min-w-[300px] gap-3 py-4 shadow-none">
       {onDismiss && (
         <button
           onClick={onDismiss}
