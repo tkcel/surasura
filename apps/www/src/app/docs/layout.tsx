@@ -1,8 +1,42 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { DocsSidebar } from "../../components/docs/DocsSidebar";
 import { DocsMobileNav } from "../../components/docs/DocsMobileNav";
 import { Footer } from "../../components/Footer";
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://surasura.app";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s - surasura ドキュメント",
+    default: "surasura ドキュメント - 使い方ガイド",
+  },
+  description:
+    "surasuraの使い方ガイド。初期設定、AIフォーマット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
+  openGraph: {
+    title: "surasura ドキュメント - 使い方ガイド",
+    description:
+      "surasuraの使い方ガイド。初期設定、AIフォーマット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
+    type: "website",
+    url: `${baseUrl}/docs`,
+    siteName: "surasura",
+    images: [
+      {
+        url: `${baseUrl}/ogp.png`,
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "surasura ドキュメント - 使い方ガイド",
+    description:
+      "surasuraの使い方ガイド。初期設定、AIフォーマット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
+    images: [`${baseUrl}/ogp.png`],
+  },
+};
 
 export default function DocsLayout({
   children,
