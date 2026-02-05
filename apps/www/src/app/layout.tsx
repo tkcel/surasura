@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://surasura.app";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sura2.net";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: "surasura - AI音声入力アプリ",
   description:
     "surasura - キーボードを手放そう。AIが音声を認識し、用途に合わせて自動整形。プロンプトも自由にカスタマイズできる、次世代AI音声入力アプリ。お好きなAIプロバイダーに対応。基本使用料無料。",

@@ -9,7 +9,7 @@ import { Settings } from "../../../content/docs/Settings";
 import { FAQ } from "../../../content/docs/FAQ";
 import { Troubleshooting } from "../../../content/docs/Troubleshooting";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://surasura.app";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sura2.net";
 
 const sectionMeta: Record<DocsSectionId, { title: string; description: string }> = {
   "getting-started": {

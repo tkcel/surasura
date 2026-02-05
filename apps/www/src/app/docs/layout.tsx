@@ -5,7 +5,7 @@ import { DocsSidebar } from "../../components/docs/DocsSidebar";
 import { DocsMobileNav } from "../../components/docs/DocsMobileNav";
 import { Footer } from "../../components/Footer";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://surasura.app";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sura2.net";
 
 export const metadata: Metadata = {
   title: {
