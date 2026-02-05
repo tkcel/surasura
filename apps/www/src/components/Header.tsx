@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Apple, X, Cpu, Check, Loader2, Monitor, BookOpen } from "lucide-react";
 import { DOWNLOAD_URLS } from "../constants/release";
 import { useReleaseAvailability } from "../hooks/useReleaseAvailability";
@@ -40,7 +42,7 @@ export function Header() {
 
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
-                to="/docs"
+                href="/docs"
                 className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                 title="使い方ガイド"
               >

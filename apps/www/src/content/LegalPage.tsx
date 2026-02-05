@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowLeft } from "lucide-react";
@@ -20,7 +22,7 @@ export function LegalPage({ type }: LegalPageProps) {
       <header className="sticky top-0 z-50 bg-nm-surface/95 backdrop-blur-sm border-b border-gray-200/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
           <Link
-            to="/"
+            href="/"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft size={20} />
@@ -117,7 +119,7 @@ export function LegalPage({ type }: LegalPageProps) {
         {/* Navigation */}
         <nav className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
           <Link
-            to="/privacy"
+            href="/privacy"
             className={`px-4 py-2 rounded-lg transition-all ${
               type === "privacy-policy"
                 ? "bg-gray-800 text-white"
@@ -127,7 +129,7 @@ export function LegalPage({ type }: LegalPageProps) {
             プライバシーポリシー
           </Link>
           <Link
-            to="/disclaimer"
+            href="/disclaimer"
             className={`px-4 py-2 rounded-lg transition-all ${
               type === "disclaimer"
                 ? "bg-gray-800 text-white"
@@ -137,7 +139,7 @@ export function LegalPage({ type }: LegalPageProps) {
             免責事項
           </Link>
           <Link
-            to="/external-services"
+            href="/external-services"
             className={`px-4 py-2 rounded-lg transition-all ${
               type === "external-services"
                 ? "bg-gray-800 text-white"

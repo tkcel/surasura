@@ -1,3 +1,5 @@
+"use client";
+
 import { Apple, Monitor, Github, MessageCircle, Loader2 } from "lucide-react";
 import { useReleaseAvailability } from "../../hooks/useReleaseAvailability";
 import { DOWNLOAD_URLS } from "../../constants/release";

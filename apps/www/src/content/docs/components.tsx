@@ -1,4 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ReactNode, useState, useCallback } from "react";
 import { Link as LinkIcon, Check, ChevronRight } from "lucide-react";
 
@@ -32,19 +35,19 @@ export function DocsH1({ children }: { children: ReactNode }) {
 }
 
 export function DocsH2({ children, id }: { children: ReactNode; id?: string }) {
-  const location = useLocation();
+  const pathname = usePathname();
   const [copied, setCopied] = useState(false);
 
   const text = getTextContent(children);
   const slug = id || generateSlug(text);
 
   const handleCopyLink = useCallback(() => {
-    const url = `${window.location.origin}${location.pathname}#${slug}`;
+    const url = `${window.location.origin}${pathname}#${slug}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
-  }, [location.pathname, slug]);
+  }, [pathname, slug]);
 
   return (
     <>
@@ -173,7 +176,7 @@ export function DocsTd({ children }: { children: ReactNode }) {
 // 内部リンク
 export function DocsLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="text-primary-600 hover:underline">
+    <Link href={to} className="text-primary-600 hover:underline">
       {children}
     </Link>
   );
@@ -290,7 +293,7 @@ export function NextPage({ current }: { current: DocsSectionId }) {
   return (
     <div className="mt-10 pt-6 border-t border-gray-200">
       <Link
-        to={href}
+        href={href}
         className="group flex items-center justify-between p-4 rounded-xl bg-primary-50 hover:bg-primary-100 transition-colors"
       >
         <div>
@@ -328,7 +331,7 @@ export function RelatedPages({ links }: { links: { to: string; title: string; de
         {links.map((link) => (
           <Link
             key={link.to}
-            to={link.to}
+            href={link.to}
             className="block p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
           >
             <div className="font-medium text-gray-900">{link.title}</div>

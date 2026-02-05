@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Mail, ClipboardList, FileText, Code } from "lucide-react";
 
@@ -34,6 +36,7 @@ const useCases = [
 
 export function UseCases() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const activeCase = useCases[activeIndex]!;
 
   return (
     <section className="py-20 md:py-32 bg-nm-surface">
@@ -95,7 +98,7 @@ export function UseCases() {
                   入力（音声）
                 </div>
                 <div className="bg-nm-surface rounded-xl p-4 shadow-nm-inset-sm">
-                  <p className="text-gray-700">{useCases[activeIndex].input}</p>
+                  <p className="text-gray-700">{activeCase.input}</p>
                 </div>
               </div>
               <div className="flex justify-center">
@@ -120,7 +123,7 @@ export function UseCases() {
                   出力（整形後）
                 </div>
                 <div className="bg-nm-surface rounded-xl p-4 shadow-nm-raised-sm">
-                  <p className="text-gray-700">{useCases[activeIndex].output}</p>
+                  <p className="text-gray-700">{activeCase.output}</p>
                 </div>
               </div>
             </div>

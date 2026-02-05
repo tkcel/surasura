@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { Apple, Monitor, X, Cpu, Check, Loader2, BookOpen } from "lucide-react";
 import { RELEASE_VERSION, DOWNLOAD_URLS } from "../../constants/release";
 // XXX: スポンサーが集まり次第解放
@@ -132,7 +134,7 @@ export function Hero() {
         <p className="text-sm text-gray-400 mb-6">macOS 12+ / Windows 10+ 対応</p>
 
         <Link
-          to="/docs"
+          href="/docs"
           className="group inline-flex items-center gap-2 px-6 py-3 bg-nm-surface text-gray-700 font-semibold rounded-2xl hover:shadow-nm-raised-md active:shadow-nm-inset-sm transition-all duration-200 shadow-nm-raised-sm"
         >
           <BookOpen size={20} className="text-primary-600 group-hover:scale-110 transition-transform" />
