@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "corepack enable && pnpm install --ignore-scripts",
-  "outputDirectory": "apps/www/out"
+  "outputDirectory": "out"
 }
