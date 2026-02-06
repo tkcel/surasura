@@ -65,7 +65,7 @@ describe("Settings ルーター", () => {
 
       const config = await trpcCaller.settings.getFormatterConfig();
       expect(config).toBeDefined();
-      expect(config.enabled).toBe(true);
+      expect(config!.enabled).toBe(true);
     });
   });
 
@@ -202,7 +202,7 @@ describe("Settings ルーター", () => {
       const activePreset = await trpcCaller.settings.getActivePreset();
 
       expect(activePreset).toBeDefined();
-      expect(activePreset.id).toBe(preset.id);
+      expect(activePreset!.id).toBe(preset.id);
     });
 
     it("アクティブプリセットをnullに設定できる", async () => {

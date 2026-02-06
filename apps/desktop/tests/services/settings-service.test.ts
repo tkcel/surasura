@@ -31,7 +31,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("初期化後にフォーマッタ設定を返す", async () => {
@@ -75,7 +75,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("デフォルトのショートカットを返す", async () => {
@@ -132,7 +132,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("デフォルト値を返す: launchAtLogin=true, minimizeToTray=true, soundEnabled=true", async () => {
@@ -178,7 +178,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("ディクテーション設定を保存して取得できる", async () => {
@@ -198,7 +198,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("デフォルトのUI設定を返す", async () => {
@@ -234,7 +234,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("OpenAI設定を暗号化フローで保存して取得できる", async () => {
@@ -266,7 +266,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("デフォルトの音声モデルを保存して取得できる", async () => {
@@ -294,7 +294,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("デフォルトの言語モデルを保存して取得できる", async () => {
@@ -320,7 +320,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("新しいプリセットを作成してIDとタイムスタンプ付きで返す", async () => {
@@ -410,7 +410,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("既存のプリセットを更新する", async () => {
@@ -474,7 +474,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("プリセットを削除する", async () => {
@@ -523,7 +523,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("アクティブなプリセットを設定して取得できる", async () => {
@@ -562,7 +562,7 @@ describe("SettingsService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      settingsService = serviceManager.getSettingsService();
+      settingsService = serviceManager.getSettingsService()!;
     });
 
     it("フォーマッタが無効の場合にnullを返す", async () => {

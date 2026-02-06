@@ -138,7 +138,7 @@ describe("Transcriptions ルーター（拡張）", () => {
           limit: 10,
           offset: 0,
         });
-      const idsToDelete = transcriptions.slice(0, 2).map((t: { id: string }) => t.id);
+      const idsToDelete = transcriptions.slice(0, 2).map((t: { id: number }) => t.id);
 
       const result = await trpcCaller.transcriptions.deleteMany({
         ids: idsToDelete,

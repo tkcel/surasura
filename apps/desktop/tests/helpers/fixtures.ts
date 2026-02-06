@@ -3,8 +3,6 @@ import * as schema from "@db/schema";
 import type {
   NewTranscription,
   NewVocabulary,
-  NewModel,
-  NewNote,
   AppSettingsData,
 } from "@db/schema";
 
@@ -13,7 +11,7 @@ import type {
  */
 export const defaultAppSettings: AppSettingsData = {
   formatterConfig: {
-    model: "gpt-4o-mini",
+    modelId: "gpt-4o-mini",
     enabled: false,
   },
   ui: {
@@ -34,9 +32,8 @@ export const defaultAppSettings: AppSettingsData = {
     maxRecordingDuration: 600,
   },
   shortcuts: {
-    pushToTalk: "CommandOrControl+Shift+Space",
-    toggleRecording: "CommandOrControl+Shift+R",
-    toggleWindow: "CommandOrControl+Shift+W",
+    pushToTalk: ["CommandOrControl", "Shift", "Space"],
+    toggleRecording: ["CommandOrControl", "Shift", "R"],
   },
   modelProvidersConfig: {
     defaultSpeechModel: "openai-whisper:whisper-1",
@@ -104,37 +101,6 @@ export const sampleVocabulary: NewVocabulary[] = [
   },
 ];
 
-/**
- * Sample models for testing
- */
-export const sampleModels: NewModel[] = [
-  {
-    id: "gpt-4o-mini",
-    provider: "openrouter",
-    name: "GPT-4o Mini",
-    type: "language",
-    context: "128k",
-    description: "Fast and efficient language model",
-    speed: 5,
-    accuracy: 4,
-  },
-];
-
-/**
- * Sample notes for testing
- */
-export const sampleNotes: NewNote[] = [
-  {
-    title: "Test Note 1",
-    content: "This is the first test note",
-    icon: "📝",
-  },
-  {
-    title: "Test Note 2",
-    content: "This is the second test note with more content",
-    icon: "📄",
-  },
-];
 
 /**
  * Fixture presets
@@ -150,7 +116,7 @@ export const fixtures = {
     await testDb.db.insert(schema.appSettings).values({
       id: 1,
       data: defaultAppSettings,
-      version: 1,
+      version: 17,
     });
   },
 
@@ -171,30 +137,12 @@ export const fixtures = {
   },
 
   /**
-   * Database with downloaded models
-   */
-  withModels: async (testDb: TestDatabase) => {
-    await fixtures.empty(testDb);
-    await testDb.db.insert(schema.models).values(sampleModels);
-  },
-
-  /**
-   * Database with notes
-   */
-  withNotes: async (testDb: TestDatabase) => {
-    await fixtures.empty(testDb);
-    await testDb.db.insert(schema.notes).values(sampleNotes);
-  },
-
-  /**
    * Full database with all types of data
    */
   full: async (testDb: TestDatabase) => {
     await fixtures.empty(testDb);
     await testDb.db.insert(schema.transcriptions).values(sampleTranscriptions);
     await testDb.db.insert(schema.vocabulary).values(sampleVocabulary);
-    await testDb.db.insert(schema.models).values(sampleModels);
-    await testDb.db.insert(schema.notes).values(sampleNotes);
   },
 
   /**
@@ -210,7 +158,7 @@ export const fixtures = {
     await testDb.db.insert(schema.appSettings).values({
       id: 1,
       data: { ...defaultAppSettings, ...settings },
-      version: 1,
+      version: 17,
     });
   },
 
@@ -218,19 +166,7 @@ export const fixtures = {
    * Database with authenticated user
    */
   withAuth: async (testDb: TestDatabase) => {
-    await fixtures.withCustomSettings(testDb, {
-      auth: {
-        isAuthenticated: true,
-        idToken: "test-id-token",
-        refreshToken: "test-refresh-token",
-        expiresAt: Date.now() + 3600000, // 1 hour from now
-        userInfo: {
-          sub: "test-user-123",
-          email: "test@example.com",
-          name: "Test User",
-        },
-      },
-    });
+    await fixtures.withCustomSettings(testDb, {});
   },
 };
 
@@ -239,7 +175,9 @@ export const fixtures = {
  */
 export async function seedDatabase(
   testDb: TestDatabase,
-  fixture: keyof typeof fixtures | ((testDb: TestDatabase) => Promise<void>),
+  fixture:
+    | Exclude<keyof typeof fixtures, "withCustomSettings">
+    | ((testDb: TestDatabase) => Promise<void>),
 ): Promise<void> {
   if (typeof fixture === "function") {
     await fixture(testDb);

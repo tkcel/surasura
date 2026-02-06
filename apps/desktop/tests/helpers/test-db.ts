@@ -72,7 +72,6 @@ export async function createTestDatabase(
       // Clear all tables
       await db.delete(schema.transcriptions);
       await db.delete(schema.vocabulary);
-      await db.delete(schema.models);
       await db.delete(schema.appSettings);
     },
   };

@@ -17,7 +17,17 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@db": ["src/db"],
+      "@db/*": ["src/db/*"],
+      "@main": ["src/main"],
+      "@main/*": ["src/main/*"],
+      "@services": ["src/services"],
+      "@services/*": ["src/services/*"],
+      "@utils": ["src/utils"],
+      "@utils/*": ["src/utils/*"],
+      "@trpc": ["src/trpc"],
+      "@trpc/*": ["src/trpc/*"]
     }
   },
   "include": [

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as fs from "node:fs";
+import type { PathLike, Stats, StatOptions } from "node:fs";
 import { app } from "electron";
 import path from "node:path";
 
@@ -47,9 +48,7 @@ describe("音声ファイルクリーンアップ", () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
 
       // Re-import to get fresh module with mocks
-      const { cleanupAudioFiles } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { cleanupAudioFiles } = await import("@utils/audio-file-cleanup");
 
       await cleanupAudioFiles();
 
@@ -63,27 +62,25 @@ describe("音声ファイルクリーンアップ", () => {
       const now = Date.now();
       const eightDaysMs = 8 * 24 * 60 * 60 * 1000;
 
-      vi.mocked(fs.promises.readdir).mockResolvedValue([
+      (vi.mocked(fs.promises.readdir) as ReturnType<typeof vi.fn>).mockResolvedValue([
         "audio-old.wav",
         "audio-new.wav",
       ]);
-      vi.mocked(fs.promises.stat).mockImplementation((filePath: string) => {
-        if (filePath.includes("old")) {
+      vi.mocked(fs.promises.stat).mockImplementation(((filePath: PathLike) => {
+        if (String(filePath).includes("old")) {
           return Promise.resolve({
             size: 1024,
             mtime: new Date(now - eightDaysMs), // 8 days old
-          });
+          } as unknown as Stats);
         }
         return Promise.resolve({
           size: 1024,
           mtime: new Date(now - 1000), // 1 second old
-        });
-      });
+        } as unknown as Stats);
+      }) as (path: PathLike, opts?: StatOptions) => Promise<Stats>);
       vi.mocked(fs.promises.unlink).mockResolvedValue(undefined);
 
-      const { cleanupAudioFiles } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { cleanupAudioFiles } = await import("@utils/audio-file-cleanup");
 
       await cleanupAudioFiles({ maxAgeMs: 7 * 24 * 60 * 60 * 1000 });
 
@@ -98,21 +95,19 @@ describe("音声ファイルクリーンアップ", () => {
 
       const now = Date.now();
 
-      vi.mocked(fs.promises.readdir).mockResolvedValue([
+      (vi.mocked(fs.promises.readdir) as ReturnType<typeof vi.fn>).mockResolvedValue([
         "audio-large1.wav",
         "audio-large2.wav",
       ]);
-      vi.mocked(fs.promises.stat).mockImplementation(() => {
+      vi.mocked(fs.promises.stat).mockImplementation((() => {
         return Promise.resolve({
           size: 300 * 1024 * 1024, // 300MB each
           mtime: new Date(now - 1000),
-        });
-      });
+        } as unknown as Stats);
+      }) as (path: PathLike, opts?: StatOptions) => Promise<Stats>);
       vi.mocked(fs.promises.unlink).mockResolvedValue(undefined);
 
-      const { cleanupAudioFiles } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { cleanupAudioFiles } = await import("@utils/audio-file-cleanup");
 
       await cleanupAudioFiles({ maxSizeBytes: 500 * 1024 * 1024 });
 
@@ -126,29 +121,27 @@ describe("音声ファイルクリーンアップ", () => {
       const now = Date.now();
       const eightDaysMs = 8 * 24 * 60 * 60 * 1000;
 
-      vi.mocked(fs.promises.readdir).mockResolvedValue([
+      (vi.mocked(fs.promises.readdir) as ReturnType<typeof vi.fn>).mockResolvedValue([
         "audio-test.wav",
         "other-file.txt",
         "config.json",
       ]);
-      vi.mocked(fs.promises.stat).mockImplementation(() => {
+      vi.mocked(fs.promises.stat).mockImplementation((() => {
         return Promise.resolve({
           size: 1024,
           mtime: new Date(now - eightDaysMs), // All old
-        });
-      });
+        } as unknown as Stats);
+      }) as (path: PathLike, opts?: StatOptions) => Promise<Stats>);
       vi.mocked(fs.promises.unlink).mockResolvedValue(undefined);
 
-      const { cleanupAudioFiles } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { cleanupAudioFiles } = await import("@utils/audio-file-cleanup");
 
       await cleanupAudioFiles({ maxAgeMs: 7 * 24 * 60 * 60 * 1000 });
 
       // Should only delete audio-* files, not other files
       if (vi.mocked(fs.promises.unlink).mock.calls.length > 0) {
         vi.mocked(fs.promises.unlink).mock.calls.forEach((call) => {
-          expect(path.basename(call[0])).toMatch(/^audio-/);
+          expect(path.basename(call[0] as string)).toMatch(/^audio-/);
         });
       }
     });
@@ -158,9 +151,7 @@ describe("音声ファイルクリーンアップ", () => {
     it("audioディレクトリ内のファイルを削除する", async () => {
       vi.mocked(fs.promises.unlink).mockResolvedValue(undefined);
 
-      const { deleteAudioFile } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { deleteAudioFile } = await import("@utils/audio-file-cleanup");
 
       const filePath = path.join(mockAudioDir, "audio-test.wav");
       await deleteAudioFile(filePath);
@@ -169,9 +160,7 @@ describe("音声ファイルクリーンアップ", () => {
     });
 
     it("audioディレクトリ外のファイルに対してエラーを投げる", async () => {
-      const { deleteAudioFile } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { deleteAudioFile } = await import("@utils/audio-file-cleanup");
 
       const outsidePath = "/some/other/directory/file.wav";
 
@@ -185,9 +174,7 @@ describe("音声ファイルクリーンアップ", () => {
       enoentError.code = "ENOENT";
       vi.mocked(fs.promises.unlink).mockRejectedValue(enoentError);
 
-      const { deleteAudioFile } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { deleteAudioFile } = await import("@utils/audio-file-cleanup");
 
       const filePath = path.join(mockAudioDir, "audio-missing.wav");
 
@@ -200,9 +187,7 @@ describe("音声ファイルクリーンアップ", () => {
       permError.code = "EACCES";
       vi.mocked(fs.promises.unlink).mockRejectedValue(permError);
 
-      const { deleteAudioFile } = await import(
-        "@utils/audio-file-cleanup"
-      );
+      const { deleteAudioFile } = await import("@utils/audio-file-cleanup");
 
       const filePath = path.join(mockAudioDir, "audio-locked.wav");
 

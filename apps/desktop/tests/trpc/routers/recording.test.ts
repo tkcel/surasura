@@ -3,6 +3,7 @@ import { createTestDatabase, type TestDatabase } from "../../helpers/test-db";
 import { seedDatabase } from "../../helpers/fixtures";
 import { initializeTestServices } from "../../helpers/test-app";
 import { setTestDatabase } from "../../setup";
+import type { ServiceMap } from "@main/managers/service-manager";
 
 type TestServices = Awaited<ReturnType<typeof initializeTestServices>>;
 
@@ -50,10 +51,10 @@ describe("Recording ルーター", () => {
       // Override getService to return mock
       const originalGetService = serviceManager.getService.bind(serviceManager);
       vi.spyOn(serviceManager, "getService").mockImplementation(
-        (name: string) => {
-          if (name === "recordingManager") return mockRecordingManager;
+        (<K extends keyof ServiceMap>(name: K) => {
+          if (name === "recordingManager") return mockRecordingManager as unknown as ServiceMap[K];
           return originalGetService(name);
-        },
+        }) as typeof serviceManager.getService,
       );
 
       await trpcCaller.recording.signalStart();
@@ -64,10 +65,10 @@ describe("Recording ルーター", () => {
     it("recordingManagerが利用できない場合にエラーを投げる", async () => {
       const originalGetService = serviceManager.getService.bind(serviceManager);
       vi.spyOn(serviceManager, "getService").mockImplementation(
-        (name: string) => {
-          if (name === "recordingManager") return null;
+        (<K extends keyof ServiceMap>(name: K) => {
+          if (name === "recordingManager") return null as unknown as ServiceMap[K];
           return originalGetService(name);
-        },
+        }) as typeof serviceManager.getService,
       );
 
       await expect(trpcCaller.recording.signalStart()).rejects.toThrow(
@@ -96,10 +97,10 @@ describe("Recording ルーター", () => {
     it("recordingManager.signalStop()を呼び出す", async () => {
       const originalGetService = serviceManager.getService.bind(serviceManager);
       vi.spyOn(serviceManager, "getService").mockImplementation(
-        (name: string) => {
-          if (name === "recordingManager") return mockRecordingManager;
+        (<K extends keyof ServiceMap>(name: K) => {
+          if (name === "recordingManager") return mockRecordingManager as unknown as ServiceMap[K];
           return originalGetService(name);
-        },
+        }) as typeof serviceManager.getService,
       );
 
       await trpcCaller.recording.signalStop();
@@ -110,10 +111,10 @@ describe("Recording ルーター", () => {
     it("recordingManagerが利用できない場合にエラーを投げる", async () => {
       const originalGetService = serviceManager.getService.bind(serviceManager);
       vi.spyOn(serviceManager, "getService").mockImplementation(
-        (name: string) => {
-          if (name === "recordingManager") return null;
+        (<K extends keyof ServiceMap>(name: K) => {
+          if (name === "recordingManager") return null as unknown as ServiceMap[K];
           return originalGetService(name);
-        },
+        }) as typeof serviceManager.getService,
       );
 
       await expect(trpcCaller.recording.signalStop()).rejects.toThrow(
@@ -142,10 +143,10 @@ describe("Recording ルーター", () => {
     it("recordingManager.signalCancel()を呼び出す", async () => {
       const originalGetService = serviceManager.getService.bind(serviceManager);
       vi.spyOn(serviceManager, "getService").mockImplementation(
-        (name: string) => {
-          if (name === "recordingManager") return mockRecordingManager;
+        (<K extends keyof ServiceMap>(name: K) => {
+          if (name === "recordingManager") return mockRecordingManager as unknown as ServiceMap[K];
           return originalGetService(name);
-        },
+        }) as typeof serviceManager.getService,
       );
 
       await trpcCaller.recording.signalCancel();
@@ -156,10 +157,10 @@ describe("Recording ルーター", () => {
     it("recordingManagerが利用できない場合にエラーを投げる", async () => {
       const originalGetService = serviceManager.getService.bind(serviceManager);
       vi.spyOn(serviceManager, "getService").mockImplementation(
-        (name: string) => {
-          if (name === "recordingManager") return null;
+        (<K extends keyof ServiceMap>(name: K) => {
+          if (name === "recordingManager") return null as unknown as ServiceMap[K];
           return originalGetService(name);
-        },
+        }) as typeof serviceManager.getService,
       );
 
       await expect(trpcCaller.recording.signalCancel()).rejects.toThrow(

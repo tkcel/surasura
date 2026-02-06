@@ -175,8 +175,8 @@ describe("Vocabulary ルーター", () => {
       expect(results.length).toBeGreaterThan(0);
       // Should be sorted by usage count descending
       for (let i = 1; i < results.length; i++) {
-        expect(results[i - 1].usageCount).toBeGreaterThanOrEqual(
-          results[i].usageCount
+        expect(results[i - 1].usageCount ?? 0).toBeGreaterThanOrEqual(
+          results[i].usageCount ?? 0
         );
       }
     });
@@ -266,7 +266,7 @@ describe("Vocabulary ルーター", () => {
         limit: 10,
       });
       expect(afterDelete).toHaveLength(initialCount - 1);
-      expect(afterDelete.find((v: { id: string }) => v.id === idToDelete)).toBeUndefined();
+      expect(afterDelete.find((v: { id: number }) => v.id === idToDelete)).toBeUndefined();
     });
   });
 
@@ -284,7 +284,7 @@ describe("Vocabulary ルーター", () => {
       const before = await trpcCaller.vocabulary.getVocabularyByWord({
         word: "surasura",
       });
-      const originalCount = before.usageCount;
+      const originalCount = before.usageCount ?? 0;
 
       await trpcCaller.vocabulary.trackWordUsage({ word: "surasura" });
 

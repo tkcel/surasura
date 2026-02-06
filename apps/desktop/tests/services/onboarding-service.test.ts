@@ -34,7 +34,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("オンボーディング状態が存在しない場合にnullを返す", async () => {
@@ -52,7 +52,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("オンボーディング状態を保存して取得できる", async () => {
@@ -80,7 +80,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("オンボーディングが未完了の場合にneeded=trueを返す", async () => {
@@ -114,7 +114,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("completedAtタイムスタンプを設定する", async () => {
@@ -141,7 +141,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("lastVisitedScreen付きで設定を保存する", async () => {
@@ -179,7 +179,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("環境変数からフィーチャーフラグを確認する", () => {
@@ -205,7 +205,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("フィーチャーフラグに基づいてスキップ画面を返す", () => {
@@ -227,7 +227,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("初期状態でfalseを返す", () => {
@@ -244,7 +244,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("開始後にisInProgressがtrueになる", async () => {
@@ -281,7 +281,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("cancelledイベントを発火してisInProgressをfalseにする", async () => {
@@ -311,7 +311,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("キャッシュされたgetAccessibilityStatusからbooleanを返す", () => {
@@ -331,7 +331,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("TTL内の連続呼び出しで一貫した結果を返す", () => {
@@ -352,7 +352,7 @@ describe("OnboardingService", () => {
       const result = await initializeTestServices(testDb);
       serviceManager = result.serviceManager;
       cleanup = result.cleanup;
-      onboardingService = serviceManager.getOnboardingService();
+      onboardingService = serviceManager.getOnboardingService()!;
     });
 
     it("キャッシュの無効化と再チェックがエラーなく行える", async () => {

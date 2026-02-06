@@ -133,7 +133,7 @@ describe("Transcriptions Service", () => {
       });
 
       expect(afterDelete).toHaveLength(initialCount - 1);
-      expect(afterDelete.find((t: { id: string }) => t.id === idToDelete)).toBeUndefined();
+      expect(afterDelete.find((t: { id: number }) => t.id === idToDelete)).toBeUndefined();
     });
   });
 
