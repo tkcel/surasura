@@ -79,7 +79,7 @@ export function History() {
       <DocsH3>使い方</DocsH3>
       <DocsOrderedList>
         <DocsListItem>
-          <DocsLink to="/docs/settings">設定画面</DocsLink>で履歴ペーストのショートカットを設定（デフォルトは未設定）
+          <DocsLink to="/docs/settings">設定画面</DocsLink>で履歴ペーストのショートカットを確認・変更（デフォルトはmacOS: Alt + Cmd + V、Windows: Alt + Win + V）
         </DocsListItem>
         <DocsListItem>設定したショートカットキーを押す</DocsListItem>
         <DocsListItem>直前の文字起こし結果がペーストされる</DocsListItem>

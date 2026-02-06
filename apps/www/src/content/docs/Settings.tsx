@@ -54,8 +54,8 @@ export function Settings() {
           </tr>
           <tr>
             <DocsTd>履歴ペースト</DocsTd>
-            <DocsTd>未設定</DocsTd>
-            <DocsTd>未設定</DocsTd>
+            <DocsTd><Kbd>Alt + Cmd + V</Kbd></DocsTd>
+            <DocsTd><Kbd>Alt + Win + V</Kbd></DocsTd>
           </tr>
           <tr>
             <DocsTd>録音キャンセル</DocsTd>
