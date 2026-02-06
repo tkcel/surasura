@@ -2,16 +2,16 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createTestDatabase, type TestDatabase } from "../helpers/test-db";
 import {
   seedDatabase,
-  fixtures,
   sampleTranscriptions,
 } from "../helpers/fixtures";
 import { initializeTestServices } from "../helpers/test-app";
 import { setTestDatabase } from "../setup";
 
+type TestServices = Awaited<ReturnType<typeof initializeTestServices>>;
+
 describe("Transcriptions Service", () => {
   let testDb: TestDatabase;
-  let serviceManager: any;
-  let trpcCaller: any;
+  let trpcCaller: TestServices["trpcCaller"];
   let cleanup: () => Promise<void>;
 
   afterEach(async () => {
@@ -29,7 +29,6 @@ describe("Transcriptions Service", () => {
       setTestDatabase(testDb.db);
       await seedDatabase(testDb, "withTranscriptions");
       const result = await initializeTestServices(testDb);
-      serviceManager = result.serviceManager;
       trpcCaller = result.trpcCaller;
       cleanup = result.cleanup;
     });
@@ -79,7 +78,6 @@ describe("Transcriptions Service", () => {
       setTestDatabase(testDb.db);
       await seedDatabase(testDb, "withTranscriptions");
       const result = await initializeTestServices(testDb);
-      serviceManager = result.serviceManager;
       trpcCaller = result.trpcCaller;
       cleanup = result.cleanup;
     });
@@ -114,7 +112,6 @@ describe("Transcriptions Service", () => {
       setTestDatabase(testDb.db);
       await seedDatabase(testDb, "withTranscriptions");
       const result = await initializeTestServices(testDb);
-      serviceManager = result.serviceManager;
       trpcCaller = result.trpcCaller;
       cleanup = result.cleanup;
     });
@@ -136,7 +133,7 @@ describe("Transcriptions Service", () => {
       });
 
       expect(afterDelete).toHaveLength(initialCount - 1);
-      expect(afterDelete.find((t: any) => t.id === idToDelete)).toBeUndefined();
+      expect(afterDelete.find((t: { id: string }) => t.id === idToDelete)).toBeUndefined();
     });
   });
 
@@ -146,7 +143,6 @@ describe("Transcriptions Service", () => {
       setTestDatabase(testDb.db);
       await seedDatabase(testDb, "withTranscriptions");
       const result = await initializeTestServices(testDb);
-      serviceManager = result.serviceManager;
       trpcCaller = result.trpcCaller;
       cleanup = result.cleanup;
     });
@@ -158,7 +154,7 @@ describe("Transcriptions Service", () => {
       });
 
       expect(results.length).toBeGreaterThan(0);
-      results.forEach((result: any) => {
+      results.forEach((result: { text: string }) => {
         expect(result.text.toLowerCase()).toContain("test");
       });
     });
@@ -179,7 +175,6 @@ describe("Transcriptions Service", () => {
       setTestDatabase(testDb.db);
       await seedDatabase(testDb, "empty");
       const result = await initializeTestServices(testDb);
-      serviceManager = result.serviceManager;
       trpcCaller = result.trpcCaller;
       cleanup = result.cleanup;
     });
@@ -209,7 +204,6 @@ describe("Transcriptions Service", () => {
       setTestDatabase(testDb.db);
       await seedDatabase(testDb, "withTranscriptions");
       const result = await initializeTestServices(testDb);
-      serviceManager = result.serviceManager;
       trpcCaller = result.trpcCaller;
       cleanup = result.cleanup;
     });

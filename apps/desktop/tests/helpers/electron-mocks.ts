@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { vi } from "vitest";
 import { EventEmitter } from "events";
 import path from "node:path";
@@ -6,7 +7,7 @@ import os from "node:os";
 // Create a fake BrowserWindow class
 class FakeBrowserWindow extends EventEmitter {
   id: number;
-  webContents: any;
+  webContents: Record<string, unknown>;
   private _isDestroyed = false;
   private _bounds = { x: 0, y: 0, width: 800, height: 600 };
   private _isVisible = false;
@@ -15,7 +16,7 @@ class FakeBrowserWindow extends EventEmitter {
   private _isFocused = false;
   private _isFullScreen = false;
 
-  constructor(options?: any) {
+  constructor(options?: unknown) {
     super();
     this.id = Math.floor(Math.random() * 1000000);
 
@@ -145,13 +146,13 @@ class FakeBrowserWindow extends EventEmitter {
   setIgnoreMouseEvents(ignore: boolean) {}
   setContentProtection(enable: boolean) {}
   setFocusable(focusable: boolean) {}
-  setParentWindow(parent: any) {}
+  setParentWindow(parent: unknown) {}
   setTitle(title: string) {}
-  setTitleBarOverlay(options: any) {}
+  setTitleBarOverlay(options: unknown) {}
   setOpacity(opacity: number) {}
-  setShape(rects: any[]) {}
+  setShape(rects: unknown[]) {}
   setSkipTaskbar(skip: boolean) {}
-  setMenu(menu: any) {}
+  setMenu(menu: unknown) {}
   setAutoHideMenuBar(hide: boolean) {}
   setMenuBarVisibility(visible: boolean) {}
   setAspectRatio(aspectRatio: number) {}
@@ -159,13 +160,13 @@ class FakeBrowserWindow extends EventEmitter {
   setHasShadow(hasShadow: boolean) {}
   setRepresentedFilename(filename: string) {}
   setDocumentEdited(edited: boolean) {}
-  setIcon(icon: any) {}
+  setIcon(icon: unknown) {}
   setProgressBar(progress: number) {}
-  setOverlayIcon(overlay: any, description: string) {}
-  setThumbarButtons(buttons: any[]) {}
-  setThumbnailClip(region: any) {}
+  setOverlayIcon(overlay: unknown, description: string) {}
+  setThumbarButtons(buttons: unknown[]) {}
+  setThumbnailClip(region: unknown) {}
   setThumbnailToolTip(toolTip: string) {}
-  setAppDetails(options: any) {}
+  setAppDetails(options: unknown) {}
   setVibrancy(type: string) {}
   setWindowButtonVisibility(visible: boolean) {}
   setTrafficLightPosition(position: { x: number; y: number }) {}
@@ -207,6 +208,7 @@ const mockApp = {
   }),
   getName: vi.fn(() => "surasura"),
   getVersion: vi.fn(() => "0.1.0-test"),
+  getAppPath: vi.fn(() => testAppPath),
   isPackaged: false,
   isReady: vi.fn(() => true),
   whenReady: vi.fn(() => Promise.resolve()),
@@ -307,13 +309,13 @@ const mockMenu = {
 
 // Mock Tray
 class FakeTray extends EventEmitter {
-  constructor(image: any) {
+  constructor(image: unknown) {
     super();
   }
   setToolTip(toolTip: string) {}
   setTitle(title: string) {}
-  setImage(image: any) {}
-  setContextMenu(menu: any) {}
+  setImage(image: unknown) {}
+  setContextMenu(menu: unknown) {}
   destroy() {}
   isDestroyed() {
     return false;
@@ -354,6 +356,19 @@ const mockGlobalShortcut = {
   unregisterAll: vi.fn(),
 };
 
+// Mock safeStorage
+const mockSafeStorage = {
+  isEncryptionAvailable: vi.fn(() => true),
+  encryptString: vi.fn((text: string) => Buffer.from(`encrypted:${text}`)),
+  decryptString: vi.fn((buffer: Buffer) => {
+    const str = buffer.toString();
+    if (str.startsWith("encrypted:")) {
+      return str.slice("encrypted:".length);
+    }
+    return str;
+  }),
+};
+
 // Mock clipboard
 const mockClipboard = {
   readText: vi.fn(() => ""),
@@ -378,17 +393,20 @@ export function createElectronMocks() {
   return {
     app: mockApp,
     ipcMain: mockIpcMain,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     BrowserWindow: FakeBrowserWindow as any,
     screen: mockScreen,
     systemPreferences: mockSystemPreferences,
     nativeTheme: mockNativeTheme,
     Menu: mockMenu,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Tray: FakeTray as any,
     dialog: mockDialog,
     shell: mockShell,
     globalShortcut: mockGlobalShortcut,
     clipboard: mockClipboard,
     nativeImage: mockNativeImage,
+    safeStorage: mockSafeStorage,
   };
 }
 

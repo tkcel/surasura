@@ -1,17 +1,23 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { vi, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
-import { TEST_USER_DATA_PATH } from "./helpers/electron-mocks";
+import "@testing-library/jest-dom/vitest";
 import fs from "fs-extra";
 import path from "path";
+import os from "os";
+
+// Determine test user data path without importing electron-mocks directly
+// (electron-mocks may fail to transform in happy-dom environment)
+const TEST_USER_DATA_PATH = path.join(os.tmpdir(), "surasura-test-" + Date.now());
 
 // Set test environment variable
 process.env.NODE_ENV = "test";
 process.env.VITEST = "true";
 
 // Global test database instance - will be set by each test
-let currentTestDb: any = null;
+let currentTestDb: unknown = null;
 
 // Helper function to set the current test database
-export function setTestDatabase(db: any) {
+export function setTestDatabase(db: unknown) {
   currentTestDb = db;
 }
 
@@ -141,6 +147,7 @@ vi.mock("electron-updater", () => ({
     autoInstallOnAppQuit: true,
     on: vi.fn(),
     off: vi.fn(),
+    setFeedURL: vi.fn(),
     checkForUpdates: vi.fn(() =>
       Promise.resolve({
         updateInfo: {

@@ -22,6 +22,7 @@
   },
   "include": [
     "src/**/*",
+    "tests/**/*",
     "forge.config.ts",
     "vite.*.config.mts",
     "drizzle.config.ts"

@@ -25,7 +25,7 @@ export async function initializeTestApp(
     skipWindows?: boolean;
   } = {},
 ): Promise<TestApp> {
-  const { skipOnboarding = true, skipWindows = false } = options;
+  const { skipOnboarding = true } = options;
 
   // Mock the database module to use our test database
   vi.doMock("@db", () => ({

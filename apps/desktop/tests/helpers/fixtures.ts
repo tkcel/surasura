@@ -4,7 +4,6 @@ import type {
   NewTranscription,
   NewVocabulary,
   NewModel,
-  NewAppSettings,
   NewNote,
   AppSettingsData,
 } from "@db/schema";
