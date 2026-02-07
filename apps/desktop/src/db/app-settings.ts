@@ -732,7 +732,7 @@ ${prohibitions}`;
     }
   },
 
-  // v17 -> v18: Add homophone disambiguation rule to "標準" preset
+  // v17 -> v18: Add homophone disambiguation rule to "標準" and "カジュアル" presets
   18: (data: unknown): AppSettingsData => {
     const oldData = data as AppSettingsData;
     const now = new Date().toISOString();
@@ -743,7 +743,7 @@ ${prohibitions}`;
     const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
       if (
         preset.isDefault &&
-        preset.name === "標準" &&
+        (preset.name === "標準" || preset.name === "カジュアル") &&
         !preset.instructions.includes("同音異義語")
       ) {
         // Insert after the "誤認識" rule line
@@ -1067,6 +1067,7 @@ ${prohibitions}`,
 - フィラー（えー、あのー、まあ、なんか等）を除去する
 - 言い直しや繰り返しを整理する
 - 誤認識と思われる部分は文脈から推測して修正する
+- 同音異義語は、話題や前後の文脈から意味を正確に判断し、適切な漢字表記を選択する
 - 辞書に登録された専門用語・固有名詞は正確に使用する
 - 元の意味やニュアンスを維持する
 - 敬語（です・ます）は使わず、「だよ」「だね」「かな」「じゃん」などの砕けた語尾を使う
