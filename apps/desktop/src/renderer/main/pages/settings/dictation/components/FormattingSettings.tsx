@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Sparkles,
   HelpCircle,
+  X,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -306,9 +307,21 @@ export function FormattingSettings() {
       {/* Edit Preset Drawer */}
       <Drawer open={isEditMode} onOpenChange={(open) => !open && handleCancelEdit()}>
         <DrawerContent
-          className="h-[90vh] max-h-[90vh] rounded-t-2xl overflow-hidden"
+          className="h-[100vh] max-h-[100vh] data-[vaul-drawer-direction=bottom]:max-h-[100vh] data-[vaul-drawer-direction=bottom]:mt-0 overflow-hidden"
           onOpenAutoFocus={(e) => e.preventDefault()}
+          showHandle={false}
         >
+          {/* Header with safe area */}
+          <div className="flex items-center justify-end px-4 pt-2 pb-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleCancelEdit}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
           <div className="space-y-6 p-4 flex-1 overflow-y-auto">
             {/* Preset Name */}
             <div>
@@ -483,66 +496,59 @@ export function FormattingSettings() {
                 空欄の場合は標準のフォーマットのみ適用されます
               </p>
             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-between p-4 border-t border-border mt-auto">
-            <div className="flex items-center gap-2">
-              {!isCreatingNew && editingPresetId && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  disabled={isDeleting || isSaving}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  {isDeleting ? (
-                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-4 h-4 mr-1.5" />
-                  )}
-                  削除
-                </Button>
-              )}
+            {/* Secondary actions at bottom of content */}
+            <div className="flex items-center gap-4 pt-4">
               {isDefaultPreset && canResetToDefault && (
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={handleResetToDefault}
                   disabled={isSaving}
+                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 disabled:opacity-50"
                 >
-                  <RotateCcw className="w-4 h-4 mr-1.5" />
                   デフォルトに戻す
-                </Button>
+                </button>
+              )}
+              {!isCreatingNew && editingPresetId && (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={isDeleting || isSaving}
+                  className="text-xs text-muted-foreground hover:text-destructive underline underline-offset-2 disabled:opacity-50"
+                >
+                  {isDeleting ? "削除中..." : "プリセットを削除する"}
+                </button>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCancelEdit}
-              >
-                キャンセル
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSavePreset}
-                disabled={
-                  isSaving ||
-                  !editName.trim() ||
-                  nameLength > maxNameLength ||
-                  instructionsLength > maxInstructionsLength ||
-                  (!isCreatingNew && !hasUnsavedChanges)
-                }
-              >
-                {isSaving ? (
-                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-1.5" />
-                )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between p-4 border-t border-border mt-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancelEdit}
+            >
+              キャンセル
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSavePreset}
+              disabled={
+                isSaving ||
+                !editName.trim() ||
+                nameLength > maxNameLength ||
+                instructionsLength > maxInstructionsLength ||
+                (!isCreatingNew && !hasUnsavedChanges)
+              }
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-1.5" />
+              )}
                 {isCreatingNew ? "作成" : "保存"}
               </Button>
-            </div>
           </div>
         </DrawerContent>
       </Drawer>
