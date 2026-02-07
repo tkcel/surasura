@@ -7,6 +7,7 @@ import {
   Settings,
   HelpCircle,
   AlertTriangle,
+  Lightbulb,
 } from "lucide-react";
 
 export const docsSections = [
@@ -35,6 +36,11 @@ export const docsSections = [
     id: "settings",
     title: "設定",
     icon: Settings,
+  },
+  {
+    id: "tips",
+    title: "Tips",
+    icon: Lightbulb,
   },
   {
     id: "faq",
