@@ -6,7 +6,6 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { SETTINGS_NAV_ITEMS } from "../lib/settings-navigation";
@@ -29,11 +28,7 @@ export function SettingsSidebar({
       <SidebarHeader className="py-0 -mb-1">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <div className="inline-flex items-center gap-2.5 font-semibold w-full">
+              <div className="inline-flex items-center gap-2.5 font-semibold w-full p-1.5">
                 <img
                   src="assets/logo.svg"
                   alt="surasura Logo"
@@ -41,7 +36,6 @@ export function SettingsSidebar({
                 />
                 <span className="font-semibold font-brand">surasura</span>
               </div>
-            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
