@@ -6,7 +6,6 @@ import { Presets } from "../../../content/docs/Presets";
 import { Dictionary } from "../../../content/docs/Dictionary";
 import { History } from "../../../content/docs/History";
 import { Settings } from "../../../content/docs/Settings";
-import { Tips } from "../../../content/docs/Tips";
 import { FAQ } from "../../../content/docs/FAQ";
 import { Troubleshooting } from "../../../content/docs/Troubleshooting";
 
@@ -32,10 +31,6 @@ const sectionMeta: Record<DocsSectionId, { title: string; description: string }>
   settings: {
     title: "設定",
     description: "surasuraの各種設定項目について解説します。",
-  },
-  tips: {
-    title: "Tips",
-    description: "プリセットの仕組みやカスタマイズのコツなど、surasuraを使いこなすためのヒントを紹介します。",
   },
   faq: {
     title: "FAQ",
@@ -93,7 +88,6 @@ const sectionComponents: Record<DocsSectionId, React.ComponentType> = {
   dictionary: Dictionary,
   history: History,
   settings: Settings,
-  tips: Tips,
   faq: FAQ,
   troubleshooting: Troubleshooting,
 };
