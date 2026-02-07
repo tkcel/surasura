@@ -132,8 +132,6 @@ export const recordingRouter = createRouter({
           id: uuid(),
           type: data.type,
           title: config.title,
-          // Description will be hydrated on frontend with mic name
-          primaryAction: config.primaryAction,
           timestamp: Date.now(),
         });
       };
