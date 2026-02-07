@@ -1,21 +1,14 @@
 export type WidgetNotificationType = "no_audio" | "empty_transcript";
 
-export interface WidgetNotificationAction {
-  label: string;
-  navigateTo?: string; // Route to navigate to in main window
-}
-
 export interface WidgetNotificationConfig {
   title: string;
   description: string;
-  primaryAction?: WidgetNotificationAction;
 }
 
 export interface WidgetNotification {
   id: string;
   type: WidgetNotificationType;
   title: string;
-  primaryAction?: WidgetNotificationAction;
   timestamp: number;
 }
 
@@ -40,19 +33,11 @@ export const WIDGET_NOTIFICATION_CONFIG: Record<
   no_audio: {
     title: "音声が検出されません",
     description: "マイクの設定を確認してください",
-    primaryAction: {
-      label: "マイク設定",
-      navigateTo: "/settings/dictation",
-    },
   },
   empty_transcript: {
     title: "音声を認識できません",
     description: "マイクに近づいて話してみてください",
-    primaryAction: {
-      label: "マイク設定",
-      navigateTo: "/settings/dictation",
-    },
   },
 };
 
-export const WIDGET_NOTIFICATION_TIMEOUT = 5000;
+export const WIDGET_NOTIFICATION_TIMEOUT = 2000;

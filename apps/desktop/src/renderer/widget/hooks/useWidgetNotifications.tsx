@@ -4,7 +4,6 @@ import { useAudioDevices } from "@/hooks/useAudioDevices";
 import {
   WIDGET_NOTIFICATION_TIMEOUT,
   getNotificationDescription,
-  type WidgetNotificationAction,
 } from "@/types/widget-notification";
 import { WidgetToast } from "../components/WidgetToast";
 
@@ -14,18 +13,11 @@ import { WidgetToast } from "../components/WidgetToast";
  * so we don't need to manage it here.
  */
 export const useWidgetNotifications = () => {
-  const navigateMainWindow = api.widget.navigateMainWindow.useMutation();
   const { data: settings } = api.settings.getSettings.useQuery();
   const { defaultDeviceName } = useAudioDevices();
 
   const getEffectiveMicName = () => {
     return settings?.recording?.preferredMicrophoneName || defaultDeviceName;
-  };
-
-  const handleActionClick = (action: WidgetNotificationAction) => {
-    if (action.navigateTo) {
-      navigateMainWindow.mutate({ route: action.navigateTo });
-    }
   };
 
   api.recording.widgetNotifications.useSubscription(undefined, {
@@ -43,11 +35,6 @@ export const useWidgetNotifications = () => {
           <WidgetToast
             title={notification.title}
             description={description}
-            primaryAction={notification.primaryAction}
-            onActionClick={(action) => {
-              handleActionClick(action);
-              toast.dismiss(toastId);
-            }}
             onDismiss={() => {
               toast.dismiss(toastId);
             }}
