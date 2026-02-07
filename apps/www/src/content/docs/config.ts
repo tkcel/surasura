@@ -1,10 +1,10 @@
 import {
   BookOpen,
-
   Sparkles,
   Book,
   History,
   Settings,
+  Lightbulb,
   HelpCircle,
   AlertTriangle,
 } from "lucide-react";
@@ -35,6 +35,11 @@ export const docsSections = [
     id: "settings",
     title: "設定",
     icon: Settings,
+  },
+  {
+    id: "tips",
+    title: "Tips",
+    icon: Lightbulb,
   },
   {
     id: "faq",

@@ -598,16 +598,20 @@ export class SettingsService extends EventEmitter {
   }
 
   /**
-   * Get the currently active preset
+   * Get the currently active preset.
+   * Falls back to the first default preset (標準) when no preset is explicitly selected.
    */
   async getActivePreset(): Promise<FormatPreset | null> {
     const config = await this.getFormatterConfig();
-    if (!config?.activePresetId) {
-      return null;
+    const presets = config?.presets ?? [];
+
+    if (config?.activePresetId) {
+      const found = presets.find((p) => p.id === config.activePresetId);
+      if (found) return found;
     }
 
-    const presets = config.presets ?? [];
-    return presets.find((p) => p.id === config.activePresetId) ?? null;
+    // Fall back to the first default preset (標準)
+    return presets.find((p) => p.isDefault) ?? presets[0] ?? null;
   }
 
   /**
