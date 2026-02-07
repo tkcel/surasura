@@ -1,5 +1,15 @@
 import { useState, useCallback } from "react";
-import { Copy, Trash2, Search, ChevronLeft, ChevronRight, Eye, CheckSquare, Square, Trash } from "lucide-react";
+import {
+  Copy,
+  Trash2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  CheckSquare,
+  Square,
+  Trash,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -97,7 +107,9 @@ export default function HistorySettingsPage() {
 
   // Single item delete
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingItem, setDeletingItem] = useState<TranscriptionItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<TranscriptionItem | null>(
+    null,
+  );
 
   // Bulk delete
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -107,7 +119,9 @@ export default function HistorySettingsPage() {
   const [isDeleteAllDialogOpen, setIsDeleteAllDialogOpen] = useState(false);
 
   // Detail view
-  const [selectedItem, setSelectedItem] = useState<TranscriptionItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<TranscriptionItem | null>(
+    null,
+  );
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   // Debounce search input
@@ -134,7 +148,8 @@ export default function HistorySettingsPage() {
 
   const limitsQuery = api.transcriptions.getHistoryLimits.useQuery();
 
-  const transcriptionItems = (transcriptionsQuery.data || []) as TranscriptionItem[];
+  const transcriptionItems = (transcriptionsQuery.data ||
+    []) as TranscriptionItem[];
   const totalCount = countQuery.data || 0;
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const isLoading = transcriptionsQuery.isLoading || countQuery.isLoading;
@@ -142,16 +157,17 @@ export default function HistorySettingsPage() {
 
   const utils = api.useUtils();
 
-  const deleteTranscriptionMutation = api.transcriptions.deleteTranscription.useMutation({
-    onSuccess: () => {
-      utils.transcriptions.getTranscriptions.invalidate();
-      utils.transcriptions.getTranscriptionsCount.invalidate();
-      toast.success("履歴を削除しました");
-    },
-    onError: (error) => {
-      toast.error(`削除に失敗しました: ${error.message}`);
-    },
-  });
+  const deleteTranscriptionMutation =
+    api.transcriptions.deleteTranscription.useMutation({
+      onSuccess: () => {
+        utils.transcriptions.getTranscriptions.invalidate();
+        utils.transcriptions.getTranscriptionsCount.invalidate();
+        toast.success("履歴を削除しました");
+      },
+      onError: (error) => {
+        toast.error(`削除に失敗しました: ${error.message}`);
+      },
+    });
 
   const deleteManyMutation = api.transcriptions.deleteMany.useMutation({
     onSuccess: (result) => {
@@ -226,7 +242,9 @@ export default function HistorySettingsPage() {
     }
   };
 
-  const isAllSelected = transcriptionItems.length > 0 && selectedIds.size === transcriptionItems.length;
+  const isAllSelected =
+    transcriptionItems.length > 0 &&
+    selectedIds.size === transcriptionItems.length;
   const hasSelection = selectedIds.size > 0;
 
   // Bulk delete
@@ -290,7 +308,8 @@ export default function HistorySettingsPage() {
             音声認識の履歴を確認・管理します。
           </p>
           <p className="text-muted-foreground mt-1 text-sm">
-            全 <span className="font-medium text-foreground">{totalCount}</span> 件
+            全 <span className="font-medium text-foreground">{totalCount}</span>{" "}
+            件
             {limits && (
               <span className="ml-2 text-xs">
                 (最大 {limits.maxCount}件 / {limits.maxAgeDays}日間保存)
@@ -366,9 +385,7 @@ export default function HistorySettingsPage() {
                   )}
                 </button>
                 <span className="text-sm text-muted-foreground">
-                  {hasSelection
-                    ? `${selectedIds.size}件選択中`
-                    : "選択してまとめて削除"}
+                  {hasSelection ? `${selectedIds.size}件選択中` : ""}
                 </span>
               </div>
 
@@ -401,9 +418,7 @@ export default function HistorySettingsPage() {
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatDate(item.timestamp)}
                         {item.language && (
-                          <span className="ml-2">
-                            言語: {item.language}
-                          </span>
+                          <span className="ml-2">言語: {item.language}</span>
                         )}
                       </p>
                     </div>
@@ -450,7 +465,9 @@ export default function HistorySettingsPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-muted-foreground">
-            {currentPage * ITEMS_PER_PAGE + 1} - {Math.min((currentPage + 1) * ITEMS_PER_PAGE, totalCount)} / {totalCount} 件
+            {currentPage * ITEMS_PER_PAGE + 1} -{" "}
+            {Math.min((currentPage + 1) * ITEMS_PER_PAGE, totalCount)} /{" "}
+            {totalCount} 件
           </p>
           <div className="flex items-center gap-2">
             <Button
