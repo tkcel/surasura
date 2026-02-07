@@ -83,6 +83,8 @@ export const sampleTranscriptions: NewTranscription[] = [
 export const sampleVocabulary: NewVocabulary[] = [
   {
     word: "surasura",
+    reading1: "スラスラ",
+    reading2: "すらすら",
     replacementWord: null,
     isReplacement: false,
     usageCount: 5,

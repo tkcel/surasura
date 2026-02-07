@@ -27,8 +27,11 @@ export const transcriptions = sqliteTable("transcriptions", {
 export const vocabulary = sqliteTable("vocabulary", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   word: text("word").notNull().unique(),
-  replacementWord: text("replacement_word"),
-  isReplacement: integer("is_replacement", { mode: "boolean" }).default(false),
+  reading1: text("reading1"),
+  reading2: text("reading2"),
+  reading3: text("reading3"),
+  replacementWord: text("replacement_word"), // Legacy: kept for DB compatibility
+  isReplacement: integer("is_replacement", { mode: "boolean" }).default(false), // Legacy: kept for DB compatibility
   dateAdded: integer("date_added", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

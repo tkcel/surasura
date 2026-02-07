@@ -472,20 +472,38 @@ export class TranscriptionService {
         dictationSettings.selectedLanguage || "ja";
     }
 
-    // Load vocabulary and replacements
+    // Load vocabulary, replacements, and dictionary entries
     const vocabEntries = await getVocabulary({ limit: MAX_VOCABULARY_COUNT });
     for (const entry of vocabEntries) {
-      if (entry.isReplacement) {
+      // Always add word to vocabulary for Whisper hints
+      context.sharedData.vocabulary.push(entry.word);
+
+      // Build dictionary entry with readings
+      const readings: string[] = [];
+      if (entry.reading1) readings.push(entry.reading1);
+      if (entry.reading2) readings.push(entry.reading2);
+      if (entry.reading3) readings.push(entry.reading3);
+
+      if (readings.length > 0) {
+        context.sharedData.dictionaryEntries.push({
+          word: entry.word,
+          readings,
+        });
+
+        // Add readings as replacements for post-processing
+        for (const reading of readings) {
+          context.sharedData.replacements.set(reading, entry.word);
+        }
+      }
+
+      // Legacy fallback: handle old isReplacement entries that haven't been migrated
+      if (entry.isReplacement && entry.replacementWord) {
         context.sharedData.replacements.set(
           entry.word,
-          entry.replacementWord || "",
+          entry.replacementWord,
         );
-      } else {
-        context.sharedData.vocabulary.push(entry.word);
       }
     }
-
-    // TODO: Load formatter config from settings
 
     return context;
   }
@@ -572,6 +590,7 @@ export class TranscriptionService {
         context: {
           style,
           vocabulary: session.context.sharedData.vocabulary,
+          dictionaryEntries: session.context.sharedData.dictionaryEntries,
           accessibilityContext: session.context.sharedData.accessibilityContext,
           clipboardText,
           previousChunk:

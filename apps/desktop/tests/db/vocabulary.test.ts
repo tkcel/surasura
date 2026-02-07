@@ -64,6 +64,21 @@ describe("DB: 単語帳", () => {
       expect(result.updatedAt).toBeInstanceOf(Date);
     });
 
+    it("読み方パターン付きの単語を作成する", async () => {
+      const result = await createVocabularyWord({
+        word: "Kubernetes",
+        reading1: "クバネティス",
+        reading2: "クーベネティス",
+        isReplacement: false,
+        replacementWord: null,
+      });
+
+      expect(result.word).toBe("Kubernetes");
+      expect(result.reading1).toBe("クバネティス");
+      expect(result.reading2).toBe("クーベネティス");
+      expect(result.reading3).toBeNull();
+    });
+
     it("置換単語を作成する", async () => {
       const result = await createVocabularyWord({
         word: "teh",
@@ -327,6 +342,13 @@ describe("DB: 単語帳", () => {
       });
     });
 
+    it("読み方パターンでも検索できる", async () => {
+      const results = await searchVocabulary("スラスラ");
+
+      expect(results.length).toBeGreaterThan(0);
+      expect(results[0].word).toBe("surasura");
+    });
+
     it("一致なしの場合に空配列を返す", async () => {
       const results = await searchVocabulary("nonexistentquerystring");
 
@@ -337,6 +359,73 @@ describe("DB: 単語帳", () => {
       const results = await searchVocabulary("a", 1);
 
       expect(results.length).toBeLessThanOrEqual(1);
+    });
+  });
+
+  // ============================================
+  // Reading fields
+  // ============================================
+
+  describe("reading fields", () => {
+    it("reading付きの単語を作成・取得できる", async () => {
+      const created = await createVocabularyWord({
+        word: "TestWord",
+        reading1: "テストワード",
+        reading2: "てすとわーど",
+        reading3: null,
+        isReplacement: false,
+        replacementWord: null,
+      });
+
+      expect(created.reading1).toBe("テストワード");
+      expect(created.reading2).toBe("てすとわーど");
+      expect(created.reading3).toBeNull();
+
+      const fetched = await getVocabularyById(created.id);
+      expect(fetched!.reading1).toBe("テストワード");
+      expect(fetched!.reading2).toBe("てすとわーど");
+    });
+
+    it("readingを更新できる", async () => {
+      const created = await createVocabularyWord({
+        word: "UpdateTest",
+        reading1: "old",
+        isReplacement: false,
+        replacementWord: null,
+      });
+
+      const updated = await updateVocabulary(created.id, {
+        reading1: "new",
+        reading2: "another",
+      });
+
+      expect(updated!.reading1).toBe("new");
+      expect(updated!.reading2).toBe("another");
+    });
+
+    it("getVocabularyでreadingによる検索ができる", async () => {
+      await createVocabularyWord({
+        word: "SearchByReading",
+        reading1: "サーチバイリーディング",
+        isReplacement: false,
+        replacementWord: null,
+      });
+
+      const results = await getVocabulary({ search: "サーチバイ" });
+      expect(results.length).toBe(1);
+      expect(results[0].word).toBe("SearchByReading");
+    });
+
+    it("getVocabularyCountでreadingによる検索ができる", async () => {
+      await createVocabularyWord({
+        word: "CountTest",
+        reading1: "カウントテスト",
+        isReplacement: false,
+        replacementWord: null,
+      });
+
+      const count = await getVocabularyCount("カウントテスト");
+      expect(count).toBe(1);
     });
   });
 });

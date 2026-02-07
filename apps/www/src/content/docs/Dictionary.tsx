@@ -22,7 +22,7 @@ export function Dictionary() {
 
       <DocsP>
         辞書機能を使うと、固有名詞や専門用語の認識精度を向上させたり、
-        特定の言葉を別の表現に置換したりできます。
+        よく誤認識される読み方を正しい単語に自動修正できます。
       </DocsP>
 
       <DocsH2>辞書機能とは</DocsH2>
@@ -32,43 +32,34 @@ export function Dictionary() {
       </DocsP>
 
       <DocsList>
-        <DocsListItem>社名や製品名（例: surasura → スラスラ）</DocsListItem>
+        <DocsListItem>社名や製品名（例: Surasura → スラスラ）</DocsListItem>
         <DocsListItem>人名（例: 田中太郎 → 田中タロウ）</DocsListItem>
         <DocsListItem>専門用語（例: Kubernetes → クバネティス）</DocsListItem>
         <DocsListItem>略語（例: API → エーピーアイ）</DocsListItem>
       </DocsList>
 
       <DocsP>
-        辞書機能を使うことで、これらの認識精度を大幅に向上できます。
+        辞書機能では、<Strong>正しい表記の単語</Strong>と<Strong>読み方パターン</Strong>（最大3つ）を
+        登録することで、認識精度の向上と自動修正を同時に実現します。
       </DocsP>
 
-      <DocsH2>2つのモード</DocsH2>
-
-      <DocsH3>認識ヒントモード（置換なし）</DocsH3>
+      <DocsH2>仕組み</DocsH2>
 
       <DocsP>
-        AIに「この言葉が出てくる可能性がある」とヒントを与えます。
-        認識精度が向上しますが、出力テキストは変更しません。
+        登録した単語は以下の3つの場面で活用されます。
       </DocsP>
 
-      <DocsP><Strong>使用例</Strong>:</DocsP>
+      <DocsOrderedList>
+        <DocsListItem><Strong>音声認識のヒント</Strong>: 登録した単語をWhisperに語彙ヒントとして渡し、認識精度を向上</DocsListItem>
+        <DocsListItem><Strong>テキスト整形時の修正</Strong>: AIが辞書を参照し、読み方パターンで認識された場合は正しい単語に修正</DocsListItem>
+        <DocsListItem><Strong>最終置換処理</Strong>: 読み方パターンがテキストに残っている場合、正しい単語に自動置換</DocsListItem>
+      </DocsOrderedList>
+
+      <DocsP><Strong>例</Strong>:</DocsP>
       <DocsList>
-        <DocsListItem>登録: 「surasura」</DocsListItem>
-        <DocsListItem>話した内容: 「surasuraの使い方を説明します」</DocsListItem>
-        <DocsListItem>出力: 「surasuraの使い方を説明します」（正しく認識される）</DocsListItem>
-      </DocsList>
-
-      <DocsH3>置換ルール</DocsH3>
-
-      <DocsP>
-        特定の言葉を別の表現に自動で置き換えます。
-      </DocsP>
-
-      <DocsP><Strong>使用例</Strong>:</DocsP>
-      <DocsList>
-        <DocsListItem>登録: 「よろしくお願いします」→「よろしくお願いいたします」</DocsListItem>
-        <DocsListItem>話した内容: 「よろしくお願いします」</DocsListItem>
-        <DocsListItem>出力: 「よろしくお願いいたします」</DocsListItem>
+        <DocsListItem>登録: 単語「Surasura」、読み方「スラスラ」「すらすら」</DocsListItem>
+        <DocsListItem>話した内容: 「スラスラを起動して」</DocsListItem>
+        <DocsListItem>出力: 「Surasuraを起動して」</DocsListItem>
       </DocsList>
 
       <DocsH2>辞書の登録方法</DocsH2>
@@ -79,22 +70,17 @@ export function Dictionary() {
         設定画面の「辞書機能」タブから、「+ 単語を追加」ボタンをクリックすると登録ダイアログが開きます。
       </DocsP>
 
-      <DocsH3>認識ヒントとして登録する場合</DocsH3>
-
       <DocsOrderedList>
         <DocsListItem>「+ 単語を追加」をクリック</DocsListItem>
-        <DocsListItem>「置換を有効にする」トグルが<Strong>オフ</Strong>のまま、認識させたい単語を入力</DocsListItem>
+        <DocsListItem>「単語（正しい表記）」に正しい表記を入力（例: Surasura）</DocsListItem>
+        <DocsListItem>必要に応じて「読み方パターン」を入力（例: スラスラ）</DocsListItem>
         <DocsListItem>「追加」をクリック</DocsListItem>
       </DocsOrderedList>
 
-      <DocsH3>置換ルールとして登録する場合</DocsH3>
-
-      <DocsOrderedList>
-        <DocsListItem>「+ 単語を追加」をクリック</DocsListItem>
-        <DocsListItem>「置換を有効にする」トグルを<Strong>オン</Strong>にする</DocsListItem>
-        <DocsListItem>「置換前」と「置換後」の単語をそれぞれ入力</DocsListItem>
-        <DocsListItem>「追加」をクリック</DocsListItem>
-      </DocsOrderedList>
+      <DocsP>
+        読み方パターンは任意です。単語だけを登録しても認識ヒントとして機能します。
+        読み方パターンを追加すると、誤認識された場合の自動修正が有効になります。
+      </DocsP>
 
       <DocsH2>活用例</DocsH2>
 
@@ -102,18 +88,18 @@ export function Dictionary() {
       <DocsTable>
         <thead>
           <tr>
-            <DocsTh>種類</DocsTh>
-            <DocsTh>登録内容</DocsTh>
+            <DocsTh>単語</DocsTh>
+            <DocsTh>読み方パターン</DocsTh>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <DocsTd>認識ヒント</DocsTd>
-            <DocsTd>社名、製品名、プロジェクト名</DocsTd>
+            <DocsTd>社名・製品名</DocsTd>
+            <DocsTd>カタカナ表記、ひらがな表記など</DocsTd>
           </tr>
           <tr>
-            <DocsTd>置換ルール</DocsTd>
-            <DocsTd>「御社」→「貴社」、「弊社」→「当社」</DocsTd>
+            <DocsTd>貴社</DocsTd>
+            <DocsTd>御社</DocsTd>
           </tr>
         </tbody>
       </DocsTable>
@@ -122,18 +108,22 @@ export function Dictionary() {
       <DocsTable>
         <thead>
           <tr>
-            <DocsTh>種類</DocsTh>
-            <DocsTh>登録内容</DocsTh>
+            <DocsTh>単語</DocsTh>
+            <DocsTh>読み方パターン</DocsTh>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <DocsTd>認識ヒント</DocsTd>
-            <DocsTd>フレームワーク名、ライブラリ名、技術用語</DocsTd>
+            <DocsTd>Kubernetes</DocsTd>
+            <DocsTd>クバネティス, クーベネティス</DocsTd>
           </tr>
           <tr>
-            <DocsTd>置換ルール</DocsTd>
-            <DocsTd>「リアクト」→「React」、「タイプスクリプト」→「TypeScript」</DocsTd>
+            <DocsTd>React</DocsTd>
+            <DocsTd>リアクト</DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>TypeScript</DocsTd>
+            <DocsTd>タイプスクリプト</DocsTd>
           </tr>
         </tbody>
       </DocsTable>
@@ -142,18 +132,14 @@ export function Dictionary() {
       <DocsTable>
         <thead>
           <tr>
-            <DocsTh>種類</DocsTh>
-            <DocsTh>登録内容</DocsTh>
+            <DocsTh>単語</DocsTh>
+            <DocsTh>読み方パターン</DocsTh>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <DocsTd>認識ヒント</DocsTd>
             <DocsTd>友人の名前、地名、店名</DocsTd>
-          </tr>
-          <tr>
-            <DocsTd>置換ルール</DocsTd>
-            <DocsTd>顔文字や絵文字への変換</DocsTd>
+            <DocsTd>誤認識されやすい表記</DocsTd>
           </tr>
         </tbody>
       </DocsTable>
@@ -163,15 +149,15 @@ export function Dictionary() {
       <DocsH3>効果的な登録のコツ</DocsH3>
       <DocsOrderedList>
         <DocsListItem><Strong>頻出する言葉を優先</Strong>: よく使う言葉から登録</DocsListItem>
-        <DocsListItem><Strong>表記ゆれを統一</Strong>: 「お問い合わせ」「お問合せ」など</DocsListItem>
-        <DocsListItem><Strong>文脈を考慮</Strong>: 同音異義語は置換ルールで対応</DocsListItem>
+        <DocsListItem><Strong>読み方パターンを活用</Strong>: カタカナ・ひらがな両方を登録すると効果的</DocsListItem>
+        <DocsListItem><Strong>表記ゆれを統一</Strong>: 正しい表記を単語に、バリエーションを読み方に登録</DocsListItem>
       </DocsOrderedList>
 
       <DocsH3>注意点</DocsH3>
       <DocsList>
         <DocsListItem>登録は最大500件までです</DocsListItem>
-        <DocsListItem>置換ルールは完全一致で動作します</DocsListItem>
-        <DocsListItem>大文字/小文字は区別されます</DocsListItem>
+        <DocsListItem>読み方パターンは1つの単語につき最大3つまで</DocsListItem>
+        <DocsListItem>読み方パターンによる置換は完全一致で動作します</DocsListItem>
       </DocsList>
 
       <NextPage current="dictionary" />

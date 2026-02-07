@@ -195,7 +195,6 @@ describe("Vocabulary ルーター", () => {
     it("新しい単語を作成する", async () => {
       const created = await trpcCaller.vocabulary.createVocabularyWord({
         word: "newword",
-        isReplacement: false,
       });
 
       expect(created).toBeDefined();
@@ -203,21 +202,35 @@ describe("Vocabulary ルーター", () => {
       expect(created.id).toBeDefined();
     });
 
-    it("isReplacementがtrueの場合replacementWordを必須とする", async () => {
+    it("読み方パターン付きで単語を作成する", async () => {
+      const created = await trpcCaller.vocabulary.createVocabularyWord({
+        word: "Kubernetes",
+        reading1: "クバネティス",
+        reading2: "クーベネティス",
+      });
+
+      expect(created).toBeDefined();
+      expect(created.word).toBe("Kubernetes");
+      expect(created.reading1).toBe("クバネティス");
+      expect(created.reading2).toBe("クーベネティス");
+      expect(created.reading3).toBeNull();
+    });
+
+    it("readingがwordと同じ場合に拒否する", async () => {
       await expect(
         trpcCaller.vocabulary.createVocabularyWord({
-          word: "testword",
-          isReplacement: true,
+          word: "テスト",
+          reading1: "テスト",
         })
       ).rejects.toThrow();
     });
 
-    it("wordとreplacementWordが同じ場合に拒否する", async () => {
+    it("reading同士が重複する場合に拒否する", async () => {
       await expect(
         trpcCaller.vocabulary.createVocabularyWord({
-          word: "same",
-          isReplacement: true,
-          replacementWord: "same",
+          word: "TestWord",
+          reading1: "same",
+          reading2: "same",
         })
       ).rejects.toThrow();
     });

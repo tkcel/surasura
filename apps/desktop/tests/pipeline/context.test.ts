@@ -18,6 +18,11 @@ describe("createDefaultContext", () => {
     expect(ctx.sharedData.replacements.size).toBe(0);
   });
 
+  it("dictionaryEntriesを空配列で初期化する", () => {
+    const ctx = createDefaultContext("s1");
+    expect(ctx.sharedData.dictionaryEntries).toEqual([]);
+  });
+
   it("languageのデフォルトが'ja'である", () => {
     const ctx = createDefaultContext("s1");
     expect(ctx.sharedData.userPreferences.language).toBe("ja");

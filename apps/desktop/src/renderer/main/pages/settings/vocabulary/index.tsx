@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, MoveRight, HelpCircle } from "lucide-react";
+import { Plus, Edit, Trash2, HelpCircle, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +18,9 @@ import { toast } from "sonner";
 type VocabularyItem = {
   id: number;
   word: string;
+  reading1?: string | null;
+  reading2?: string | null;
+  reading3?: string | null;
   replacementWord?: string | null;
   isReplacement: boolean | null;
   dateAdded: Date;
@@ -27,27 +29,26 @@ type VocabularyItem = {
   updatedAt: Date;
 };
 
+type FormData = {
+  word: string;
+  reading1: string;
+  reading2: string;
+  reading3: string;
+};
+
 // Add/Edit Dialog Component
 interface VocabularyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: "add" | "edit";
-  formData: {
-    word: string;
-    replacementWord: string;
-    isReplacement: boolean;
-  };
-  onFormDataChange: (data: {
-    word: string;
-    replacementWord: string;
-    isReplacement: boolean;
-  }) => void;
+  formData: FormData;
+  onFormDataChange: (data: FormData) => void;
   onSubmit: () => void;
   isLoading?: boolean;
 }
 
-// Help Dialog Component for explaining replacement feature
-function ReplacementHelpDialog({
+// Help Dialog Component
+function VocabularyHelpDialog({
   open,
   onOpenChange,
 }: {
@@ -61,48 +62,42 @@ function ReplacementHelpDialog({
           <DialogTitle>辞書機能について</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 text-sm">
-          {/* 置換OFF */}
           <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">
-              <span className="bg-muted px-2 py-0.5 rounded text-xs">置換OFF</span>
-              カスタム語彙として登録
-            </h3>
+            <h3 className="font-semibold">単語の登録</h3>
             <p className="text-muted-foreground">
-              登録した単語は、音声認識時のヒントとして使用されます。
-              専門用語や固有名詞など、認識されにくい単語の精度が向上します。
+              正しい表記の単語を登録します。音声認識のヒントとして使用され、
+              専門用語や固有名詞の認識精度が向上します。
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-semibold">読み方パターン（任意）</h3>
+            <p className="text-muted-foreground">
+              音声認識で誤認識されやすい読み方を最大3つまで登録できます。
+              登録した読み方で認識された場合、正しい単語に自動的に修正されます。
             </p>
             <div className="bg-muted/50 rounded-md p-3 space-y-1">
-              <p className="text-xs text-muted-foreground">例: 「Surasura」を登録</p>
+              <p className="text-xs text-muted-foreground">例:</p>
               <p>
-                <span className="text-muted-foreground">音声:</span> 「スラスラを起動して」
+                <span className="font-medium">単語:</span> Surasura
               </p>
               <p>
-                <span className="text-muted-foreground">結果:</span> 「Surasuraを起動して」
-                <span className="text-xs text-green-600 ml-2">← 認識精度UP</span>
+                <span className="font-medium">読み方:</span> スラスラ, すらすら
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                → 音声で「スラスラ」と認識されても「Surasura」に修正
               </p>
             </div>
           </div>
 
-          {/* 置換ON */}
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">
-              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">置換ON</span>
-              自動置換ルールとして登録
-            </h3>
-            <p className="text-muted-foreground">
-              音声認識が完了した後、指定した単語を別の単語に自動的に置き換えます。
-              表記の統一や、よく誤認識される単語の修正に便利です。
+          <div className="bg-muted/50 rounded-md p-3 space-y-1">
+            <p className="text-xs text-muted-foreground">もう1つの例:</p>
+            <p>
+              <span className="font-medium">単語:</span> Kubernetes
             </p>
-            <div className="bg-muted/50 rounded-md p-3 space-y-1">
-              <p className="text-xs text-muted-foreground">例: 「すらすら」→「Surasura」を登録</p>
-              <p>
-                <span className="text-muted-foreground">認識結果:</span> 「すらすらを起動して」
-              </p>
-              <p>
-                <span className="text-muted-foreground">置換後:</span> 「Surasuraを起動して」
-                <span className="text-xs text-green-600 ml-2">← 自動変換</span>
-              </p>
-            </div>
+            <p>
+              <span className="font-medium">読み方:</span> クバネティス, クーベネティス
+            </p>
           </div>
 
           {/* 処理の流れ */}
@@ -113,12 +108,15 @@ function ReplacementHelpDialog({
               <span>→</span>
               <span className="bg-muted px-2 py-1 rounded">
                 Whisper認識
-                <span className="text-muted-foreground ml-1">(語彙ヒント使用)</span>
+                <span className="text-muted-foreground ml-1">(語彙ヒント)</span>
               </span>
               <span>→</span>
-              <span className="bg-muted px-2 py-1 rounded">テキスト整形</span>
+              <span className="bg-muted px-2 py-1 rounded">
+                テキスト整形
+                <span className="text-muted-foreground ml-1">(辞書で修正)</span>
+              </span>
               <span>→</span>
-              <span className="bg-primary/10 text-primary px-2 py-1 rounded">置換処理</span>
+              <span className="bg-primary/10 text-primary px-2 py-1 rounded">読み方置換</span>
               <span>→</span>
               <span className="bg-muted px-2 py-1 rounded">完了</span>
             </div>
@@ -141,6 +139,17 @@ function VocabularyDialog({
   onSubmit,
   isLoading = false,
 }: VocabularyDialogProps) {
+  const readingCount = [formData.reading1, formData.reading2, formData.reading3].filter(
+    (r) => r.trim(),
+  ).length;
+  const canAddReading = readingCount < 3;
+
+  // Show reading fields based on how many are filled (always show at least the first)
+  const showReading2 = formData.reading1.trim() !== "" || formData.reading2.trim() !== "";
+  const showReading3 =
+    (formData.reading1.trim() !== "" && formData.reading2.trim() !== "") ||
+    formData.reading3.trim() !== "";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -150,49 +159,57 @@ function VocabularyDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="replacement-toggle">置換を有効にする</Label>
-            <Switch
-              id="replacement-toggle"
-              checked={formData.isReplacement}
-              onCheckedChange={(checked) =>
-                onFormDataChange({ ...formData, isReplacement: checked })
-              }
-            />
-          </div>
-
-          {formData.isReplacement ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="置換前"
-                  value={formData.word}
-                  onChange={(e) =>
-                    onFormDataChange({ ...formData, word: e.target.value })
-                  }
-                />
-                <span className="text-muted-foreground">→</span>
-                <Input
-                  placeholder="置換後"
-                  value={formData.replacementWord}
-                  onChange={(e) =>
-                    onFormDataChange({
-                      ...formData,
-                      replacementWord: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-          ) : (
+          <div className="space-y-2">
+            <Label htmlFor="word-input">単語（正しい表記）</Label>
             <Input
-              placeholder="新しい単語を入力"
+              id="word-input"
+              placeholder="例: Surasura"
               value={formData.word}
               onChange={(e) =>
                 onFormDataChange({ ...formData, word: e.target.value })
               }
             />
-          )}
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">読み方パターン（任意、最大3つ）</Label>
+            <Input
+              placeholder="読み方 1（例: スラスラ）"
+              value={formData.reading1}
+              onChange={(e) =>
+                onFormDataChange({ ...formData, reading1: e.target.value })
+              }
+            />
+            {showReading2 && (
+              <Input
+                placeholder="読み方 2"
+                value={formData.reading2}
+                onChange={(e) =>
+                  onFormDataChange({ ...formData, reading2: e.target.value })
+                }
+              />
+            )}
+            {showReading3 && (
+              <Input
+                placeholder="読み方 3"
+                value={formData.reading3}
+                onChange={(e) =>
+                  onFormDataChange({ ...formData, reading3: e.target.value })
+                }
+              />
+            )}
+            {!showReading2 && canAddReading && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() =>
+                  onFormDataChange({ ...formData, reading1: formData.reading1 || " " })
+                }
+              >
+                + 読み方を追加
+              </button>
+            )}
+          </div>
 
           <DialogFooter className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -200,11 +217,7 @@ function VocabularyDialog({
             </Button>
             <Button
               onClick={onSubmit}
-              disabled={
-                !formData.word.trim() ||
-                (formData.isReplacement && !formData.replacementWord.trim()) ||
-                isLoading
-              }
+              disabled={!formData.word.trim() || isLoading}
             >
               {isLoading
                 ? "保存中..."
@@ -223,7 +236,8 @@ function VocabularyDialog({
 interface DeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  deletingItem: VocabularyItem | null;
+  title: string;
+  message: string;
   onConfirm: () => void;
   isLoading?: boolean;
 }
@@ -231,7 +245,8 @@ interface DeleteDialogProps {
 function DeleteDialog({
   open,
   onOpenChange,
-  deletingItem,
+  title,
+  message,
   onConfirm,
   isLoading = false,
 }: DeleteDialogProps) {
@@ -239,15 +254,12 @@ function DeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>単語を削除</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">{message}</p>
           <p className="text-sm text-muted-foreground">
-            「
-            {deletingItem?.isReplacement
-              ? `${deletingItem?.word} → ${deletingItem?.replacementWord}`
-              : deletingItem?.word}
-            」を削除しますか？この操作は取り消せません。
+            この操作は取り消せません。
           </p>
         </div>
 
@@ -268,6 +280,14 @@ function DeleteDialog({
   );
 }
 
+function getReadings(item: VocabularyItem): string[] {
+  const readings: string[] = [];
+  if (item.reading1) readings.push(item.reading1);
+  if (item.reading2) readings.push(item.reading2);
+  if (item.reading3) readings.push(item.reading3);
+  return readings;
+}
+
 export default function VocabularySettingsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -275,10 +295,16 @@ export default function VocabularySettingsPage() {
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<VocabularyItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<VocabularyItem | null>(null);
-  const [formData, setFormData] = useState({
+
+  // Bulk delete
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
+
+  const [formData, setFormData] = useState<FormData>({
     word: "",
-    replacementWord: "",
-    isReplacement: false,
+    reading1: "",
+    reading2: "",
+    reading3: "",
   });
 
   const vocabularyQuery = api.vocabulary.getVocabulary.useQuery({
@@ -329,20 +355,30 @@ export default function VocabularySettingsPage() {
     },
   });
 
+  const deleteManyMutation = api.vocabulary.deleteMany.useMutation({
+    onSuccess: (result) => {
+      utils.vocabulary.getVocabulary.invalidate();
+      utils.vocabulary.getVocabularyStats.invalidate();
+      setSelectedIds(new Set());
+      toast.success(`${result.deleted}件の単語を削除しました`);
+    },
+    onError: (error) => {
+      toast.error(`削除に失敗しました: ${error.message}`);
+    },
+  });
+
   const handleAddWord = async () => {
     try {
       await createVocabularyMutation.mutateAsync({
         word: formData.word,
-        isReplacement: formData.isReplacement,
-        replacementWord: formData.isReplacement
-          ? formData.replacementWord
-          : undefined,
+        reading1: formData.reading1.trim() || undefined,
+        reading2: formData.reading2.trim() || undefined,
+        reading3: formData.reading3.trim() || undefined,
       });
-      setFormData({ word: "", replacementWord: "", isReplacement: false });
+      setFormData({ word: "", reading1: "", reading2: "", reading3: "" });
       setIsAddDialogOpen(false);
     } catch {
       // Error is handled by the mutation's onError callback
-      // Keep dialog open so user can retry
     }
   };
 
@@ -354,18 +390,16 @@ export default function VocabularySettingsPage() {
         id: editingItem.id,
         data: {
           word: formData.word,
-          isReplacement: formData.isReplacement,
-          replacementWord: formData.isReplacement
-            ? formData.replacementWord
-            : undefined,
+          reading1: formData.reading1.trim() || null,
+          reading2: formData.reading2.trim() || null,
+          reading3: formData.reading3.trim() || null,
         },
       });
-      setFormData({ word: "", replacementWord: "", isReplacement: false });
+      setFormData({ word: "", reading1: "", reading2: "", reading3: "" });
       setEditingItem(null);
       setIsEditDialogOpen(false);
     } catch {
       // Error is handled by the mutation's onError callback
-      // Keep dialog open so user can retry
     }
   };
 
@@ -380,7 +414,6 @@ export default function VocabularySettingsPage() {
       setIsDeleteDialogOpen(false);
     } catch {
       // Error is handled by the mutation's onError callback
-      // Keep dialog open so user can retry
     }
   };
 
@@ -388,8 +421,9 @@ export default function VocabularySettingsPage() {
     setEditingItem(item);
     setFormData({
       word: item.word,
-      replacementWord: item.replacementWord || "",
-      isReplacement: item.isReplacement || false,
+      reading1: item.reading1 || "",
+      reading2: item.reading2 || "",
+      reading3: item.reading3 || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -399,8 +433,49 @@ export default function VocabularySettingsPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  // Selection handling
+  const handleSelectItem = (id: number) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === vocabularyItems.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(vocabularyItems.map((item) => item.id)));
+    }
+  };
+
+  const isAllSelected =
+    vocabularyItems.length > 0 &&
+    selectedIds.size === vocabularyItems.length;
+  const hasSelection = selectedIds.size > 0;
+
+  // Bulk delete
+  const handleBulkDeleteClick = () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleteDialogOpen(true);
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    try {
+      await deleteManyMutation.mutateAsync({
+        ids: Array.from(selectedIds),
+      });
+      setIsBulkDeleteDialogOpen(false);
+    } catch {
+      // Error handled by mutation
+    }
+  };
+
   const resetForm = () => {
-    setFormData({ word: "", replacementWord: "", isReplacement: false });
+    setFormData({ word: "", reading1: "", reading2: "", reading3: "" });
     setEditingItem(null);
   };
 
@@ -420,7 +495,7 @@ export default function VocabularySettingsPage() {
             </button>
           </div>
           <p className="text-muted-foreground mt-1 text-sm">
-            音声入力で使用するカスタム単語と置換ルールを管理します。
+            音声入力で使用する単語と読み方パターンを管理します。
           </p>
           {stats && (
             <p className="text-muted-foreground mt-1 text-sm">
@@ -429,17 +504,29 @@ export default function VocabularySettingsPage() {
           )}
         </div>
 
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
+        <div className="flex items-center gap-2">
+          {hasSelection && (
             <Button
-              onClick={() => resetForm()}
-              className="flex items-center gap-2"
+              variant="destructive"
+              onClick={handleBulkDeleteClick}
+              disabled={deleteManyMutation.isPending}
             >
-              <Plus className="w-4 h-4" />
-              単語を追加
+              <Trash2 className="w-4 h-4 mr-2" />
+              {selectedIds.size}件を削除
             </Button>
-          </DialogTrigger>
-        </Dialog>
+          )}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => resetForm()}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                単語を追加
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
       </div>
 
       {/* Vocabulary List */}
@@ -455,45 +542,82 @@ export default function VocabularySettingsPage() {
             </div>
           ) : (
             <div className="space-y-0">
-              {vocabularyItems.map((item, index) => (
-                <div
-                  className="hover:bg-muted/50 transition-colors"
-                  key={item.id}
+              {/* Select All Header */}
+              <div className="flex items-center gap-3 py-2 px-4 border-b border-border bg-muted/30">
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title={isAllSelected ? "選択を解除" : "すべて選択"}
                 >
-                  <div className="flex items-center justify-between py-3 px-4 group">
-                    <span className="text-sm flex items-center gap-1">
-                      {item.isReplacement ? (
-                        <>
-                          <span>{item.word}</span>
-                          <MoveRight className="w-4 h-4 mx-2" />
-                          <span>{item.replacementWord}</span>
-                        </>
-                      ) : (
-                        item.word
-                      )}
-                    </span>
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditDialog(item)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openDeleteDialog(item)}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                  {index < vocabularyItems.length - 1 && (
-                    <div className="border-t border-border" />
+                  {isAllSelected ? (
+                    <CheckSquare className="w-5 h-5" />
+                  ) : (
+                    <Square className="w-5 h-5" />
                   )}
-                </div>
-              ))}
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  {hasSelection ? `${selectedIds.size}件選択中` : ""}
+                </span>
+              </div>
+
+              {vocabularyItems.map((item, index) => {
+                const readings = getReadings(item);
+                return (
+                  <div
+                    className={`hover:bg-muted/50 transition-colors ${
+                      selectedIds.has(item.id) ? "bg-muted/30" : ""
+                    }`}
+                    key={item.id}
+                  >
+                    <div className="flex items-center py-3 px-4 group gap-3">
+                      {/* Checkbox */}
+                      <button
+                        type="button"
+                        onClick={() => handleSelectItem(item.id)}
+                        className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      >
+                        {selectedIds.has(item.id) ? (
+                          <CheckSquare className="w-5 h-5 text-primary" />
+                        ) : (
+                          <Square className="w-5 h-5" />
+                        )}
+                      </button>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 flex items-center gap-2 text-sm">
+                        <span>{item.word}</span>
+                        {readings.length > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            読み: {readings.join(", ")}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditDialog(item)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDeleteDialog(item)}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                    {index < vocabularyItems.length - 1 && (
+                      <div className="border-t border-border" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
@@ -520,15 +644,27 @@ export default function VocabularySettingsPage() {
         isLoading={updateVocabularyMutation.isPending}
       />
 
+      {/* Single Delete Confirmation Dialog */}
       <DeleteDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        deletingItem={deletingItem}
+        title="単語を削除"
+        message={deletingItem ? `「${deletingItem.word}」を削除しますか？` : ""}
         onConfirm={handleDeleteWord}
         isLoading={deleteVocabularyMutation.isPending}
       />
 
-      <ReplacementHelpDialog
+      {/* Bulk Delete Confirmation Dialog */}
+      <DeleteDialog
+        open={isBulkDeleteDialogOpen}
+        onOpenChange={setIsBulkDeleteDialogOpen}
+        title="選択した単語を削除"
+        message={`選択した ${selectedIds.size} 件の単語を削除しますか？`}
+        onConfirm={handleBulkDeleteConfirm}
+        isLoading={deleteManyMutation.isPending}
+      />
+
+      <VocabularyHelpDialog
         open={isHelpDialogOpen}
         onOpenChange={setIsHelpDialogOpen}
       />

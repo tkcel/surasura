@@ -3,6 +3,11 @@
  * Based on ARCHITECTURE.md specifications
  */
 
+export interface DictionaryEntry {
+  word: string;
+  readings: string[];
+}
+
 export interface PipelineContext {
   sessionId: string;
   sharedData: SharedPipelineData;
@@ -14,6 +19,7 @@ import { GetAccessibilityContextResult } from "@surasura/types";
 export interface SharedPipelineData {
   vocabulary: string[]; // Custom vocab
   replacements: Map<string, string>; // Custom replacements
+  dictionaryEntries: DictionaryEntry[]; // Unified dictionary entries
   userPreferences: {
     language?: string; // Optional - undefined means auto-detect
     formattingStyle: "formal" | "casual" | "technical";
@@ -34,6 +40,7 @@ export function createDefaultContext(sessionId: string): PipelineContext {
     sharedData: {
       vocabulary: [],
       replacements: new Map(),
+      dictionaryEntries: [],
       userPreferences: {
         language: "ja",
         formattingStyle: "formal",

@@ -7,6 +7,8 @@ import {
   createVocabularyWord,
   updateVocabulary,
   deleteVocabulary,
+  deleteVocabularyByIds,
+  deleteAllVocabulary,
   getVocabularyCount,
   searchVocabulary,
   trackWordUsage,
@@ -26,66 +28,75 @@ const GetVocabularySchema = z.object({
 const CreateVocabularySchema = z
   .object({
     word: z.string().min(1),
+    reading1: z.string().optional(),
+    reading2: z.string().optional(),
+    reading3: z.string().optional(),
+    // Legacy fields - kept for backward compatibility
     isReplacement: z.boolean().optional(),
     replacementWord: z.string().optional(),
   })
   .refine(
     (data) => {
-      // If isReplacement is true, replacementWord must be provided
-      if (data.isReplacement === true && !data.replacementWord) {
-        return false;
-      }
-      return true;
+      // Readings must not equal the word
+      const readings = [data.reading1, data.reading2, data.reading3].filter(
+        (r): r is string => !!r,
+      );
+      return readings.every((r) => r !== data.word);
     },
     {
-      message: "replacementWord is required when isReplacement is true",
-      path: ["replacementWord"],
+      message: "読み方は単語と異なる必要があります",
+      path: ["reading1"],
     },
   )
   .refine(
     (data) => {
-      // If both word and replacementWord are provided, they must be different
-      if (data.word && data.replacementWord) {
-        return data.word !== data.replacementWord;
-      }
-      return true;
+      // Readings must not have duplicates among themselves
+      const readings = [data.reading1, data.reading2, data.reading3].filter(
+        (r): r is string => !!r,
+      );
+      return new Set(readings).size === readings.length;
     },
     {
-      path: ["replacementWord"],
-      message: "replacementWord must be different from word",
+      message: "読み方パターンが重複しています",
+      path: ["reading2"],
     },
   );
 
 const UpdateVocabularySchema = z
   .object({
     word: z.string().min(1).optional(),
+    reading1: z.string().nullable().optional(),
+    reading2: z.string().nullable().optional(),
+    reading3: z.string().nullable().optional(),
+    // Legacy fields - kept for backward compatibility
     isReplacement: z.boolean().optional(),
     replacementWord: z.string().optional(),
   })
   .refine(
     (data) => {
-      // If isReplacement is true, replacementWord must be provided
-      if (data.isReplacement === true && !data.replacementWord) {
-        return false;
-      }
-      return true;
+      // If word is provided, readings must not equal it
+      if (!data.word) return true;
+      const readings = [data.reading1, data.reading2, data.reading3].filter(
+        (r): r is string => !!r,
+      );
+      return readings.every((r) => r !== data.word);
     },
     {
-      message: "replacementWord is required when isReplacement is true",
-      path: ["replacementWord"],
+      message: "読み方は単語と異なる必要があります",
+      path: ["reading1"],
     },
   )
   .refine(
     (data) => {
-      // If both word and replacementWord are provided, they must be different
-      if (data.word && data.replacementWord) {
-        return data.word !== data.replacementWord;
-      }
-      return true;
+      // Readings must not have duplicates among themselves
+      const readings = [data.reading1, data.reading2, data.reading3].filter(
+        (r): r is string => !!r,
+      );
+      return new Set(readings).size === readings.length;
     },
     {
-      message: "replacementWord must be different from word",
-      path: ["replacementWord"],
+      message: "読み方パターンが重複しています",
+      path: ["reading2"],
     },
   );
 
@@ -177,6 +188,23 @@ export const vocabularyRouter = createRouter({
     .mutation(async ({ input }) => {
       return await deleteVocabulary(input.id);
     }),
+
+  // Delete multiple vocabulary words by IDs
+  deleteMany: procedure
+    .input(z.object({ ids: z.array(z.number()) }))
+    .mutation(async ({ input }) => {
+      if (input.ids.length === 0) {
+        return { deleted: 0 };
+      }
+      const deleted = await deleteVocabularyByIds(input.ids);
+      return { deleted: deleted.length };
+    }),
+
+  // Delete all vocabulary words
+  deleteAll: procedure.mutation(async () => {
+    const deleted = await deleteAllVocabulary();
+    return { deleted: deleted.length };
+  }),
 
   // Track word usage
   trackWordUsage: procedure

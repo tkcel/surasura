@@ -21,6 +21,7 @@ let isInitialized = false;
 let dbConnection: null | typeof db = null;
 
 import { logger } from "../main/logger";
+import { migrateVocabularyToReadings } from "./vocabulary-migration";
 
 export async function initializeDatabase() {
   if (isInitialized) {
@@ -62,6 +63,9 @@ export async function initializeDatabase() {
     await migrate(db, {
       migrationsFolder: migrationsPath,
     });
+
+    // Run data migration for vocabulary readings model
+    await migrateVocabularyToReadings();
 
     logger.db.info(
       "Database initialized and migrations completed successfully",

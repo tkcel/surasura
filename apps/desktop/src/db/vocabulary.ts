@@ -1,4 +1,4 @@
-import { eq, desc, asc, like, count, gt, sql } from "drizzle-orm";
+import { eq, desc, asc, like, count, gt, sql, or, inArray } from "drizzle-orm";
 import { db } from ".";
 import { vocabulary, type Vocabulary, type NewVocabulary } from "./schema";
 
@@ -60,7 +60,14 @@ export async function getVocabulary(
     return await db
       .select()
       .from(vocabulary)
-      .where(like(vocabulary.word, `%${search}%`))
+      .where(
+        or(
+          like(vocabulary.word, `%${search}%`),
+          like(vocabulary.reading1, `%${search}%`),
+          like(vocabulary.reading2, `%${search}%`),
+          like(vocabulary.reading3, `%${search}%`),
+        ),
+      )
       .orderBy(orderFn(sortColumn))
       .limit(limit)
       .offset(offset);
@@ -127,7 +134,14 @@ export async function getVocabularyCount(search?: string) {
     const result = await db
       .select({ count: count() })
       .from(vocabulary)
-      .where(like(vocabulary.word, `%${search}%`));
+      .where(
+        or(
+          like(vocabulary.word, `%${search}%`),
+          like(vocabulary.reading1, `%${search}%`),
+          like(vocabulary.reading2, `%${search}%`),
+          like(vocabulary.reading3, `%${search}%`),
+        ),
+      );
     return result[0]?.count || 0;
   } else {
     const result = await db.select({ count: count() }).from(vocabulary);
@@ -160,12 +174,39 @@ export async function getMostUsedWords(limit = 10) {
     .limit(limit);
 }
 
+// Delete multiple vocabulary words by IDs
+export async function deleteVocabularyByIds(ids: number[]) {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const result = await db
+    .delete(vocabulary)
+    .where(inArray(vocabulary.id, ids))
+    .returning();
+
+  return result;
+}
+
+// Delete all vocabulary words
+export async function deleteAllVocabulary() {
+  const result = await db.delete(vocabulary).returning();
+  return result;
+}
+
 // Search vocabulary words
 export async function searchVocabulary(searchTerm: string, limit = 20) {
   return await db
     .select()
     .from(vocabulary)
-    .where(like(vocabulary.word, `%${searchTerm}%`))
+    .where(
+      or(
+        like(vocabulary.word, `%${searchTerm}%`),
+        like(vocabulary.reading1, `%${searchTerm}%`),
+        like(vocabulary.reading2, `%${searchTerm}%`),
+        like(vocabulary.reading3, `%${searchTerm}%`),
+      ),
+    )
     .orderBy(asc(vocabulary.word))
     .limit(limit);
 }

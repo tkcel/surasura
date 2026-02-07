@@ -1,4 +1,4 @@
-import { FormatParams } from "../../core/pipeline-types";
+import { FormatParams, DictionaryEntry } from "../../core/pipeline-types";
 import { FormatPreset } from "../../../types/formatter";
 import {
   replaceTemplateVariables,
@@ -65,7 +65,7 @@ export function constructFormatterPrompt(
   transcriptionEmbedded: boolean;
   allowsAnswer: boolean;
 } {
-  const { vocabulary, accessibilityContext, clipboardText } = context;
+  const { vocabulary, dictionaryEntries, accessibilityContext, clipboardText } = context;
 
   // プリセットの指示、なければデフォルト指示を使用
   let instructions = preset?.instructions?.trim() || DEFAULT_INSTRUCTIONS;
@@ -92,10 +92,53 @@ export function constructFormatterPrompt(
   parts.push(`\n## ユーザーからの指示\n${instructions}`);
 
   // 辞書があれば追加
+  const replacementLines: string[] = [];
+  const vocabLines: string[] = [];
+  const entriesWithReadings = new Set<string>();
+
+  if (dictionaryEntries && dictionaryEntries.length > 0) {
+    for (const entry of dictionaryEntries) {
+      entriesWithReadings.add(entry.word);
+      if (entry.readings.length > 0) {
+        replacementLines.push(
+          `- ${entry.readings.join(", ")} → ${entry.word}`,
+        );
+      } else {
+        vocabLines.push(`- ${entry.word}`);
+      }
+    }
+  }
+
   if (vocabulary && vocabulary.length > 0) {
-    parts.push(
-      `\n## 辞書（専門用語・固有名詞）\n以下の単語は正確に使用してください: ${vocabulary.join(", ")}`
-    );
+    for (const word of vocabulary) {
+      if (!entriesWithReadings.has(word)) {
+        vocabLines.push(`- ${word}`);
+      }
+    }
+  }
+
+  if (replacementLines.length > 0 || vocabLines.length > 0) {
+    const sections: string[] = [];
+
+    if (replacementLines.length > 0) {
+      sections.push(
+        `## 辞書置換ルール【最優先】\n` +
+        `以下はユーザーが明示的に登録した置換ルールです。このルールは他のすべての判断より優先されます。\n` +
+        `左側の表記（またはそれに近い表記）が入力テキストに含まれている場合、必ず右側の正しい表記に置き換えてください。\n` +
+        `音声認識の誤変換により表記ゆれが発生するため、完全一致でなくても積極的に置換してください。\n\n` +
+        replacementLines.join("\n"),
+      );
+    }
+
+    if (vocabLines.length > 0) {
+      sections.push(
+        `## 辞書（専門用語・固有名詞）\n` +
+        `以下の単語を正確に使用してください。\n\n` +
+        vocabLines.join("\n"),
+      );
+    }
+
+    parts.push("\n" + sections.join("\n\n"));
   }
 
   return { systemPrompt: parts.join("\n"), transcriptionEmbedded, allowsAnswer };
