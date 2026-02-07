@@ -28,7 +28,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 17;
+const CURRENT_SETTINGS_VERSION = 18;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -731,6 +731,40 @@ ${prohibitions}`;
       return oldData;
     }
   },
+
+  // v17 -> v18: Add homophone disambiguation rule to "標準" preset
+  18: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const homophoneRule =
+      "- 同音異義語は、文章全体の内容や文脈に基づいて最も適切な漢字表記を選択する";
+
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (
+        preset.isDefault &&
+        preset.name === "標準" &&
+        !preset.instructions.includes("同音異義語")
+      ) {
+        // Insert after the "誤認識" rule line
+        const updated = preset.instructions.replace(
+          "- 誤認識と思われる部分は文脈から推測して修正する",
+          `- 誤認識と思われる部分は文脈から推測して修正する\n${homophoneRule}`,
+        );
+        return { ...preset, instructions: updated, updatedAt: now };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -1010,6 +1044,7 @@ export function generateDefaultPresets() {
 - フィラー（えー、あのー、まあ、なんか等）を除去する
 - 言い直しや繰り返しを整理する
 - 誤認識と思われる部分は文脈から推測して修正する
+- 同音異義語は、文章全体の内容や文脈に基づいて最も適切な漢字表記を選択する
 - 辞書に登録された専門用語・固有名詞は正確に使用する
 - 元の意味やニュアンスを維持する
 - 話し言葉を自然な書き言葉に変換する
