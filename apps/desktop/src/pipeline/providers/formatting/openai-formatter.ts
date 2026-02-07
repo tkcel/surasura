@@ -59,7 +59,7 @@ export class OpenAIFormatter implements FormattingProvider {
       const match = aiResponse.match(
         /<formatted_text>([\s\S]*?)<\/formatted_text>/,
       );
-      const formattedText = match ? match[1] : aiResponse;
+      const formattedText = match ? match[1].trim() : aiResponse.trim();
 
       // 出力検証: 回答を許可しないプリセットで、出力が入力より大幅に長い場合は
       // 回答と判断して元のテキストを返す（整形では通常、テキスト長は大きく変わらない）
