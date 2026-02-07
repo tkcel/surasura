@@ -533,8 +533,10 @@ export class TranscriptionService {
 
   /**
    * Apply vocabulary replacements to transcription text.
-   * Uses case-insensitive Unicode-aware word boundary matching to replace terms.
-   * Works across all languages and scripts (Latin, Cyrillic, CJK, Arabic, etc.).
+   * For CJK readings (hiragana/katakana/kanji), uses simple string matching
+   * since Unicode word boundaries don't work for Japanese text.
+   * For non-CJK terms, uses word boundary matching to avoid partial replacements.
+   * Longer patterns are replaced first to prevent substring conflicts.
    * Runs after LLM formatting as the final post-processing step.
    */
   private applyReplacements(
@@ -547,17 +549,25 @@ export class TranscriptionService {
 
     let result = text;
 
-    for (const [word, replacement] of replacements) {
-      // Escape special regex characters in the word
+    // Sort by length descending to replace longer patterns first
+    const sortedEntries = [...replacements.entries()].sort(
+      (a, b) => b[0].length - a[0].length,
+    );
+
+    for (const [word, replacement] of sortedEntries) {
       const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      // Use Unicode-aware word boundaries:
-      // - \p{L} matches any Unicode letter (Latin, Cyrillic, CJK, Arabic, etc.)
-      // - \p{N} matches any Unicode number
-      // - Negative lookbehind/lookahead ensures word is not part of a larger word
-      const regex = new RegExp(
-        `(?<![\\p{L}\\p{N}])${escapedWord}(?![\\p{L}\\p{N}])`,
-        "giu",
-      );
+
+      // CJK characters don't have word boundaries (no spaces between words),
+      // so use simple case-insensitive matching for patterns containing CJK
+      const containsCJK =
+        /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u.test(word);
+
+      const regex = containsCJK
+        ? new RegExp(escapedWord, "gi")
+        : new RegExp(
+            `(?<![\\p{L}\\p{N}])${escapedWord}(?![\\p{L}\\p{N}])`,
+            "giu",
+          );
       result = result.replace(regex, replacement);
     }
 

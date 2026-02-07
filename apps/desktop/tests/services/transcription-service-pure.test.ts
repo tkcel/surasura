@@ -119,15 +119,42 @@ describe("TranscriptionServiceの純粋メソッド", () => {
       );
     });
 
-    it("日本語を含むUnicodeテキストを処理する (単語境界)", () => {
-      // CJK characters are all \p{L}, so word boundary won't match in the middle
-      // of a CJK string — the replacement only applies when surrounded by non-letter chars
+    it("日本語テキスト内のCJK読み方を置換する", () => {
       const replacements = new Map([["りんご", "アップル"]]);
       expect(applyReplacements("私はりんごが好き", replacements)).toBe(
-        "私はりんごが好き",
+        "私はアップルが好き",
       );
-      // But it works when the word is isolated
       expect(applyReplacements("りんご", replacements)).toBe("アップル");
+    });
+
+    it("日本語の読み方を英語の単語に置換する", () => {
+      const replacements = new Map([
+        ["スラスラ", "surasura"],
+        ["すらすら", "surasura"],
+      ]);
+      expect(
+        applyReplacements("すらすらというアプリケーションを作成しています", replacements),
+      ).toBe("surasuraというアプリケーションを作成しています");
+      expect(
+        applyReplacements("スラスラを使っています", replacements),
+      ).toBe("surasuraを使っています");
+    });
+
+    it("長い読み方を先に置換する（部分マッチ防止）", () => {
+      const replacements = new Map([
+        ["すら", "X"],
+        ["すらすら", "surasura"],
+      ]);
+      expect(
+        applyReplacements("すらすらというアプリ", replacements),
+      ).toBe("surasuraというアプリ");
+    });
+
+    it("英語の単語境界は引き続き尊重する", () => {
+      const replacements = new Map([["he", "she"]]);
+      expect(applyReplacements("hello he said", replacements)).toBe(
+        "hello she said",
+      );
     });
   });
 });
