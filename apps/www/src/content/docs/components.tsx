@@ -167,7 +167,7 @@ export function DocsTh({ children }: { children: ReactNode }) {
   );
 }
 
-export function DocsTd({ children }: { children: ReactNode }) {
+export function DocsTd({ children }: { children?: ReactNode }) {
   return (
     <td className="border border-gray-300 px-3 py-2">{children}</td>
   );
