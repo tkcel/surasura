@@ -294,9 +294,6 @@ jobs:
           body: |
             ## Surasura Desktop v${{ steps.package_version.outputs.version }}
 
-            ### 変更点
-            - このセクションを実際の変更内容に更新してください
-
             ### ダウンロード
 
             #### macOS
