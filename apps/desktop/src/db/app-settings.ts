@@ -28,7 +28,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 18;
+const CURRENT_SETTINGS_VERSION = 19;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -765,6 +765,41 @@ ${prohibitions}`;
       },
     };
   },
+
+  // v18 -> v19: Add line break and bullet point formatting rules to "標準" preset
+  19: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const structuringRules = `- 話題や内容が変わる箇所で改行を入れて段落を分ける
+- 複数の項目や要点を列挙している場合は箇条書き（・）にする
+- 1つの段落が3文以上続く場合は、意味のまとまりで改行を入れる`;
+
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (
+        preset.isDefault &&
+        preset.name === "標準" &&
+        !preset.instructions.includes("箇条書き")
+      ) {
+        // Insert after the "アプリの用途に合わせた文体にする" rule line
+        const updated = preset.instructions.replace(
+          "- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）",
+          `- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）\n${structuringRules}`,
+        );
+        return { ...preset, instructions: updated, updatedAt: now };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -1049,6 +1084,9 @@ export function generateDefaultPresets() {
 - 元の意味やニュアンスを維持する
 - 話し言葉を自然な書き言葉に変換する
 - アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）
+- 話題や内容が変わる箇所で改行を入れて段落を分ける
+- 複数の項目や要点を列挙している場合は箇条書き（・）にする
+- 1つの段落が3文以上続く場合は、意味のまとまりで改行を入れる
 ${prohibitions}`,
       isDefault: true,
       color: "green" as const,
