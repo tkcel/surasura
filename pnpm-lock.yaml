@@ -415,6 +415,9 @@ importers:
       '@surasura/legal':
         specifier: workspace:*
         version: link:../../packages/legal
+      framer-motion:
+        specifier: ^12.23.12
+        version: 12.23.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       lucide-react:
         specifier: ^0.510.0
         version: 0.510.0(react@19.1.1)

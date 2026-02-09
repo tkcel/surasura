@@ -6,6 +6,7 @@ import {
   ClipboardPaste,
   History,
 } from "lucide-react";
+import { FadeInUp, StaggerContainer } from "../motion";
 
 const features = [
   {
@@ -66,26 +67,27 @@ export function Features() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div
-              key={index}
-              className="group bg-nm-surface rounded-2xl p-7 shadow-nm-raised-md hover:shadow-nm-raised-lg hover:-translate-y-1 transition-all duration-300"
-            >
+            <FadeInUp key={index} hoverLift>
               <div
-                className={`w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center mb-5 group-hover:shadow-nm-raised-md transition-all duration-200`}
+                className="group bg-nm-surface rounded-2xl p-7 shadow-nm-raised-md hover:shadow-nm-raised-lg transition-all duration-300"
               >
-                <feature.icon size={22} className={feature.color.includes('primary') ? 'text-primary-600' : 'text-accent-500'} />
+                <div
+                  className={`w-12 h-12 bg-nm-surface shadow-nm-raised-sm rounded-xl flex items-center justify-center mb-5 group-hover:shadow-nm-raised-md transition-all duration-200`}
+                >
+                  <feature.icon size={22} className={feature.color.includes('primary') ? 'text-primary-600' : 'text-accent-500'} />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2 text-lg">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 text-lg">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
+            </FadeInUp>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );

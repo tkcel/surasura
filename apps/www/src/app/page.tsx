@@ -1,5 +1,6 @@
 import { Header } from "../components/Header";
 import { Hero } from "../components/sections/Hero";
+import { UseCasesStack } from "../components/sections/UseCasesStack";
 import { Pricing } from "../components/sections/Pricing";
 import { HowItWorks } from "../components/sections/HowItWorks";
 import { Features } from "../components/sections/Features";
@@ -11,6 +12,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <UseCasesStack />
         <Pricing />
         <HowItWorks />
         <Features />
