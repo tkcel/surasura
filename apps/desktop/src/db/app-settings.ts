@@ -766,7 +766,7 @@ ${prohibitions}`;
     };
   },
 
-  // v18 -> v19: Add line break and bullet point formatting rules to "標準" preset
+  // v18 -> v19: Add line break and bullet point formatting rules to "標準" and "カジュアル" presets
   19: (data: unknown): AppSettingsData => {
     const oldData = data as AppSettingsData;
     const now = new Date().toISOString();
@@ -778,15 +778,22 @@ ${prohibitions}`;
     const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
       if (
         preset.isDefault &&
-        preset.name === "標準" &&
         !preset.instructions.includes("箇条書き")
       ) {
-        // Insert after the "アプリの用途に合わせた文体にする" rule line
-        const updated = preset.instructions.replace(
-          "- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）",
-          `- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）\n${structuringRules}`,
-        );
-        return { ...preset, instructions: updated, updatedAt: now };
+        if (preset.name === "標準") {
+          const updated = preset.instructions.replace(
+            "- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）",
+            `- アプリの用途に合わせた文体にする（Slackならカジュアル、メールなら丁寧など）\n${structuringRules}`,
+          );
+          return { ...preset, instructions: updated, updatedAt: now };
+        }
+        if (preset.name === "カジュアル") {
+          const updated = preset.instructions.replace(
+            "- 堅苦しくない、親しみやすい表現にする",
+            `- 堅苦しくない、親しみやすい表現にする\n${structuringRules}`,
+          );
+          return { ...preset, instructions: updated, updatedAt: now };
+        }
       }
       return preset;
     });
@@ -1111,6 +1118,9 @@ ${prohibitions}`,
 - 敬語（です・ます）は使わず、「だよ」「だね」「かな」「じゃん」などの砕けた語尾を使う
 - 「〜かも」「〜っぽい」「めっちゃ」「すごい」などの口語表現を適宜使う
 - 堅苦しくない、親しみやすい表現にする
+- 話題や内容が変わる箇所で改行を入れて段落を分ける
+- 複数の項目や要点を列挙している場合は箇条書き（・）にする
+- 1つの段落が3文以上続く場合は、意味のまとまりで改行を入れる
 ${prohibitions}`,
       isDefault: true,
       color: "red" as const,
