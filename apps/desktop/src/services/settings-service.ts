@@ -30,6 +30,7 @@ export interface AppPreferences {
   launchAtLogin: boolean;
   minimizeToTray: boolean;
   soundEnabled: boolean;
+  autoPasteEnabled: boolean;
 }
 
 export class SettingsService extends EventEmitter {
@@ -365,6 +366,7 @@ export class SettingsService extends EventEmitter {
       launchAtLogin: preferences?.launchAtLogin ?? true,
       minimizeToTray: preferences?.minimizeToTray ?? true,
       soundEnabled: preferences?.soundEnabled ?? true,
+      autoPasteEnabled: preferences?.autoPasteEnabled ?? true,
     };
   }
 

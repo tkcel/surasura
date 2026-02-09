@@ -121,6 +121,7 @@ export interface AppSettingsData {
     launchAtLogin?: boolean;
     minimizeToTray?: boolean;
     soundEnabled?: boolean;
+    autoPasteEnabled?: boolean;
   };
   telemetry?: {
     enabled?: boolean;

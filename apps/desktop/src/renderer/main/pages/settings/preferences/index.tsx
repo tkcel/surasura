@@ -155,6 +155,12 @@ export default function PreferencesSettingsPage() {
     });
   };
 
+  const handleAutoPasteEnabledChange = (checked: boolean) => {
+    updatePreferencesMutation.mutate({
+      autoPasteEnabled: checked,
+    });
+  };
+
   const handleOpenDataFolder = () => {
     if (dataPathQuery.data) {
       openFolderMutation.mutate({ path: dataPathQuery.data });
@@ -175,6 +181,7 @@ export default function PreferencesSettingsPage() {
 
   const launchAtLogin = preferencesQuery.data?.launchAtLogin ?? true;
   const soundEnabled = preferencesQuery.data?.soundEnabled ?? true;
+  const autoPasteEnabled = preferencesQuery.data?.autoPasteEnabled ?? true;
 
   // Permission status
   const microphoneGranted = permissionsQuery.data?.microphone ?? false;
@@ -323,6 +330,25 @@ export default function PreferencesSettingsPage() {
               <Switch
                 checked={soundEnabled}
                 onCheckedChange={handleSoundEnabledChange}
+                disabled={updatePreferencesMutation.isPending}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Auto Paste Section */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base font-medium text-foreground">
+                  自動ペースト
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  テキスト入力欄にカーソルがある場合、文字起こし結果を自動的にペーストします。オフの場合は常にポップアップで結果を表示します
+                </p>
+              </div>
+              <Switch
+                checked={autoPasteEnabled}
+                onCheckedChange={handleAutoPasteEnabledChange}
                 disabled={updatePreferencesMutation.isPending}
               />
             </div>

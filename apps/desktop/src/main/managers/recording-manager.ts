@@ -633,7 +633,83 @@ export class RecordingManager extends EventEmitter {
     });
 
     if (result) {
-      await this.pasteTranscription(result);
+      const settingsService = this.serviceManager.getService("settingsService");
+      const preferences = await settingsService.getPreferences();
+
+      let shouldPaste = false;
+
+      if (preferences.autoPasteEnabled) {
+        // Get fresh accessibility context to check if cursor is in an editable field
+        try {
+          const nativeBridge = this.serviceManager.getService("nativeBridge");
+          const freshContext = await nativeBridge.call(
+            "getAccessibilityContext",
+            { editableOnly: false },
+          );
+          const focusedElement = freshContext?.context?.focusedElement;
+
+          const metrics = freshContext?.context?.metrics;
+
+          logger.audio.info("Accessibility context for paste decision", {
+            hasContext: !!freshContext?.context,
+            application: freshContext?.context?.application?.name,
+            focusedRole: focusedElement?.role,
+            focusedSubrole: focusedElement?.subrole,
+            isEditable: focusedElement?.isEditable,
+            isFocused: focusedElement?.isFocused,
+            textMarkerSucceeded: metrics?.textMarkerSucceeded,
+          });
+
+          // Check role directly - isEditable can be true for non-input elements
+          // due to AXValue attribute presence check in native helper
+          const editableRoles = new Set([
+            "AXTextField",
+            "AXTextArea",
+            "AXComboBox",
+          ]);
+          const editableSubroles = new Set([
+            "AXSecureTextField",
+            "AXSearchField",
+          ]);
+          const isNativeTextInput =
+            (focusedElement?.role &&
+              editableRoles.has(focusedElement.role)) ||
+            (focusedElement?.subrole &&
+              editableSubroles.has(focusedElement.subrole));
+
+          // For AXWebArea (Electron/browser apps), isEditable is unreliable
+          // (entire web view can report editable even for non-input content).
+          // Use textMarkerSucceeded as a reliable indicator that the user is
+          // actually in a text editing area within the web content.
+          const isWebEditable =
+            focusedElement?.role === "AXWebArea" &&
+            metrics?.textMarkerSucceeded === true;
+
+          shouldPaste = !!(isNativeTextInput || isWebEditable);
+
+          logger.audio.info("Paste decision", {
+            isNativeTextInput,
+            isWebEditable,
+            shouldPaste,
+          });
+        } catch (error) {
+          logger.audio.warn(
+            "Failed to get accessibility context for paste decision, falling back to panel",
+            { error: error instanceof Error ? error.message : String(error) },
+          );
+          shouldPaste = false;
+        }
+      }
+
+      if (shouldPaste) {
+        await this.tryPasteTranscription(result);
+      } else {
+        logger.audio.info("Showing paste-fallback panel", {
+          textLength: result.length,
+          autoPasteEnabled: preferences.autoPasteEnabled,
+        });
+        this.emit("paste-fallback", result);
+      }
     } else {
       // Check for empty transcript notification
       const sessionDurationMs =
@@ -761,10 +837,14 @@ export class RecordingManager extends EventEmitter {
     return filePath;
   }
 
-  private async pasteTranscription(transcription: string): Promise<void> {
+  /**
+   * Try to paste transcription to the active application.
+   * Returns true if paste succeeded, false if it failed (caller should show fallback panel).
+   */
+  private async tryPasteTranscription(transcription: string): Promise<boolean> {
     if (!transcription || typeof transcription !== "string") {
       logger.main.warn("Invalid transcription, not pasting");
-      return;
+      return false;
     }
 
     const PASTE_TIMEOUT = 5000; // 5 seconds timeout
@@ -792,52 +872,26 @@ export class RecordingManager extends EventEmitter {
           }, PASTE_TIMEOUT);
         });
 
-        await Promise.race([pastePromise, timeoutPromise]);
+        const pasteResult = await Promise.race([pastePromise, timeoutPromise]);
+        if (pasteResult?.success) {
+          return true;
+        }
+
+        logger.main.warn("pasteText returned failure", {
+          message: pasteResult?.message,
+        });
+        return false;
       }
+      return false;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      const isAccessibilityError =
-        errorMessage.includes("accessibility") ||
-        errorMessage.includes("permission") ||
-        errorMessage.includes("AXError") ||
-        errorMessage.includes("timed out");
 
       logger.main.warn("Failed to paste transcription", {
         error: errorMessage,
-        isAccessibilityError,
       });
 
-      // Copy to clipboard as fallback
-      try {
-        clipboard.writeText(transcription);
-        logger.main.info(
-          "Transcription copied to clipboard as fallback",
-          { textLength: transcription.length },
-        );
-      } catch (clipboardError) {
-        logger.main.error("Failed to copy to clipboard", { clipboardError });
-      }
-
-      // Emit notification for accessibility-related errors
-      if (isAccessibilityError) {
-        this.emit("widget-notification", {
-          type: "accessibility_error",
-          message:
-            "ペーストできませんでした。クリップボードにコピーしました。アクセシビリティ権限を確認してください。",
-        });
-        logger.main.info("Emitted widget notification", {
-          type: "accessibility_error",
-        });
-      } else {
-        this.emit("widget-notification", {
-          type: "paste_error",
-          message: "ペーストできませんでした。クリップボードにコピーしました。",
-        });
-        logger.main.info("Emitted widget notification", {
-          type: "paste_error",
-        });
-      }
+      return false;
     }
   }
 

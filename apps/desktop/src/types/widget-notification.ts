@@ -1,4 +1,7 @@
-export type WidgetNotificationType = "no_audio" | "empty_transcript";
+export type WidgetNotificationType =
+  | "no_audio"
+  | "empty_transcript"
+  | "paste_fallback";
 
 export interface WidgetNotificationConfig {
   title: string;
@@ -10,6 +13,7 @@ export interface WidgetNotification {
   type: WidgetNotificationType;
   title: string;
   timestamp: number;
+  transcription?: string;
 }
 
 // Template function to generate description with mic name (used on frontend)
@@ -23,6 +27,8 @@ export const getNotificationDescription = (
       return `「${micDisplay}」から音声が検出されませんでした`;
     case "empty_transcript":
       return `「${micDisplay}」から音声を認識できませんでした`;
+    case "paste_fallback":
+      return "クリップボードにコピーしました";
   }
 };
 
@@ -37,6 +43,10 @@ export const WIDGET_NOTIFICATION_CONFIG: Record<
   empty_transcript: {
     title: "音声を認識できません",
     description: "マイクに近づいて話してみてください",
+  },
+  paste_fallback: {
+    title: "クリップボードにコピーしました",
+    description: "テキスト入力欄が見つかりませんでした",
   },
 };
 

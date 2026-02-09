@@ -117,6 +117,28 @@ export const recordingRouter = createRouter({
     });
   }),
 
+  // Paste fallback subscription - dedicated channel for showing transcription panel
+  // eslint-disable-next-line deprecation/deprecation
+  pasteFallback: procedure.subscription(({ ctx }) => {
+    return observable<string>((emit) => {
+      const recordingManager =
+        ctx.serviceManager.getService("recordingManager");
+      if (!recordingManager) {
+        throw new Error("Recording manager not available");
+      }
+
+      const handler = (transcription: string) => {
+        emit.next(transcription);
+      };
+
+      recordingManager.on("paste-fallback", handler);
+
+      return () => {
+        recordingManager.off("paste-fallback", handler);
+      };
+    });
+  }),
+
   // Widget notification subscription
   widgetNotifications: procedure.subscription(({ ctx }) => {
     return observable<WidgetNotification>((emit) => {
@@ -126,13 +148,17 @@ export const recordingRouter = createRouter({
         throw new Error("Recording manager not available");
       }
 
-      const handleNotification = (data: { type: WidgetNotificationType }) => {
+      const handleNotification = (data: {
+        type: WidgetNotificationType;
+        transcription?: string;
+      }) => {
         const config = WIDGET_NOTIFICATION_CONFIG[data.type];
         emit.next({
           id: uuid(),
           type: data.type,
           title: config.title,
           timestamp: Date.now(),
+          ...(data.transcription && { transcription: data.transcription }),
         });
       };
 
