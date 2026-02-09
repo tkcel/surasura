@@ -144,6 +144,58 @@ export function Dictionary() {
         </tbody>
       </DocsTable>
 
+      <DocsH2>インポート・エクスポート</DocsH2>
+
+      <DocsP>
+        辞書データをCSVファイルとしてエクスポート（書き出し）したり、
+        CSVファイルからインポート（読み込み）できます。
+        チーム内で同じ辞書を共有したい場合に便利です。
+      </DocsP>
+
+      <DocsH3>チームで辞書を共有する</DocsH3>
+
+      <DocsOrderedList>
+        <DocsListItem>1人が辞書を登録し、「エクスポート」ボタンからCSVファイルとして保存</DocsListItem>
+        <DocsListItem>CSVファイルをチームメンバーに共有（Slack、メール、共有フォルダなど）</DocsListItem>
+        <DocsListItem>メンバーが「インポート」ボタンからCSVファイルを読み込み</DocsListItem>
+      </DocsOrderedList>
+
+      <DocsP>
+        インポート時、既に登録済みの単語は自動的にスキップされるため、
+        既存の辞書データが上書きされる心配はありません。
+      </DocsP>
+
+      <DocsH3>CSVファイルの形式</DocsH3>
+
+      <DocsP>
+        CSVファイルは以下の形式です。Excel等のスプレッドシートでも編集できます。
+      </DocsP>
+
+      <DocsTable>
+        <thead>
+          <tr>
+            <DocsTh>word</DocsTh>
+            <DocsTh>reading1</DocsTh>
+            <DocsTh>reading2</DocsTh>
+            <DocsTh>reading3</DocsTh>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <DocsTd>Surasura</DocsTd>
+            <DocsTd>スラスラ</DocsTd>
+            <DocsTd>すらすら</DocsTd>
+            <DocsTd></DocsTd>
+          </tr>
+          <tr>
+            <DocsTd>Kubernetes</DocsTd>
+            <DocsTd>クバネティス</DocsTd>
+            <DocsTd>クーベネティス</DocsTd>
+            <DocsTd></DocsTd>
+          </tr>
+        </tbody>
+      </DocsTable>
+
       <DocsH2>Tips</DocsH2>
 
       <DocsH3>効果的な登録のコツ</DocsH3>
