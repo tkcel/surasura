@@ -438,21 +438,28 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       return;
     }
 
+    // 標準プリセットの内容を初期値として使用（ゼロから作らせない）
+    const standardPreset = DEFAULT_PRESETS["標準"];
+    const defaultInstructions = standardPreset.instructions;
+    const defaultType = standardPreset.type;
+    const defaultModelId = standardPreset.modelId;
+    const defaultColor = standardPreset.color;
+
     preserveScrollPosition(() => {
       setIsEditMode(true);
       setIsCreatingNew(true);
       setEditingPresetId(null);
       setEditName("");
-      setEditType("formatting");
-      setEditModelId("gpt-4o-mini");
-      setEditInstructions("");
-      setEditColor("yellow");
+      setEditType(defaultType);
+      setEditModelId(defaultModelId);
+      setEditInstructions(defaultInstructions);
+      setEditColor(defaultColor);
       setInitialEditState({
         name: "",
-        type: "formatting",
-        modelId: "gpt-4o-mini",
-        instructions: "",
-        color: "yellow",
+        type: defaultType,
+        modelId: defaultModelId,
+        instructions: defaultInstructions,
+        color: defaultColor,
       });
     });
   }, [canCreatePreset]);

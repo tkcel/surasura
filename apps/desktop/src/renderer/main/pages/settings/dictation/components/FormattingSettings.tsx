@@ -131,9 +131,25 @@ export function FormattingSettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <Label className="text-base font-semibold text-foreground">
-            AIフォーマット
-          </Label>
+          <div className="flex items-center gap-1.5">
+            <Label className="text-base font-semibold text-foreground">
+              AIフォーマット
+            </Label>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center"
+                  onClick={() => {
+                    window.electronAPI?.openExternal("https://www.sura2.net/docs/tips");
+                  }}
+                >
+                  <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>使い方ガイド（Tips）を見る</TooltipContent>
+            </Tooltip>
+          </div>
           <p className="text-xs text-muted-foreground">
             音声認識後のテキストをAIで整形します
           </p>
