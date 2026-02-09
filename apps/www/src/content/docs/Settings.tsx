@@ -142,6 +142,36 @@ export function Settings() {
         <DocsListItem>「効果音」のトグルを切り替え</DocsListItem>
       </DocsOrderedList>
 
+      <DocsH2>自動ペースト</DocsH2>
+
+      <DocsP>
+        文字起こし結果をテキスト入力欄に自動的にペーストするかどうかを設定できます。
+      </DocsP>
+
+      <DocsH3>設定</DocsH3>
+
+      <DocsList>
+        <DocsListItem><Strong>オン</Strong>（デフォルト）: テキスト入力欄にカーソルがある場合、結果を自動でペーストします。カーソルがテキスト入力欄にない場合は、ウィジェット上部に結果パネルを表示します</DocsListItem>
+        <DocsListItem><Strong>オフ</Strong>: 自動ペーストを行わず、常に結果パネルを表示します。結果はパネルのコピーボタンからクリップボードにコピーできます</DocsListItem>
+      </DocsList>
+
+      <DocsH3>結果パネルについて</DocsH3>
+
+      <DocsList>
+        <DocsListItem>ウィジェット（フローティングボタン）の上部に表示されます</DocsListItem>
+        <DocsListItem>使用中のAIフォーマット名が「結果（プリセット名）」の形式でヘッダーに表示されます</DocsListItem>
+        <DocsListItem>コピーボタンで結果をクリップボードにコピーできます</DocsListItem>
+        <DocsListItem>10秒後に自動的に消えます（パネル上にマウスを置いている間はタイマーが一時停止します）</DocsListItem>
+        <DocsListItem>録音を開始すると自動的に閉じます</DocsListItem>
+      </DocsList>
+
+      <DocsH3>変更方法</DocsH3>
+
+      <DocsOrderedList>
+        <DocsListItem>設定画面を開く</DocsListItem>
+        <DocsListItem>「自動ペースト」のトグルを切り替え</DocsListItem>
+      </DocsOrderedList>
+
       <DocsH2>APIキー</DocsH2>
 
       <DocsP>

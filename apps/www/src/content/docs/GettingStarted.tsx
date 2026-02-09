@@ -121,11 +121,17 @@ export function GettingStarted() {
         <DocsListItem>整形が完了すると、カーソル位置にテキストが自動的にペーストされる</DocsListItem>
       </DocsOrderedList>
 
+      <DocsNote>
+        テキスト入力欄にカーソルがない場合は、自動ペーストの代わりにウィジェット上部に結果パネルが表示されます。
+        パネルからコピーボタンで結果をクリップボードにコピーできます。
+      </DocsNote>
+
       <DocsH3>ショートカットキーで操作する</DocsH3>
 
       <DocsP>
         <Kbd>Fn</Kbd>（macOS）または <Kbd>Ctrl + Win</Kbd>（Windows）を<Strong>押している間</Strong>音声入力されます。
-        キーを離すと音声入力が終了し、AIフォーマット処理後にテキストが自動でペーストされます。
+        キーを離すと音声入力が終了し、テキスト入力欄にカーソルがあればAIフォーマット処理後にテキストが自動でペーストされます。
+        カーソルがテキスト入力欄にない場合は、結果パネルが表示されます。
       </DocsP>
 
       <DocsP>
