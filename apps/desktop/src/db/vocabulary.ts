@@ -194,6 +194,62 @@ export async function deleteAllVocabulary() {
   return result;
 }
 
+// Get all vocabulary for export (word, reading1-3 only, sorted by word)
+export async function getAllVocabularyForExport() {
+  return await db
+    .select({
+      word: vocabulary.word,
+      reading1: vocabulary.reading1,
+      reading2: vocabulary.reading2,
+      reading3: vocabulary.reading3,
+    })
+    .from(vocabulary)
+    .orderBy(asc(vocabulary.word));
+}
+
+// Bulk create vocabulary words (for import)
+// Skips duplicates, returns { created, skipped, errors }
+export async function bulkCreateVocabularyWords(
+  words: { word: string; reading1?: string; reading2?: string; reading3?: string }[],
+  maxToCreate: number,
+) {
+  let created = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const entry of words) {
+    if (created >= maxToCreate) break;
+
+    try {
+      const existing = await db
+        .select({ id: vocabulary.id })
+        .from(vocabulary)
+        .where(eq(vocabulary.word, entry.word.toLowerCase()));
+
+      if (existing.length > 0) {
+        skipped++;
+        continue;
+      }
+
+      const now = new Date();
+      await db.insert(vocabulary).values({
+        word: entry.word,
+        reading1: entry.reading1 || null,
+        reading2: entry.reading2 || null,
+        reading3: entry.reading3 || null,
+        dateAdded: now,
+        createdAt: now,
+        updatedAt: now,
+      });
+      created++;
+    } catch (e) {
+      errors.push(`"${entry.word}": ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  return { created, skipped, errors };
+}
+
 // Search vocabulary words
 export async function searchVocabulary(searchTerm: string, limit = 20) {
   return await db

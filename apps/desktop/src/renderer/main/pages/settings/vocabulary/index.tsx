@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, HelpCircle, CheckSquare, Square } from "lucide-react";
+import { Plus, Edit, Trash2, HelpCircle, CheckSquare, Square, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -367,6 +367,38 @@ export default function VocabularySettingsPage() {
     },
   });
 
+  const exportVocabularyMutation = api.vocabulary.exportVocabulary.useMutation({
+    onSuccess: (result) => {
+      if (!result.cancelled) {
+        toast.success(`${result.exported}件の単語をエクスポートしました`);
+      }
+    },
+    onError: (error) => {
+      toast.error(`エクスポートに失敗しました: ${error.message}`);
+    },
+  });
+
+  const importVocabularyMutation = api.vocabulary.importVocabulary.useMutation({
+    onSuccess: (result) => {
+      if (result.cancelled) return;
+      utils.vocabulary.getVocabulary.invalidate();
+      utils.vocabulary.getVocabularyStats.invalidate();
+      const parts: string[] = [];
+      if (result.created > 0) parts.push(`${result.created}件をインポートしました`);
+      if (result.skipped > 0) parts.push(`${result.skipped}件は重複のためスキップ`);
+      if (result.overLimit > 0) parts.push(`${result.overLimit}件は上限超過のため未処理`);
+      if (result.errors > 0) parts.push(`${result.errors}件でエラー`);
+      if (parts.length === 0) {
+        toast.info("インポートするデータがありませんでした");
+      } else {
+        toast.success(parts.join("、"));
+      }
+    },
+    onError: (error) => {
+      toast.error(`インポートに失敗しました: ${error.message}`);
+    },
+  });
+
   const handleAddWord = async () => {
     try {
       await createVocabularyMutation.mutateAsync({
@@ -515,6 +547,22 @@ export default function VocabularySettingsPage() {
               {selectedIds.size}件を削除
             </Button>
           )}
+          <Button
+            variant="outline"
+            onClick={() => exportVocabularyMutation.mutate()}
+            disabled={exportVocabularyMutation.isPending || vocabularyItems.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            エクスポート
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => importVocabularyMutation.mutate()}
+            disabled={importVocabularyMutation.isPending}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            インポート
+          </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button
