@@ -327,3 +327,40 @@ jobs:
             artifacts/latest.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Homebrew Cask
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+
+          # Find DMG files
+          ARM64_DMG=$(find artifacts/macos-arm64 -name "*.dmg" | head -1)
+          X64_DMG=$(find artifacts/macos-x64 -name "*.dmg" | head -1)
+
+          if [ -z "$ARM64_DMG" ] || [ -z "$X64_DMG" ]; then
+            echo "Warning: DMG files not found, skipping Cask update"
+            exit 0
+          fi
+
+          ARM64_SHA256=$(sha256sum "$ARM64_DMG" | awk '{print $1}')
+          X64_SHA256=$(sha256sum "$X64_DMG" | awk '{print $1}')
+
+          echo "ARM64 SHA256: $ARM64_SHA256"
+          echo "X64 SHA256: $X64_SHA256"
+
+          # Checkout main branch (workflow runs on tag, so HEAD is detached)
+          git fetch origin main
+          git checkout main
+
+          # Update Casks/surasura.rb
+          sed -i "s/version \"[^\"]*\"/version \"${VERSION}\"/" Casks/surasura.rb
+          sed -i "s/sha256 arm:   \"[^\"]*\"/sha256 arm:   \"${ARM64_SHA256}\"/" Casks/surasura.rb
+          sed -i "s/intel: \"[^\"]*\"/intel: \"${X64_SHA256}\"/" Casks/surasura.rb
+
+          cat Casks/surasura.rb
+
+          # Commit and push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/surasura.rb
+          git diff --cached --quiet || git commit -m "chore: Homebrew Cask を v${VERSION} に更新"
+          git push origin main
