@@ -73,6 +73,15 @@ Whisperによる高精度な音声認識と、GPTによるインテリジェン�
 
 ## インストール
 
+### Homebrew (macOS)
+
+```sh
+brew tap tkcel/surasura https://github.com/tkcel/surasura
+brew install --cask surasura
+```
+
+### 手動インストール
+
 [公式サイト](https://www.sura2.net) または [Releases](https://github.com/tkcel/surasura/releases)ページから最新版をダウンロードしてください。
 
 ## コミュニティ
