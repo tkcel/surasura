@@ -1,13 +1,10 @@
 # surasura
 
-![surasura](assets/thumbnail.png)
+![surasura](assets/thumbnail.png)AI音声入力アプリ「**surasura**」
 
-AI音声入力アプリ「**surasura**」
+surasuraは、OpenAI APIを使った音声入力デスクトップアプリです。 Whisperによる高精度な音声認識と、GPTによるインテリジェントなテキスト整形機能を提供します。
 
-surasuraは、OpenAI APIを使った音声入力デスクトップアプリです。
-Whisperによる高精度な音声認識と、GPTによるインテリジェントなテキスト整形機能を提供します。
-
-サイトは[こちら](https://www.sura2.net)です。
+サービスサイトは[こちら](https://www.sura2.net)です。
 
 ## 主な機能
 
@@ -49,11 +46,11 @@ Whisperによる高精度な音声認識と、GPTによるインテリジェン�
 
 - フォーマット完了後、保存直前に正規表現で確実に置換
 
-| 処理段階       | 認識ヒント | 置換  |
-| -------------- | :--------: | :---: |
-| 音声認識       |     ✅      |   -   |
-| AIフォーマット |     ✅      |   -   |
-| 最終置換処理   |     -      |   ✅   |
+| 処理段階 | 認識ヒント | 置換 |
+| --- | --- | --- |
+| 音声認識 | ✅ | \- |
+| AIフォーマット | ✅ | \- |
+| 最終置換処理 | \- | ✅ |
 
 ### カスタマイズ
 
@@ -88,8 +85,7 @@ brew install --cask surasura
 
 ご意見・ご要望・バグ報告などは [Discord サーバー](https://discord.gg/jb3uYHew4K) までお気軽にどうぞ。
 
-> **Note**
-> 本プロジェクトは個人で開発・運営しているため、IssueやPull Requestへの対応、返信が遅れる場合があります。ご了承ください。
+> **Note**本プロジェクトは個人で開発・運営しているため、IssueやPull Requestへの対応、返信が遅れる場合があります。ご了承ください。
 
 ## ライセンス
 
@@ -105,7 +101,6 @@ surasura 非商用ライセンス
 
 ## 謝辞
 
-本プロジェクトは [Amical](https://github.com/amicalhq/amical)（MITライセンス）をベースに開発されています。
-素晴らしいプロジェクトを公開してくださった開発者の皆様に心より感謝いたします。
+本プロジェクトは [Amical](https://github.com/amicalhq/amical)（MITライセンス）をベースに開発されています。 素晴らしいプロジェクトを公開してくださった開発者の皆様に心より感謝いたします。
 
 オリジナルのライセンスについては [LICENSE_ORIGINAL_AMICAL](./LICENSE_ORIGINAL_AMICAL) を参照してください。
