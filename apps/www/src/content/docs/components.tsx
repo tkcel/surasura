@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState, useCallback } from "react";
-import { Link as LinkIcon, Check, ChevronRight } from "lucide-react";
+import { Link as LinkIcon, Check, ChevronRight, Copy } from "lucide-react";
 
 // childrenからテキストを抽出してslugを生成
 function getTextContent(children: ReactNode): string {
@@ -108,12 +108,38 @@ export function Code({ children }: { children: ReactNode }) {
 }
 
 // コードブロック
-export function CodeBlock({ children }: { children: string }) {
+export function CodeBlock({ children, label }: { children: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [children]);
+
   return (
-    <pre className="my-4 overflow-hidden rounded-xl">
-      <code className="block bg-gray-900 text-gray-100 p-4 rounded-xl text-sm font-mono overflow-x-auto">
-        {children}
-      </code>
+    <pre className="my-4 overflow-hidden rounded-xl bg-gray-900">
+      {label && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 border-b border-gray-700">
+          <span className="text-xs text-gray-400 font-medium">{label}</span>
+        </div>
+      )}
+      <div className="flex items-start gap-2 p-4">
+        <code className="block text-gray-100 text-sm font-mono overflow-x-auto flex-1 whitespace-pre-wrap">
+          {children}
+        </code>
+        <button
+          onClick={handleCopy}
+          className="flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
+          title="コマンドをコピー"
+        >
+          {copied ? (
+            <Check size={14} className="text-green-400" />
+          ) : (
+            <Copy size={14} className="text-gray-400" />
+          )}
+        </button>
+      </div>
     </pre>
   );
 }

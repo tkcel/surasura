@@ -10,6 +10,7 @@ import {
   DocsLink,
   ExternalLink,
   DocsRealImage,
+  CodeBlock,
   Steps,
   Step,
   Strong,
@@ -32,6 +33,18 @@ export function GettingStarted() {
       <DocsH2>インストール</DocsH2>
 
       <DocsH3>macOS</DocsH3>
+
+      <DocsP>
+        <Strong>Homebrew でインストール（推奨）</Strong>
+      </DocsP>
+
+      <DocsP>ターミナルで以下のコマンドを実行してください。</DocsP>
+
+      <CodeBlock label="Homebrew">{`brew tap tkcel/surasura https://github.com/tkcel/surasura\nbrew install --cask surasura`}</CodeBlock>
+
+      <DocsP>
+        <Strong>手動でインストール</Strong>
+      </DocsP>
 
       <DocsOrderedList>
         <DocsListItem>
