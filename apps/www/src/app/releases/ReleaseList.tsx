@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import type { ReleaseNote } from "../../lib/releases";
 
 function formatDate(dateStr: string): string {
@@ -56,9 +57,16 @@ function ReleaseCard({
               {release.summary}
             </p>
           )}
-          <div className="prose prose-sm prose-gray max-w-none mt-4 [&>h2]:text-base [&>h2]:font-semibold [&>h2]:mt-4 [&>h2]:mb-2 [&>ul]:mt-1 [&>ul]:mb-3 [&>ul>li]:text-sm">
+          <div className="prose prose-sm prose-gray max-w-none mt-4 [&>h2]:text-base [&>h2]:font-semibold [&>h2]:mt-4 [&>h2]:mb-2 [&>ul]:mt-1 [&>ul]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ul>li]:text-sm [&>ul>li]:leading-relaxed">
             <ReactMarkdown>{release.content}</ReactMarkdown>
           </div>
+          <Link
+            href={`/releases/${release.version}`}
+            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors mt-4"
+          >
+            <span>詳細ページを見る</span>
+            <ExternalLink size={14} />
+          </Link>
         </div>
       )}
     </div>
