@@ -351,6 +351,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Homebrew Cask
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.package_version.outputs.version }}"
 
@@ -373,6 +375,10 @@ jobs:
           git fetch origin main
           git checkout main
 
+          # Create a new branch for the Cask update
+          BRANCH="chore/homebrew-cask-v${VERSION}"
+          git checkout -b "$BRANCH"
+
           # Update Casks/surasura.rb
           sed -i "s/version \"[^\"]*\"/version \"${VERSION}\"/" Casks/surasura.rb
           sed -i "s/sha256 arm:   \"[^\"]*\"/sha256 arm:   \"${ARM64_SHA256}\"/" Casks/surasura.rb
@@ -380,9 +386,19 @@ jobs:
 
           cat Casks/surasura.rb
 
-          # Commit and push
+          # Commit and push to the new branch
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/surasura.rb
-          git diff --cached --quiet || git commit -m "chore: Homebrew Cask を v${VERSION} に更新"
-          git push origin main
+          git diff --cached --quiet && { echo "No changes to Cask file"; exit 0; }
+          git commit -m "chore: Homebrew Cask を v${VERSION} に更新"
+          git push origin "$BRANCH"
+
+          # Create a pull request
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: Homebrew Cask を v${VERSION} に更新" \
+            --body "リリース v${VERSION} に合わせて Homebrew Cask のバージョンと SHA256 ハッシュを更新します。
+
+          このPRはリリースワークフローにより自動生成されました。"
