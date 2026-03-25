@@ -28,7 +28,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 20;
+const CURRENT_SETTINGS_VERSION = 21;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -848,6 +848,35 @@ ${prohibitions}`;
       },
     };
   },
+
+  // v20 -> v21: Upgrade formatting/answering models to GPT-5 series
+  // - Formatting presets: gpt-4.1-mini → gpt-5-mini
+  // - Answering presets: gpt-4.1 → gpt-5
+  21: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (!preset.isDefault) return preset;
+
+      if (preset.modelId === "gpt-4.1-mini") {
+        return { ...preset, modelId: "gpt-5-mini" as const, updatedAt: now };
+      }
+      if (preset.modelId === "gpt-4.1") {
+        return { ...preset, modelId: "gpt-5" as const, updatedAt: now };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -1117,7 +1146,7 @@ export function generateDefaultPresets() {
       id: crypto.randomUUID(),
       name: "標準",
       type: "formatting" as const,
-      modelId: "gpt-4.1-mini" as const,
+      modelId: "gpt-5-mini" as const,
       instructions: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
 
 現在のアプリ: {{appName}}
@@ -1145,7 +1174,7 @@ ${prohibitions}`,
       id: crypto.randomUUID(),
       name: "カジュアル",
       type: "formatting" as const,
-      modelId: "gpt-4.1-mini" as const,
+      modelId: "gpt-5-mini" as const,
       instructions: `「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
 
 現在のアプリ: {{appName}}
@@ -1175,7 +1204,7 @@ ${prohibitions}`,
       id: crypto.randomUUID(),
       name: "即時回答",
       type: "answering" as const,
-      modelId: "gpt-4.1" as const,
+      modelId: "gpt-5" as const,
       instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】

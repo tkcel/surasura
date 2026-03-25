@@ -371,7 +371,7 @@ export class TranscriptionService {
         activePreset?.modelId ||
         formatterConfig.modelId ||
         (await this.settingsService.getDefaultLanguageModel()) ||
-        "gpt-4.1-mini";
+        "gpt-5-mini";
 
       // Use OpenAI formatter
       const openaiConfig = await this.settingsService.getOpenAIConfig();

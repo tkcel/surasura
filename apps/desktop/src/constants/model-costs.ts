@@ -62,7 +62,38 @@ export const SPEECH_MODEL_COSTS: SpeechModelCost[] = [
  * Sorted by cost (cheapest first)
  */
 export const LANGUAGE_MODEL_COSTS: LanguageModelCost[] = [
-  // GPT-4.1 series (newest, April 2025)
+  // GPT-5 series
+  {
+    id: "gpt-5-nano",
+    name: "GPT-5 Nano",
+    provider: "openai",
+    inputCostPer1M: 0.05,
+    outputCostPer1M: 0.4,
+    speed: "fast",
+    quality: "standard",
+    description: "最安・軽量タスク向け",
+  },
+  {
+    id: "gpt-5-mini",
+    name: "GPT-5 Mini",
+    provider: "openai",
+    inputCostPer1M: 0.25,
+    outputCostPer1M: 2.0,
+    speed: "fast",
+    quality: "high",
+    description: "高速・高品質（おすすめ）",
+  },
+  {
+    id: "gpt-5",
+    name: "GPT-5",
+    provider: "openai",
+    inputCostPer1M: 1.25,
+    outputCostPer1M: 10.0,
+    speed: "medium",
+    quality: "high",
+    description: "最高品質",
+  },
+  // GPT-4.1 series
   {
     id: "gpt-4.1-nano",
     name: "GPT-4.1 Nano",
@@ -71,7 +102,7 @@ export const LANGUAGE_MODEL_COSTS: LanguageModelCost[] = [
     outputCostPer1M: 0.4,
     speed: "fast",
     quality: "standard",
-    description: "最安・軽量タスク向け",
+    description: "低コスト・軽量タスク向け",
   },
   {
     id: "gpt-4o-mini",
@@ -91,7 +122,7 @@ export const LANGUAGE_MODEL_COSTS: LanguageModelCost[] = [
     outputCostPer1M: 1.6,
     speed: "fast",
     quality: "standard",
-    description: "高速・高精度（おすすめ）",
+    description: "高速・高精度",
   },
   {
     id: "gpt-4.1",

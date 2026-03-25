@@ -12,7 +12,7 @@ import * as fs from "fs/promises";
 const FormatPresetSchema = z.object({
   id: z.string(),
   name: z.string().max(20),
-  modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]),
+  modelId: z.enum(["gpt-5-nano", "gpt-5-mini", "gpt-5", "gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]),
   instructions: z.string().max(1000),
   isDefault: z.boolean(),
   color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]),
@@ -33,7 +33,7 @@ const FormatterConfigSchema = z.object({
 const CreateFormatPresetSchema = z.object({
   name: z.string().min(1).max(20),
   type: z.enum(["formatting", "answering"]).default("formatting"),
-  modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]),
+  modelId: z.enum(["gpt-5-nano", "gpt-5-mini", "gpt-5", "gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]),
   instructions: z.string().max(1000),
   isDefault: z.boolean().default(false),
   color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]).default("yellow"),
@@ -44,7 +44,7 @@ const UpdateFormatPresetSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(20).optional(),
   type: z.enum(["formatting", "answering"]).optional(),
-  modelId: z.enum(["gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]).optional(),
+  modelId: z.enum(["gpt-5-nano", "gpt-5-mini", "gpt-5", "gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1", "gpt-4o"]).optional(),
   instructions: z.string().max(1000).optional(),
   isDefault: z.boolean().optional(),
   color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]).optional(),

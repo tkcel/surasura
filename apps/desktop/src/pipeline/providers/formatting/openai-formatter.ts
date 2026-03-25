@@ -10,7 +10,7 @@ export class OpenAIFormatter implements FormattingProvider {
   private provider: ReturnType<typeof createOpenAI>;
   private model: string;
 
-  constructor(apiKey: string, model: string = "gpt-4.1-mini") {
+  constructor(apiKey: string, model: string = "gpt-5-mini") {
     this.provider = createOpenAI({
       apiKey: apiKey,
     });

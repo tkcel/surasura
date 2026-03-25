@@ -20,6 +20,9 @@ export type PresetTypeId = (typeof PRESET_TYPES)[number]["id"];
 
 // サポートされるモデルID
 export type FormatterModelId =
+  | "gpt-5-nano"
+  | "gpt-5-mini"
+  | "gpt-5"
   | "gpt-4.1-nano"
   | "gpt-4o-mini"
   | "gpt-4.1-mini"

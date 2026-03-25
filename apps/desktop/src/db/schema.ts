@@ -67,7 +67,7 @@ export interface AppSettingsData {
       id: string;
       name: string; // 最大20文字
       type?: "formatting" | "answering"; // プリセットのタイプ（整形 or 回答）
-      modelId: "gpt-4.1-nano" | "gpt-4o-mini" | "gpt-4.1-mini" | "gpt-4.1" | "gpt-4o";
+      modelId: "gpt-5-nano" | "gpt-5-mini" | "gpt-5" | "gpt-4.1-nano" | "gpt-4o-mini" | "gpt-4.1-mini" | "gpt-4.1" | "gpt-4o";
       instructions: string; // 最大1000文字
       isDefault: boolean;
       color: "yellow" | "blue" | "green" | "red" | "purple" | "orange"; // プリセットの色
