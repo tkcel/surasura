@@ -284,6 +284,26 @@ jobs:
             echo "Warning: Could not find Windows EXE file"
           fi
 
+      - name: Read release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.package_version.outputs.version }}"
+          NOTES_FILE="apps/www/src/content/releases/v${VERSION}.md"
+
+          if [ -f "$NOTES_FILE" ]; then
+            # Extract content after frontmatter (after second ---)
+            BODY=$(sed '1,/^---$/d' "$NOTES_FILE" | sed '1,/^---$/d')
+            echo "Found release notes for v${VERSION}"
+            # Use a delimiter for multiline output
+            echo "body<<RELEASE_NOTES_EOF" >> $GITHUB_OUTPUT
+            echo "$BODY" >> $GITHUB_OUTPUT
+            echo "RELEASE_NOTES_EOF" >> $GITHUB_OUTPUT
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "No release notes found for v${VERSION}, using default body"
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -293,6 +313,8 @@ jobs:
           name: Surasura Desktop v${{ steps.package_version.outputs.version }}
           body: |
             ## Surasura Desktop v${{ steps.package_version.outputs.version }}
+
+            ${{ steps.release_notes.outputs.found == 'true' && steps.release_notes.outputs.body || '' }}
 
             ### ダウンロード
 

@@ -13,6 +13,7 @@
   "dependencies": {
     "@surasura/legal": "workspace:*",
     "framer-motion": "^12.23.12",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^0.510.0",
     "next": "^15.3.3",
     "react": "^19.1.1",

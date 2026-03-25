@@ -46,9 +46,10 @@ yarn-error.log*
 .DS_Store
 *.pem
 CLAUDE.md
+.claude/plans
+.claude/settings.*
 .serena
 .local
-.claude
 .specify
 surasura.db
 AGENTS.md

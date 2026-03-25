@@ -28,6 +28,10 @@ export function Footer() {
               使い方ガイド
             </Link>
             <span className="text-gray-300">|</span>
+            <Link href="/releases" className="hover:text-gray-700 transition-colors">
+              リリースノート
+            </Link>
+            <span className="text-gray-300">|</span>
             <Link href="/privacy" className="hover:text-gray-700 transition-colors">
               プライバシーポリシー
             </Link>

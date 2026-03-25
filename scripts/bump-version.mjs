@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
@@ -34,7 +34,23 @@ try {
   // Tag doesn't exist, continue
 }
 
+// Check release notes exist
+const releaseNotePath = join(rootDir, `apps/www/src/content/releases/v${version}.md`);
+if (!existsSync(releaseNotePath)) {
+  console.error(`\n❌ Error: Release notes not found: v${version}.md`);
+  console.error(`   Run "/generate-release-notes ${version}" skill first.`);
+  process.exit(1);
+}
+
+// Read release notes summary from frontmatter
+const releaseNoteContent = readFileSync(releaseNotePath, "utf-8");
+const summaryMatch = releaseNoteContent.match(/^summary:\s*"(.+)"$/m);
+const releaseSummary = summaryMatch ? summaryMatch[1] : "";
+
 console.log(`\n📦 Bumping version to ${version}...\n`);
+if (releaseSummary) {
+  console.log(`  📝 Release summary: ${releaseSummary}\n`);
+}
 
 let hasChanges = false;
 
@@ -84,7 +100,9 @@ try {
   execSync("git add -A", { cwd: rootDir, stdio: "inherit" });
 
   // Commit
-  const commitMessage = `chore: release v${version}`;
+  const commitMessage = releaseSummary
+    ? `chore: release v${version} — ${releaseSummary}`
+    : `chore: release v${version}`;
   execSync(`git commit -m "${commitMessage}"`, { cwd: rootDir, stdio: "inherit" });
   console.log(`\n  ✓ Committed: ${commitMessage}`);
 
