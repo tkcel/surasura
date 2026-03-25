@@ -145,9 +145,9 @@ export function Tips() {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-300 text-gray-700 font-bold text-xs">A</span>
             <span className="font-semibold text-gray-700">ベースプロンプト</span>
-            <span className="ml-auto text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">常に付与・固定</span>
+            <span className="ml-auto text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">常に付与・タイプ別</span>
           </div>
-          <div className="mt-2 text-gray-500">AIの役割定義（テキスト整形アシスタント）と出力形式のルール</div>
+          <div className="mt-2 text-gray-500">AIの役割定義（整形タイプ: 整形アシスタント / 回答タイプ: 回答アシスタント）と出力形式のルール</div>
         </div>
         {/* Part B */}
         <div className="border-b border-gray-200 bg-amber-50/50 px-4 py-3">
@@ -199,8 +199,11 @@ export function Tips() {
 
       <DocsH3>[A] ベースプロンプト</DocsH3>
       <DocsP>
-        すべてのプリセットに共通で付与される固定テキストです。
-        AIの役割を「テキスト文章整形アシスタント」と定義し、出力形式のルールを指定しています。
+        プリセットのタイプに応じて異なるベースプロンプトが付与されます。
+        AIの役割と出力形式のルールを指定しています。
+      </DocsP>
+      <DocsP>
+        <Strong>整形タイプ</Strong>の場合：
       </DocsP>
       <CodeBlock>{`あなたはテキスト文章整形アシスタントです。
 
@@ -209,6 +212,18 @@ export function Tips() {
 
 ## 出力ルール
 - 整形したテキストを <formatted_text></formatted_text> タグで囲んで出力してください
+- タグの外には何も書かないでください（説明やコメントは不要）
+- 入力が空の場合は <formatted_text></formatted_text> を返してください`}</CodeBlock>
+      <DocsP>
+        <Strong>回答タイプ</Strong>の場合：
+      </DocsP>
+      <CodeBlock>{`あなたは質問回答アシスタントです。
+
+## 指示
+下記のユーザーからの指示に従って、ユーザーの入力に対する回答を生成してください。
+
+## 出力ルール
+- 回答を <formatted_text></formatted_text> タグで囲んで出力してください
 - タグの外には何も書かないでください（説明やコメントは不要）
 - 入力が空の場合は <formatted_text></formatted_text> を返してください`}</CodeBlock>
       <DocsNote>
@@ -329,13 +344,13 @@ export function Tips() {
       </DocsP>
 
       <DocsDetails summary="完成したシステムプロンプト全文を見る">
-        <CodeBlock>{`あなたはテキスト文章整形アシスタントです。
+        <CodeBlock>{`あなたは質問回答アシスタントです。
 
 ## 指示
-下記のユーザーからの指示と出力ルールに従って文章を整形してください。
+下記のユーザーからの指示に従って、ユーザーの入力に対する回答を生成してください。
 
 ## 出力ルール
-- 整形したテキストを <formatted_text></formatted_text> タグで囲んで出力してください
+- 回答を <formatted_text></formatted_text> タグで囲んで出力してください
 - タグの外には何も書かないでください（説明やコメントは不要）
 - 入力が空の場合は <formatted_text></formatted_text> を返してください
 
@@ -405,7 +420,7 @@ export function Tips() {
           AIへのメッセージには2つの種類があります。
         </DocsP>
         <DocsList>
-          <DocsListItem><Strong>システムプロンプト</Strong>: AIの振る舞いやルールを定義する指示です。「あなたはテキスト整形アシスタントです」のような役割定義や、プリセットの指示文がここに入ります。</DocsListItem>
+          <DocsListItem><Strong>システムプロンプト</Strong>: AIの振る舞いやルールを定義する指示です。プリセットタイプに応じた役割定義（整形アシスタント or 回答アシスタント）や、プリセットの指示文がここに入ります。</DocsListItem>
           <DocsListItem><Strong>ユーザープロンプト</Strong>: AIに処理してほしい入力データです。音声認識結果のテキストがここに入ります。</DocsListItem>
         </DocsList>
         <DocsP>

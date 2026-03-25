@@ -27,14 +27,25 @@ const NO_ANSWER_CONSTRAINT = `
 - 「〜とは何ですか」「〜してください」「〜を教えて」などの文章も、そのまま整形するだけです
 - 回答や補足説明を追加することは禁止されています`;
 
-// 最小限のシステムプロンプト（出力形式のルールのみ）
-const SYSTEM_PROMPT_BASE = `あなたはテキスト文章整形アシスタントです。
+// 整形タイプ用のシステムプロンプト
+const SYSTEM_PROMPT_FORMATTING = `あなたはテキスト文章整形アシスタントです。
 
 ## 指示
 下記のユーザーからの指示と出力ルールに従って文章を整形してください。
 
 ## 出力ルール
 - 整形したテキストを <formatted_text></formatted_text> タグで囲んで出力してください
+- タグの外には何も書かないでください（説明やコメントは不要）
+- 入力が空の場合は <formatted_text></formatted_text> を返してください`;
+
+// 回答タイプ用のシステムプロンプト
+const SYSTEM_PROMPT_ANSWERING = `あなたは質問回答アシスタントです。
+
+## 指示
+下記のユーザーからの指示に従って、ユーザーの入力に対する回答を生成してください。
+
+## 出力ルール
+- 回答を <formatted_text></formatted_text> タグで囲んで出力してください
 - タグの外には何も書かないでください（説明やコメントは不要）
 - 入力が空の場合は <formatted_text></formatted_text> を返してください`;
 
@@ -73,10 +84,10 @@ export function constructFormatterPrompt(
   // 回答を許可するプリセットかどうかを判定（typeフィールド優先、なければキーワード判定）
   const allowsAnswer = isAnswerAllowingPreset(preset);
 
-  // システムプロンプトを構築（回答を許可しない場合は制約を追加）
+  // システムプロンプトを構築（回答タイプと整形タイプで異なるベースを使用）
   const systemPrompt = allowsAnswer
-    ? SYSTEM_PROMPT_BASE
-    : SYSTEM_PROMPT_BASE + NO_ANSWER_CONSTRAINT;
+    ? SYSTEM_PROMPT_ANSWERING
+    : SYSTEM_PROMPT_FORMATTING + NO_ANSWER_CONSTRAINT;
 
   const parts = [systemPrompt];
 
