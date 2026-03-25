@@ -66,7 +66,7 @@ export function CTA() {
                 GitHub
               </a>
               <a
-                href="https://discord.gg/ffpmWv5d"
+                href="https://discord.gg/jb3uYHew4K"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"

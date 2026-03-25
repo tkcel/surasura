@@ -7,7 +7,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-6">
           {/* Discord誘導 */}
           <a
-            href="https://discord.gg/ffpmWv5d"
+            href="https://discord.gg/jb3uYHew4K"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-nm-surface text-[#5865F2] font-medium rounded-xl shadow-nm-raised-md hover:shadow-nm-raised-sm active:shadow-nm-inset-sm transition-all duration-200"

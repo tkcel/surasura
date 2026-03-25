@@ -77,7 +77,7 @@ export function FAQ() {
         <Strong>A.</Strong> 以下の方法で料金を抑えられます。
       </DocsP>
       <DocsList>
-        <DocsListItem>整形モデルは<Code>gpt-4o-mini</Code>（デフォルト）を使用</DocsListItem>
+        <DocsListItem>整形モデルは<Code>gpt-4.1-nano</Code>（最安）を使用</DocsListItem>
         <DocsListItem>短く簡潔に話す</DocsListItem>
         <DocsListItem>不要な音声入力はキャンセル（<Kbd>Escape</Kbd>キー）</DocsListItem>
       </DocsList>
@@ -186,7 +186,7 @@ export function FAQ() {
       </DocsP>
       <DocsList>
         <DocsListItem>
-          <ExternalLink href="https://discord.gg/ffpmWv5d">Discord</ExternalLink> - 質問・要望・バグ報告
+          <ExternalLink href="https://discord.gg/jb3uYHew4K">Discord</ExternalLink> - 質問・要望・バグ報告
         </DocsListItem>
         <DocsListItem>
           <ExternalLink href="https://x.com/tkcel9">X (Twitter)</ExternalLink> - 作者への連絡

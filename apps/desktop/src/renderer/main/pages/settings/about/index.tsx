@@ -23,7 +23,7 @@ import {
   type LegalDocument,
 } from "@surasura/legal";
 
-const DISCORD_URL = "https://discord.gg/ffpmWv5d";
+const DISCORD_URL = "https://discord.gg/jb3uYHew4K";
 const DOCS_URL = "https://www.sura2.net/docs";
 
 type UpdateStatus =

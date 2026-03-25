@@ -28,7 +28,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 19;
+const CURRENT_SETTINGS_VERSION = 20;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -807,6 +807,47 @@ ${prohibitions}`;
       },
     };
   },
+
+  // v19 -> v20: Upgrade default models for better accuracy
+  // - Formatting presets: gpt-4o-mini → gpt-4.1-mini, gpt-4o → gpt-4.1
+  // - Default speech model: whisper-1 → gpt-4o-transcribe
+  20: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // Upgrade formatting model defaults
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (!preset.isDefault) return preset;
+
+      if (preset.modelId === "gpt-4o-mini") {
+        return { ...preset, modelId: "gpt-4.1-mini" as const, updatedAt: now };
+      }
+      if (preset.modelId === "gpt-4o") {
+        return { ...preset, modelId: "gpt-4.1" as const, updatedAt: now };
+      }
+      return preset;
+    });
+
+    // Upgrade default speech model
+    const currentSpeechModel = oldData.modelProvidersConfig?.defaultSpeechModel;
+    const newSpeechModel =
+      !currentSpeechModel || currentSpeechModel === "whisper-1"
+        ? "gpt-4o-transcribe"
+        : currentSpeechModel;
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+      modelProvidersConfig: {
+        ...oldData.modelProvidersConfig,
+        defaultSpeechModel: newSpeechModel,
+      },
+    };
+  },
 };
 
 /**
@@ -1076,7 +1117,7 @@ export function generateDefaultPresets() {
       id: crypto.randomUUID(),
       name: "標準",
       type: "formatting" as const,
-      modelId: "gpt-4o-mini" as const,
+      modelId: "gpt-4.1-mini" as const,
       instructions: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
 
 現在のアプリ: {{appName}}
@@ -1104,7 +1145,7 @@ ${prohibitions}`,
       id: crypto.randomUUID(),
       name: "カジュアル",
       type: "formatting" as const,
-      modelId: "gpt-4o-mini" as const,
+      modelId: "gpt-4.1-mini" as const,
       instructions: `「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
 
 現在のアプリ: {{appName}}
@@ -1134,7 +1175,7 @@ ${prohibitions}`,
       id: crypto.randomUUID(),
       name: "即時回答",
       type: "answering" as const,
-      modelId: "gpt-4o" as const,
+      modelId: "gpt-4.1" as const,
       instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】

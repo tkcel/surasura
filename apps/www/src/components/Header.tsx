@@ -62,7 +62,7 @@ export function Header() {
                 <span className="hidden sm:inline">GitHub</span>
               </a>
               <a
-                href="https://discord.gg/ffpmWv5d"
+                href="https://discord.gg/jb3uYHew4K"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 text-sm font-medium text-[#5865F2] hover:text-[#4752C4] transition-colors"

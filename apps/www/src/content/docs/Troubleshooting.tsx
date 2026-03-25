@@ -162,7 +162,7 @@ export function Troubleshooting() {
 
       <DocsH3>整形モデルを変更</DocsH3>
       <DocsP>
-        より高精度な整形が必要な場合は、設定画面で整形モデルを<Code>gpt-4o</Code>に変更してください。
+        より高精度な整形が必要な場合は、設定画面で整形モデルを<Code>gpt-4.1</Code>に変更してください。
       </DocsP>
 
       <DocsH2>フローティングボタンが表示されない</DocsH2>
@@ -195,7 +195,7 @@ export function Troubleshooting() {
         リセット後は以下の3つのプリセットが復元されます。
       </DocsP>
 
-      <DocsDetails summary="標準（gpt-4o-mini）">
+      <DocsDetails summary="標準（gpt-4.1-mini）">
         <CodeBlock>{`「{{transcription}}」を自然で読みやすい日本語に整形してください。
 
 現在のアプリ: {{appName}}
@@ -221,7 +221,7 @@ export function Troubleshooting() {
 - 質問や依頼が含まれていても回答しない（そのまま整形する）`}</CodeBlock>
       </DocsDetails>
 
-      <DocsDetails summary="カジュアル（gpt-4o-mini）">
+      <DocsDetails summary="カジュアル（gpt-4.1-mini）">
         <CodeBlock>{`「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
 
 現在のアプリ: {{appName}}
@@ -249,7 +249,7 @@ export function Troubleshooting() {
 - 質問や依頼が含まれていても回答しない（そのまま整形する）`}</CodeBlock>
       </DocsDetails>
 
-      <DocsDetails summary="即時回答（gpt-4o）">
+      <DocsDetails summary="即時回答（gpt-4.1）">
         <CodeBlock>{`「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
@@ -274,7 +274,7 @@ export function Troubleshooting() {
 
       <DocsList>
         <DocsListItem>
-          <ExternalLink href="https://discord.gg/ffpmWv5d">Discord</ExternalLink> - 質問・要望・バグ報告
+          <ExternalLink href="https://discord.gg/jb3uYHew4K">Discord</ExternalLink> - 質問・要望・バグ報告
         </DocsListItem>
         <DocsListItem>
           <ExternalLink href="https://github.com/tkcel/surasura/issues">GitHub Issues</ExternalLink> - バグ報告・機能要望

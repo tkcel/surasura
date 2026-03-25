@@ -86,7 +86,7 @@ brew install --cask surasura
 
 ## コミュニティ
 
-ご意見・ご要望・バグ報告などは [Discord サーバー](https://discord.gg/ffpmWv5d) までお気軽にどうぞ。
+ご意見・ご要望・バグ報告などは [Discord サーバー](https://discord.gg/jb3uYHew4K) までお気軽にどうぞ。
 
 > **Note**
 > 本プロジェクトは個人で開発・運営しているため、IssueやPull Requestへの対応、返信が遅れる場合があります。ご了承ください。

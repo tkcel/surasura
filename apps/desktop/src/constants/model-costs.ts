@@ -91,7 +91,7 @@ export const LANGUAGE_MODEL_COSTS: LanguageModelCost[] = [
     outputCostPer1M: 1.6,
     speed: "fast",
     quality: "standard",
-    description: "高速・長文対応",
+    description: "高速・高精度（おすすめ）",
   },
   {
     id: "gpt-4.1",

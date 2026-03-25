@@ -34,7 +34,7 @@ export function TranscriptionModelSettings() {
   });
 
   // Local state for immediate UI updates
-  const [selectedModel, setSelectedModel] = useState<string>("whisper-1");
+  const [selectedModel, setSelectedModel] = useState<string>("gpt-4o-transcribe");
 
   // Build available models based on configured APIs
   const availableModels = useMemo(() => {
@@ -67,7 +67,7 @@ export function TranscriptionModelSettings() {
       await setSpeechModel.mutateAsync({ modelId });
     } catch (error) {
       // Revert local state on error
-      setSelectedModel(defaultSpeechModel || "whisper-1");
+      setSelectedModel(defaultSpeechModel || "gpt-4o-transcribe");
       console.error("Failed to update speech model setting:", error);
     }
   };

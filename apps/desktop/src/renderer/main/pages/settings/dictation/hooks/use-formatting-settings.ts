@@ -76,7 +76,7 @@ const DEFAULT_PRESETS: Record<string, { name: string; type: PresetTypeId; modelI
   "標準": {
     name: "標準",
     type: "formatting",
-    modelId: "gpt-4o-mini",
+    modelId: "gpt-4.1-mini",
     instructions: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
 
 現在のアプリ: {{appName}}
@@ -100,7 +100,7 @@ ${PROHIBITIONS}`,
   "カジュアル": {
     name: "カジュアル",
     type: "formatting",
-    modelId: "gpt-4o-mini",
+    modelId: "gpt-4.1-mini",
     instructions: `「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
 
 現在のアプリ: {{appName}}
@@ -126,7 +126,7 @@ ${PROHIBITIONS}`,
   "即時回答": {
     name: "即時回答",
     type: "answering",
-    modelId: "gpt-4o",
+    modelId: "gpt-4.1",
     instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
@@ -225,7 +225,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editType, setEditType] = useState<PresetTypeId>("formatting");
-  const [editModelId, setEditModelId] = useState("gpt-4o-mini");
+  const [editModelId, setEditModelId] = useState("gpt-4.1-mini");
   const [editInstructions, setEditInstructions] = useState("");
   const [editColor, setEditColor] = useState<PresetColorId>("yellow");
   const [pendingTypeChange, setPendingTypeChange] = useState<PresetTypeId | null>(null);
@@ -233,7 +233,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   const [initialEditState, setInitialEditState] = useState({
     name: "",
     type: "formatting" as PresetTypeId,
-    modelId: "gpt-4o-mini",
+    modelId: "gpt-4.1-mini",
     instructions: "",
     color: "yellow" as PresetColorId,
   });
