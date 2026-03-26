@@ -42,12 +42,12 @@ export function DocsSidebar({ onNavigate }: DocsSidebarProps) {
             <Icon size={18} className={isActive ? "text-primary-600" : "text-gray-400"} />
             <span className="font-medium">
               {section.title}
-              {"subtitle" in section && section.subtitle && (
+              {"subtitle" in section && section.subtitle ? (
                 <>
                   <br />
-                  <span className="text-xs text-gray-400">{section.subtitle}</span>
+                  <span className="text-xs text-gray-400">{section.subtitle as React.ReactNode}</span>
                 </>
-              )}
+              ) : null}
             </span>
           </Link>
         );
