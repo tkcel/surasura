@@ -1,10 +1,10 @@
 cask "surasura" do
-  version "0.5.0"
+  version "0.5.1"
 
-  sha256 arm:   "678a27c7784a0ee3423761e509b41e084926900a4712dd739401e28579ba4a5c",
-         intel: "3b8ae783290744645c73330993c09aa5f33d4f4a79f290418a5f30b9c7d4c20e"
+  sha256 arm:   "ea4bcad9daac317127e2f6149c3b6ff339e11977bf90d9cd1a86f665f452f845",
+         intel: "a175ff110c5845e3fd73eebb8a261cf1de9af249f79e86f2718158fb7b011e4c"
 
-  arch arm: "arm64", intel: "3b8ae783290744645c73330993c09aa5f33d4f4a79f290418a5f30b9c7d4c20e"
+  arch arm: "arm64", intel: "a175ff110c5845e3fd73eebb8a261cf1de9af249f79e86f2718158fb7b011e4c"
 
   url "https://github.com/tkcel/surasura/releases/download/v#{version}/surasura-#{version}-#{arch}.dmg"
   name "surasura"
