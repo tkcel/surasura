@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Copy, Play, Pause, Download, Volume2 } from "lucide-react";
+import { Copy, Play, Pause, FolderOpen, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,11 +14,18 @@ import { toast } from "sonner";
 type TranscriptionItem = {
   id: number;
   text: string;
+  rawText: string | null;
   timestamp: Date;
   language: string | null;
   audioFile: string | null;
   speechModel: string | null;
   formattingModel: string | null;
+  meta: {
+    presetName?: string;
+    presetType?: string;
+    formattingStatus?: "success" | "failed" | "skipped";
+    [key: string]: unknown;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -80,14 +87,9 @@ export function TranscriptionDetailDialog({
     },
   });
 
-  const downloadAudioMutation = api.transcriptions.downloadAudioFile.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success("音声ファイルを保存しました");
-      }
-    },
+  const showInFolderMutation = api.transcriptions.showAudioFileInFolder.useMutation({
     onError: (error) => {
-      toast.error(`ダウンロードに失敗しました: ${error.message}`);
+      toast.error(`ファイルを開けませんでした: ${error.message}`);
     },
   });
 
@@ -114,10 +116,9 @@ export function TranscriptionDetailDialog({
     }
   }, [open]);
 
-  const handleCopyText = async () => {
-    if (!transcription) return;
+  const handleCopyText = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(transcription.text);
+      await navigator.clipboard.writeText(text);
       toast.success("クリップボードにコピーしました");
     } catch {
       toast.error("コピーに失敗しました");
@@ -135,9 +136,9 @@ export function TranscriptionDetailDialog({
     setIsPlaying(!isPlaying);
   };
 
-  const handleDownload = () => {
+  const handleShowInFolder = () => {
     if (!transcription) return;
-    downloadAudioMutation.mutate({ transcriptionId: transcription.id });
+    showInFolderMutation.mutate({ transcriptionId: transcription.id });
   };
 
   const handleAudioEnded = () => {
@@ -156,14 +157,14 @@ export function TranscriptionDetailDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-6">
-          {/* Text Content */}
+          {/* Raw Transcription */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">テキスト</h3>
+              <h3 className="text-sm font-medium">文字起こしテキスト</h3>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleCopyText}
+                onClick={() => handleCopyText(transcription.rawText || transcription.text)}
                 className="h-8"
               >
                 <Copy className="w-4 h-4 mr-2" />
@@ -172,10 +173,49 @@ export function TranscriptionDetailDialog({
             </div>
             <div className="bg-muted/50 rounded-md p-4">
               <p className="text-sm whitespace-pre-wrap break-words">
-                {transcription.text}
+                {transcription.rawText || transcription.text}
               </p>
             </div>
           </div>
+
+          {/* Formatted Text - only shown when formatting succeeded and changed the text */}
+          {transcription.meta?.formattingStatus === "success" && transcription.rawText && transcription.rawText !== transcription.text && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">フォーマット後</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCopyText(transcription.text)}
+                  className="h-8"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  コピー
+                </Button>
+              </div>
+              <div className="bg-muted/50 rounded-md p-4">
+                <p className="text-sm whitespace-pre-wrap break-words">
+                  {transcription.text}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Formatting failed - show empty formatted section */}
+          {transcription.meta?.formattingStatus === "failed" && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">
+                  フォーマット後
+                  <span className="ml-2 text-xs text-destructive font-normal">失敗</span>
+                </h3>
+              </div>
+              <div className="bg-muted/50 rounded-md p-4">
+                <p className="text-sm text-muted-foreground italic">
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Audio Player */}
           {hasAudio && (
@@ -218,11 +258,11 @@ export function TranscriptionDetailDialog({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleDownload}
-                      disabled={downloadAudioMutation.isPending}
+                      onClick={handleShowInFolder}
+                      disabled={showInFolderMutation.isPending}
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      {downloadAudioMutation.isPending ? "保存中..." : "保存"}
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      フォルダを開く
                     </Button>
                   </div>
                 ) : (
@@ -251,6 +291,12 @@ export function TranscriptionDetailDialog({
                   <div>
                     <p className="text-muted-foreground">音声認識モデル</p>
                     <p>{transcription.speechModel}</p>
+                  </div>
+                )}
+                {transcription.meta?.presetName && (
+                  <div>
+                    <p className="text-muted-foreground">AIフォーマット</p>
+                    <p>{transcription.meta.presetName}</p>
                   </div>
                 )}
                 {transcription.formattingModel && (

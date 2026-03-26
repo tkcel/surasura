@@ -28,7 +28,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 21;
+const CURRENT_SETTINGS_VERSION = 22;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -877,6 +877,28 @@ ${prohibitions}`;
       },
     };
   },
+
+  // v21 -> v22: Change "即時回答" preset model from gpt-5 to gpt-5-mini for faster response
+  22: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.isDefault && preset.name === "即時回答" && preset.modelId === "gpt-5") {
+        return { ...preset, modelId: "gpt-5-mini" as const, updatedAt: now };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        enabled: oldData.formatterConfig?.enabled ?? false,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -1204,7 +1226,7 @@ ${prohibitions}`,
       id: crypto.randomUUID(),
       name: "即時回答",
       type: "answering" as const,
-      modelId: "gpt-5" as const,
+      modelId: "gpt-5-mini" as const,
       instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】

@@ -29,11 +29,18 @@ const ITEMS_PER_PAGE = 20;
 type TranscriptionItem = {
   id: number;
   text: string;
+  rawText: string | null;
   timestamp: Date;
   language: string | null;
   audioFile: string | null;
   speechModel: string | null;
   formattingModel: string | null;
+  meta: {
+    presetName?: string;
+    presetType?: string;
+    formattingStatus?: "success" | "failed" | "skipped";
+    [key: string]: unknown;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 };

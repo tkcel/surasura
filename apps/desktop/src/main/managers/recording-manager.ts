@@ -56,6 +56,9 @@ export class RecordingManager extends EventEmitter {
   // In-memory audio buffer - written to file only in handleFinalChunk
   private audioChunks: Float32Array[] = [];
 
+  // Flag to prevent stuck timer from firing during finalizeSession
+  private finalChunkProcessing: boolean = false;
+
   // Termination code - set during stopping to determine final action
   // null = normal (transcribe + paste), "dismissed" = save file only, others = discard
   private terminationCode: TerminationCode | null = null;
@@ -432,13 +435,16 @@ export class RecordingManager extends EventEmitter {
         }
       }
 
-      // Safety timeout for stuck state
-      this.stuckStateTimer = setTimeout(() => {
-        if (this.recordingState === "stopping") {
-          logger.audio.warn("No final chunk received, forcing idle");
-          this.forceIdle();
-        }
-      }, STUCK_STATE_TIMEOUT);
+      // Safety timeout for stuck state - only set if final chunk hasn't already started processing
+      // (final chunk can arrive before endRecording finishes due to async worklet signaling)
+      if (!this.finalChunkProcessing) {
+        this.stuckStateTimer = setTimeout(() => {
+          if (this.recordingState === "stopping" && !this.finalChunkProcessing) {
+            logger.audio.warn("No final chunk received, forcing idle");
+            this.forceIdle();
+          }
+        }, STUCK_STATE_TIMEOUT);
+      }
     });
   }
 
@@ -534,6 +540,9 @@ export class RecordingManager extends EventEmitter {
    * Handle the final chunk - unified termination logic
    */
   private async handleFinalChunk(): Promise<void> {
+    // Mark that final chunk processing has started - prevents stuck timer from firing
+    this.finalChunkProcessing = true;
+
     // Clear stuck state timer
     if (this.stuckStateTimer) {
       clearTimeout(this.stuckStateTimer);
@@ -812,6 +821,7 @@ export class RecordingManager extends EventEmitter {
     this.currentSessionId = null;
     this.initPromise = null;
     this.firstChunkReceived = false;
+    this.finalChunkProcessing = false;
     this.recordingInitiatedAt = null;
     this.recordingMode = "idle";
     this.audioChunks = [];

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dialog } from "electron";
+import { dialog, shell } from "electron";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createRouter, procedure } from "../trpc";
@@ -235,6 +235,23 @@ export const transcriptionsRouter = createRouter({
         });
         throw new Error("Failed to download audio file");
       }
+    }),
+
+  // Show audio file in Finder/Explorer
+  showAudioFileInFolder: procedure
+    .input(z.object({ transcriptionId: z.number() }))
+    .mutation(async ({ input }) => {
+      const transcription = await getTranscriptionById(input.transcriptionId);
+
+      if (!transcription?.audioFile) {
+        throw new Error("No audio file associated with this transcription");
+      }
+
+      if (!fs.existsSync(transcription.audioFile)) {
+        throw new Error("Audio file not found");
+      }
+
+      shell.showItemInFolder(transcription.audioFile);
     }),
 
   // Delete multiple transcriptions by IDs

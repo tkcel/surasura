@@ -346,6 +346,9 @@ export class TranscriptionService {
       preSelectionText,
     );
 
+    // Save raw transcription before formatting
+    const rawTranscription = completeTranscription;
+
     let formattingDuration: number | undefined;
 
     logger.transcription.info("Finalizing streaming session", {
@@ -357,6 +360,8 @@ export class TranscriptionService {
     // Fetch formatter config on-demand
     let formattingUsed = false;
     let formattingModel: string | undefined;
+    let formattingStatus: "success" | "failed" | "skipped" = "skipped";
+    let activePreset: Awaited<ReturnType<typeof this.settingsService.getActivePreset>> | undefined;
 
     if (!formatterConfig || !formatterConfig.enabled) {
       logger.transcription.debug("Formatting skipped: disabled in config");
@@ -364,7 +369,7 @@ export class TranscriptionService {
       logger.transcription.debug("Formatting skipped: empty transcription");
     } else {
       // Get active preset to determine model
-      const activePreset = await this.settingsService.getActivePreset();
+      activePreset = await this.settingsService.getActivePreset();
 
       // Determine model ID from preset or config
       const modelId =
@@ -393,11 +398,14 @@ export class TranscriptionService {
           completeTranscription,
           session,
         );
+        formattingModel = modelId;
         if (result) {
           completeTranscription = result.text;
           formattingDuration = result.duration;
           formattingUsed = true;
-          formattingModel = modelId;
+          formattingStatus = "success";
+        } else {
+          formattingStatus = "failed";
         }
       }
     }
@@ -429,9 +437,10 @@ export class TranscriptionService {
 
     await createTranscription({
       text: completeTranscription,
+      rawText: formattingStatus !== "skipped" ? rawTranscription : undefined,
       language: session.context.sharedData.userPreferences?.language || "en",
       duration: session.context.sharedData.audioMetadata?.duration,
-      speechModel: "whisper-local",
+      speechModel: (await this.settingsService.getDefaultSpeechModel()) || "gpt-4o-transcribe",
       formattingModel,
       audioFile: audioFilePath,
       meta: {
@@ -440,6 +449,9 @@ export class TranscriptionService {
         vocabularySize: session.context.sharedData.vocabulary?.length || 0,
         formattingStyle:
           session.context.sharedData.userPreferences?.formattingStyle,
+        presetName: activePreset?.name,
+        presetType: activePreset?.type,
+        formattingStatus,
       },
     });
 

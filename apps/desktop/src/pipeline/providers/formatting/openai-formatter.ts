@@ -86,8 +86,7 @@ export class OpenAIFormatter implements FormattingProvider {
       return formattedText;
     } catch (error) {
       logger.pipeline.error("Formatting failed:", error);
-      // Return original text if formatting fails - simple fallback
-      return params.text;
+      throw error;
     }
   }
 }

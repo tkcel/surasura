@@ -13,6 +13,7 @@ import {
   DocsRealImage,
   DocsLink,
   Strong,
+  Code,
   Kbd,
   NextPage,
   RelatedPages,
@@ -201,6 +202,36 @@ export function Settings() {
           <Strong>音声認識モデル</Strong>: 設定画面の「音声入力」セクションで設定
         </DocsListItem>
       </DocsList>
+
+      <DocsH3>モデルのアクセス許可について</DocsH3>
+
+      <DocsP>
+        OpenAI APIキーのプロジェクト設定で、surasuraが使用するモデルへのアクセスが許可されている必要があります。
+        モデルが許可されていない場合、音声認識やAIフォーマットが正しく動作しません。
+      </DocsP>
+
+      <DocsP>
+        <Strong>音声認識モデル</Strong>:
+      </DocsP>
+      <DocsList>
+        <DocsListItem><Code>gpt-4o-transcribe</Code>（デフォルト）</DocsListItem>
+        <DocsListItem><Code>gpt-4o-mini-transcribe</Code></DocsListItem>
+        <DocsListItem><Code>whisper-1</Code></DocsListItem>
+      </DocsList>
+
+      <DocsP>
+        <Strong>AIフォーマットモデル</Strong>:
+      </DocsP>
+      <DocsList>
+        <DocsListItem><Code>gpt-5-nano</Code> / <Code>gpt-5-mini</Code>（デフォルト） / <Code>gpt-5</Code></DocsListItem>
+        <DocsListItem><Code>gpt-4.1-nano</Code> / <Code>gpt-4.1-mini</Code> / <Code>gpt-4.1</Code></DocsListItem>
+        <DocsListItem><Code>gpt-4o-mini</Code> / <Code>gpt-4o</Code></DocsListItem>
+      </DocsList>
+
+      <DocsNote>
+        OpenAI APIの管理画面（<Strong>Settings &gt; Project &gt; Model access</Strong>）で、上記モデルが許可されていることを確認してください。
+        許可されていないモデルを選択した場合、フォーマットが適用されず音声認識結果がそのまま出力されます。
+      </DocsNote>
 
       <DocsH2>スタートアップ</DocsH2>
 

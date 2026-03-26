@@ -1,0 +1,1 @@
+ALTER TABLE `transcriptions` ADD `raw_text` text;

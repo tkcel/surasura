@@ -5,6 +5,7 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 export const transcriptions = sqliteTable("transcriptions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   text: text("text").notNull(),
+  rawText: text("raw_text"), // Pre-formatting transcription text
   timestamp: integer("timestamp", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
