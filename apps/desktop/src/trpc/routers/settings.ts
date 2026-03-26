@@ -16,13 +16,15 @@ const FormatPresetSchema = z.object({
   instructions: z.string().max(1000),
   isDefault: z.boolean(),
   color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]),
+  speechModelId: z.enum(["gpt-4o-mini-transcribe", "whisper-1", "gpt-4o-transcribe"]).optional(),
+  formattingEnabled: z.boolean().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-// FormatterConfig schema
-const FormatterConfigSchema = z.object({
-  enabled: z.boolean(),
+// PresetConfig schema
+const PresetConfigSchema = z.object({
+  enabled: z.boolean().optional(),
   modelId: z.string().optional(),
   fallbackModelId: z.string().optional(),
   presets: z.array(FormatPresetSchema).max(5).optional(),
@@ -37,6 +39,8 @@ const CreateFormatPresetSchema = z.object({
   instructions: z.string().max(1000),
   isDefault: z.boolean().default(false),
   color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]).default("yellow"),
+  speechModelId: z.enum(["gpt-4o-mini-transcribe", "whisper-1", "gpt-4o-transcribe"]).optional(),
+  formattingEnabled: z.boolean().default(true),
 });
 
 // Update preset input schema
@@ -48,6 +52,8 @@ const UpdateFormatPresetSchema = z.object({
   instructions: z.string().max(1000).optional(),
   isDefault: z.boolean().optional(),
   color: z.enum(["yellow", "blue", "green", "red", "purple", "orange"]).optional(),
+  speechModelId: z.enum(["gpt-4o-mini-transcribe", "whisper-1", "gpt-4o-transcribe"]).optional(),
+  formattingEnabled: z.boolean().optional(),
 });
 
 // Shortcut schema (array of key names)
@@ -153,29 +159,29 @@ export const settingsRouter = createRouter({
       }
     }),
 
-  // Get formatter configuration
-  getFormatterConfig: procedure.query(async ({ ctx }) => {
+  // Get preset configuration
+  getPresetConfig: procedure.query(async ({ ctx }) => {
     try {
       const settingsService = ctx.serviceManager.getService("settingsService");
       if (!settingsService) {
         throw new Error("SettingsService not available");
       }
-      return await settingsService.getFormatterConfig();
+      return await settingsService.getPresetConfig();
     } catch (error) {
       const logger = ctx.serviceManager.getLogger();
       if (logger) {
-        logger.transcription.error("Error getting formatter config:", error);
+        logger.transcription.error("Error getting preset config:", error);
       }
       return null;
     }
   }),
 
-  // Set formatter configuration
-  setFormatterConfig: procedure
-    .input(FormatterConfigSchema)
+  // Set preset configuration
+  setPresetConfig: procedure
+    .input(PresetConfigSchema)
     .mutation(async ({ input, ctx }) => {
       const settingsService = ctx.serviceManager.getService("settingsService");
-      await settingsService.setFormatterConfig(input);
+      await settingsService.setPresetConfig(input);
       return true;
     }),
 

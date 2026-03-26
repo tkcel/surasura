@@ -25,12 +25,12 @@ export function usePresetNotifications() {
 
         // Invalidate queries to refresh UI
         utils.settings.getActivePreset.invalidate();
-        utils.settings.getFormatterConfig.invalidate();
+        utils.settings.getPresetConfig.invalidate();
       } else if (notification.type === "presets-updated") {
         // Presets list was updated (create, update, delete)
         // Silently refresh without toast
         utils.settings.getActivePreset.invalidate();
-        utils.settings.getFormatterConfig.invalidate();
+        utils.settings.getPresetConfig.invalidate();
       }
     };
 

@@ -28,7 +28,7 @@ import {
 import { isMacOS } from "../utils/platform";
 
 // Current settings schema version - increment when making breaking changes
-const CURRENT_SETTINGS_VERSION = 22;
+const CURRENT_SETTINGS_VERSION = 24;
 
 // Type for v1 settings (before shortcuts array migration)
 interface AppSettingsDataV1 extends Omit<AppSettingsData, "shortcuts"> {
@@ -899,6 +899,97 @@ ${prohibitions}`;
       },
     };
   },
+
+  // v22 -> v23: Add formattingEnabled to presets, switch default models to gpt-5-nano,
+  // remove global enabled flag (formatting is now per-preset)
+  23: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      // Replace "カジュアル" default preset with "文字起こし" (formatting disabled)
+      if (preset.isDefault && preset.name === "カジュアル") {
+        return {
+          ...preset,
+          name: "文字起こし",
+          formattingEnabled: false,
+          instructions: "",
+          color: "blue" as const,
+          modelId: "gpt-5-nano" as const,
+          updatedAt: now,
+        };
+      }
+
+      // Add formattingEnabled: true to all other existing presets
+      const updated = {
+        ...preset,
+        formattingEnabled: true as const,
+        updatedAt: now,
+      };
+
+      // Switch default formatting presets from gpt-5-mini to gpt-5-nano
+      if (preset.isDefault && preset.type !== "answering" && preset.modelId === "gpt-5-mini") {
+        return { ...updated, modelId: "gpt-5-nano" as const };
+      }
+
+      return updated;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        presets: updatedPresets,
+      },
+    };
+  },
+
+  // v23 -> v24: Replace "カジュアル" with "文字起こし", set speechModelId on all presets,
+  // remove global defaultSpeechModel (now per-preset)
+  24: (data: unknown): AppSettingsData => {
+    const oldData = data as AppSettingsData;
+    const now = new Date().toISOString();
+
+    // Inherit global speech model as default for all presets
+    const globalSpeechModel = oldData.modelProvidersConfig?.defaultSpeechModel || "gpt-4o-transcribe";
+    const speechModelId = (
+      globalSpeechModel === "gpt-4o-transcribe" ||
+      globalSpeechModel === "gpt-4o-mini-transcribe" ||
+      globalSpeechModel === "whisper-1"
+    ) ? globalSpeechModel : "gpt-4o-transcribe";
+
+    const updatedPresets = oldData.formatterConfig?.presets?.map((preset) => {
+      if (preset.isDefault && preset.name === "カジュアル") {
+        return {
+          ...preset,
+          name: "文字起こし",
+          formattingEnabled: false,
+          instructions: "",
+          color: "blue" as const,
+          modelId: "gpt-5-nano" as const,
+          speechModelId: speechModelId as "gpt-4o-transcribe" | "gpt-4o-mini-transcribe" | "whisper-1",
+          updatedAt: now,
+        };
+      }
+      // Set speechModelId on all presets that don't have one
+      if (!preset.speechModelId) {
+        return {
+          ...preset,
+          speechModelId: speechModelId as "gpt-4o-transcribe" | "gpt-4o-mini-transcribe" | "whisper-1",
+          updatedAt: now,
+        };
+      }
+      return preset;
+    });
+
+    return {
+      ...oldData,
+      formatterConfig: {
+        ...oldData.formatterConfig,
+        presets: updatedPresets,
+      },
+    };
+  },
 };
 
 /**
@@ -951,9 +1042,7 @@ export const getDefaultShortcuts = () => {
 
 // Default settings
 const defaultSettings: AppSettingsData = {
-  formatterConfig: {
-    enabled: true,
-  },
+  formatterConfig: {},
   ui: {
     theme: "system",
   },
@@ -1029,7 +1118,6 @@ export async function initializeSettings(): Promise<void> {
       ...data,
       formatterConfig: {
         ...data.formatterConfig,
-        enabled: data.formatterConfig?.enabled ?? false,
         presets: generateDefaultPresets(),
         activePresetId: data.formatterConfig?.activePresetId ?? null,
       },
@@ -1143,7 +1231,6 @@ export async function resetAppSettings(): Promise<AppSettingsData> {
     ...defaultSettings,
     formatterConfig: {
       ...defaultSettings.formatterConfig,
-      enabled: true,
       presets: presets,
       activePresetId: presets[0]?.id ?? null, // 最初のプリセット（標準）を選択
     },
@@ -1168,7 +1255,9 @@ export function generateDefaultPresets() {
       id: crypto.randomUUID(),
       name: "標準",
       type: "formatting" as const,
-      modelId: "gpt-5-mini" as const,
+      modelId: "gpt-5-nano" as const,
+      speechModelId: "gpt-4o-transcribe" as const,
+      formattingEnabled: true,
       instructions: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
 
 現在のアプリ: {{appName}}
@@ -1194,31 +1283,14 @@ ${prohibitions}`,
     },
     {
       id: crypto.randomUUID(),
-      name: "カジュアル",
+      name: "文字起こし",
       type: "formatting" as const,
-      modelId: "gpt-5-mini" as const,
-      instructions: `「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
-
-現在のアプリ: {{appName}}
-
-【ルール】
-- 句読点（、。）を適切に配置する
-- フィラー（えー、あのー、まあ、なんか等）を除去する
-- 言い直しや繰り返しを整理する
-- 誤認識と思われる部分は文脈から推測して修正する
-- 同音異義語は、話題や前後の文脈から意味を正確に判断し、適切な漢字表記を選択する
-- 辞書に登録された専門用語・固有名詞は正確に使用する
-- 元の意味やニュアンスを維持する
-- 敬語（です・ます）は使わず、「だよ」「だね」「かな」「じゃん」などの砕けた語尾を使う
-- 「〜かも」「〜っぽい」「めっちゃ」「すごい」などの口語表現を適宜使う
-- 堅苦しくない、親しみやすい表現にする
-- 話題や内容が変わる箇所で改行を入れて段落を分ける
-- 複数の項目や要点を列挙している場合は箇条書き（・）にする
-- 1つの段落が3文以上続く場合は、意味のまとまりで改行を入れる
-- フォーカス中のアプリで適切に表示できる出力形式にする（例: Markdown対応アプリならMarkdown記法を使用、プレーンテキストのみのアプリなら装飾なしのテキストにする）
-${prohibitions}`,
+      modelId: "gpt-5-nano" as const,
+      speechModelId: "gpt-4o-transcribe" as const,
+      formattingEnabled: false,
+      instructions: "",
       isDefault: true,
-      color: "red" as const,
+      color: "blue" as const,
       createdAt: now,
       updatedAt: now,
     },
@@ -1227,6 +1299,8 @@ ${prohibitions}`,
       name: "即時回答",
       type: "answering" as const,
       modelId: "gpt-5-mini" as const,
+      speechModelId: "gpt-4o-transcribe" as const,
+      formattingEnabled: true,
       instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
@@ -1261,7 +1335,6 @@ async function createDefaultSettings(): Promise<AppSettingsData> {
     ...defaultSettings,
     formatterConfig: {
       ...defaultSettings.formatterConfig,
-      enabled: true,
       presets: presets,
       activePresetId: presets[0]?.id ?? null, // 最初のプリセット（標準）を選択
     },

@@ -44,7 +44,7 @@ function formatShortcut(keys: string[] | undefined): string | null {
 }
 
 export function PresetSelector() {
-  const { data: formatterConfig } = api.settings.getFormatterConfig.useQuery();
+  const { data: presetConfig } = api.settings.getPresetConfig.useQuery();
   const { data: activePreset } = api.settings.getActivePreset.useQuery();
   const { data: shortcuts } = api.settings.getShortcuts.useQuery();
   const utils = api.useUtils();
@@ -55,12 +55,7 @@ export function PresetSelector() {
     },
   });
 
-  // Don't render if AI formatting is disabled
-  if (!formatterConfig?.enabled) {
-    return null;
-  }
-
-  const presets = formatterConfig.presets ?? [];
+  const presets = presetConfig?.presets ?? [];
 
   // Don't render if no presets
   if (presets.length === 0) {

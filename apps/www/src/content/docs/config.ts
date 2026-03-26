@@ -17,8 +17,7 @@ export const docsSections = [
   },
   {
     id: "presets",
-    title: "AIフォーマット",
-    subtitle: "（プリセット）",
+    title: "プリセット",
     icon: Sparkles,
   },
   {

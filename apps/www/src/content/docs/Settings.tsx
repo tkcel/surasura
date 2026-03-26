@@ -160,7 +160,7 @@ export function Settings() {
 
       <DocsList>
         <DocsListItem>ウィジェット（フローティングボタン）の上部に表示されます</DocsListItem>
-        <DocsListItem>使用中のAIフォーマット名が「結果（プリセット名）」の形式でヘッダーに表示されます</DocsListItem>
+        <DocsListItem>使用中のプリセット名が「結果（プリセット名）」の形式でヘッダーに表示されます</DocsListItem>
         <DocsListItem>コピーボタンで結果をクリップボードにコピーできます</DocsListItem>
         <DocsListItem>10秒後に自動的に消えます（パネル上にマウスを置いている間はタイマーが一時停止します）</DocsListItem>
         <DocsListItem>録音を開始すると自動的に閉じます</DocsListItem>
@@ -196,7 +196,7 @@ export function Settings() {
 
       <DocsList>
         <DocsListItem>
-          <Strong>整形モデル</Strong>: <DocsLink to="/docs/presets">AIフォーマット</DocsLink>ごとに設定
+          <Strong>整形モデル</Strong>: <DocsLink to="/docs/presets">プリセット</DocsLink>ごとに設定
         </DocsListItem>
         <DocsListItem>
           <Strong>音声認識モデル</Strong>: 設定画面の「音声入力」セクションで設定
@@ -207,7 +207,7 @@ export function Settings() {
 
       <DocsP>
         OpenAI APIキーのプロジェクト設定で、surasuraが使用するモデルへのアクセスが許可されている必要があります。
-        モデルが許可されていない場合、音声認識やAIフォーマットが正しく動作しません。
+        モデルが許可されていない場合、音声認識やプリセットが正しく動作しません。
       </DocsP>
 
       <DocsP>
@@ -220,10 +220,10 @@ export function Settings() {
       </DocsList>
 
       <DocsP>
-        <Strong>AIフォーマットモデル</Strong>:
+        <Strong>プリセットモデル</Strong>:
       </DocsP>
       <DocsList>
-        <DocsListItem><Code>gpt-5-nano</Code> / <Code>gpt-5-mini</Code>（デフォルト） / <Code>gpt-5</Code></DocsListItem>
+        <DocsListItem><Code>gpt-5-nano</Code>（デフォルト） / <Code>gpt-5-mini</Code> / <Code>gpt-5</Code></DocsListItem>
         <DocsListItem><Code>gpt-4.1-nano</Code> / <Code>gpt-4.1-mini</Code> / <Code>gpt-4.1</Code></DocsListItem>
         <DocsListItem><Code>gpt-4o-mini</Code> / <Code>gpt-4o</Code></DocsListItem>
       </DocsList>
@@ -261,14 +261,14 @@ export function Settings() {
       </DocsOrderedList>
 
       <DocsNote>
-        <Strong>注意</Strong>: APIキー、AIフォーマット、辞書の登録内容も削除されます。
+        <Strong>注意</Strong>: APIキー、プリセット、辞書の登録内容も削除されます。
       </DocsNote>
 
       <NextPage current="settings" />
 
       <RelatedPages
         links={[
-          { to: "/docs/presets", title: "AIフォーマット（プリセット）", description: "整形スタイルの設定" },
+          { to: "/docs/presets", title: "プリセット", description: "整形スタイルの設定" },
         ]}
       />
     </>

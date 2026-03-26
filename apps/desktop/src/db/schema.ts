@@ -61,7 +61,7 @@ export const appSettings = sqliteTable("app_settings", {
 // Define the shape of our settings JSON
 export interface AppSettingsData {
   formatterConfig?: {
-    enabled: boolean;
+    enabled?: boolean; // レガシー: プリセット単位のformattingEnabledに移行済み
     modelId?: string; // Formatting model selection (language model ID or "surasura-cloud")
     fallbackModelId?: string; // Last non-cloud formatting model for auto-restore
     presets?: Array<{
@@ -72,6 +72,8 @@ export interface AppSettingsData {
       instructions: string; // 最大1000文字
       isDefault: boolean;
       color: "yellow" | "blue" | "green" | "red" | "purple" | "orange"; // プリセットの色
+      speechModelId?: "gpt-4o-mini-transcribe" | "whisper-1" | "gpt-4o-transcribe"; // 文字起こしモデル
+      formattingEnabled?: boolean; // フォーマット実行するか（未設定時はtrue）
       createdAt: string; // ISO 8601
       updatedAt: string;
     }>; // 最大5つ

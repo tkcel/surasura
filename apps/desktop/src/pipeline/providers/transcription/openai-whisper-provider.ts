@@ -122,9 +122,8 @@ export class OpenAIWhisperProvider implements TranscriptionProvider {
         type: "audio/wav",
       });
 
-      // Get speech model from settings, default to gpt-4o-transcribe
-      const speechModel =
-        (await this.settingsService.getDefaultSpeechModel()) || "gpt-4o-transcribe";
+      // Get speech model from preset override, or use default
+      const speechModel = context.speechModelOverride || "gpt-4o-transcribe";
 
       // Call OpenAI Whisper API
       const response = await openai.audio.transcriptions.create({

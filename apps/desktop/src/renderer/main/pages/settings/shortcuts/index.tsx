@@ -78,7 +78,7 @@ export function ShortcutsSettingsPage() {
   // tRPC queries and mutations
   const shortcutsQuery = api.settings.getShortcuts.useQuery();
   const defaultShortcutsQuery = api.settings.getDefaultShortcuts.useQuery();
-  const formatterConfigQuery = api.settings.getFormatterConfig.useQuery();
+  const presetConfigQuery = api.settings.getPresetConfig.useQuery();
   const utils = api.useUtils();
 
   const setShortcutMutation = api.settings.setShortcut.useMutation({
@@ -340,7 +340,7 @@ export function ShortcutsSettingsPage() {
           <CardHeader>
             <CardTitle className="text-base">プリセット切り替え</CardTitle>
             <p className="text-xs text-muted-foreground">
-              AIフォーマットのプリセットを素早く切り替えるショートカットです
+              プリセットを素早く切り替えるショートカットです
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               ※ ウィジェットのウィンドウバーを右クリックしてもプリセットを変更できます
@@ -370,7 +370,7 @@ export function ShortcutsSettingsPage() {
                 defaults?.selectPreset5,
               ];
               const presetName =
-                formatterConfigQuery.data?.presets?.[num - 1]?.name;
+                presetConfigQuery.data?.presets?.[num - 1]?.name;
               return (
                 <div key={num}>
                   <div className="flex flex-col md:flex-row md:justify-between gap-4">

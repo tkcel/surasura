@@ -7,7 +7,7 @@ import type { SettingsService } from "@services/settings-service";
 function createMinimalService(): TranscriptionService {
   const mockVADService = { on: vi.fn(), emit: vi.fn() } as unknown as VADService;
   const mockSettingsService = {
-    getFormatterConfig: vi.fn(),
+    getPresetConfig: vi.fn(),
     getPipelineSettings: vi.fn(),
     getDictationSettings: vi.fn(),
     getOpenAIConfig: vi.fn(),

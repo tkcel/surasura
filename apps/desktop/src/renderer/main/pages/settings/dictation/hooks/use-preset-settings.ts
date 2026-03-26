@@ -1,11 +1,12 @@
 import { useMemo, useCallback, useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import type { FormatterConfig, FormatPreset, PresetColorId, PresetTypeId } from "@/types/formatter";
+import type { FormatPreset, PresetColorId, PresetTypeId, SpeechModelId } from "@/types/formatter";
 
 import type { ComboboxOption } from "@/components/ui/combobox";
 import {
   LANGUAGE_MODEL_COSTS,
+  SPEECH_MODEL_COSTS,
   formatLanguageCost,
 } from "../../../../../../constants/model-costs";
 
@@ -76,7 +77,7 @@ const DEFAULT_PRESETS: Record<string, { name: string; type: PresetTypeId; modelI
   "標準": {
     name: "標準",
     type: "formatting",
-    modelId: "gpt-5-mini",
+    modelId: "gpt-5-nano",
     instructions: `「{{transcription}}」を自然で読みやすい日本語に整形してください。
 
 現在のアプリ: {{appName}}
@@ -97,36 +98,17 @@ const DEFAULT_PRESETS: Record<string, { name: string; type: PresetTypeId; modelI
 ${PROHIBITIONS}`,
     color: "green",
   },
-  "カジュアル": {
-    name: "カジュアル",
+  "文字起こし": {
+    name: "文字起こし",
     type: "formatting",
-    modelId: "gpt-5-mini",
-    instructions: `「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
-
-現在のアプリ: {{appName}}
-
-【ルール】
-- 句読点（、。）を適切に配置する
-- フィラー（えー、あのー、まあ、なんか等）を除去する
-- 言い直しや繰り返しを整理する
-- 誤認識と思われる部分は文脈から推測して修正する
-- 同音異義語は、話題や前後の文脈から意味を正確に判断し、適切な漢字表記を選択する
-- 辞書に登録された専門用語・固有名詞は正確に使用する
-- 元の意味やニュアンスを維持する
-- 敬語（です・ます）は使わず、「だよ」「だね」「かな」「じゃん」などの砕けた語尾を使う
-- 「〜かも」「〜っぽい」「めっちゃ」「すごい」などの口語表現を適宜使う
-- 堅苦しくない、親しみやすい表現にする
-- 話題や内容が変わる箇所で改行を入れて段落を分ける
-- 複数の項目や要点を列挙している場合は箇条書き（・）にする
-- 1つの段落が3文以上続く場合は、意味のまとまりで改行を入れる
-- フォーカス中のアプリで適切に表示できる出力形式にする（例: Markdown対応アプリならMarkdown記法を使用、プレーンテキストのみのアプリなら装飾なしのテキストにする）
-${PROHIBITIONS}`,
-    color: "red",
+    modelId: "gpt-5-nano",
+    instructions: "",
+    color: "blue",
   },
   "即時回答": {
     name: "即時回答",
     type: "answering",
-    modelId: "gpt-5",
+    modelId: "gpt-5-mini",
     instructions: `「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
@@ -145,9 +127,8 @@ ${PROHIBITIONS}`,
   },
 };
 
-interface UseFormattingSettingsReturn {
+interface UsePresetSettingsReturn {
   // State
-  formattingEnabled: boolean;
   formattingOptions: ComboboxOption[];
   activePreset: FormatPreset | null;
   presets: FormatPreset[];
@@ -163,6 +144,8 @@ interface UseFormattingSettingsReturn {
   editModelId: string;
   editInstructions: string;
   editColor: PresetColorId;
+  editFormattingEnabled: boolean;
+  editSpeechModelId: string | undefined;
 
   // Type change confirmation
   pendingTypeChange: PresetTypeId | null;
@@ -177,7 +160,6 @@ interface UseFormattingSettingsReturn {
   handleCancelResetAll: () => void;
 
   // Derived booleans
-  disableFormattingToggle: boolean;
   hasFormattingOptions: boolean;
   showApiKeyRequired: boolean;
   hasUnsavedChanges: boolean;
@@ -191,7 +173,6 @@ interface UseFormattingSettingsReturn {
   maxInstructionsLength: number;
 
   // Handlers
-  handleFormattingEnabledChange: (enabled: boolean) => void;
   handleSelectPreset: (presetId: string | null) => void;
   handleStartEditing: (presetId: string) => void;
   handleStartCreating: () => void;
@@ -204,20 +185,22 @@ interface UseFormattingSettingsReturn {
   handleEditModelChange: (modelId: string) => void;
   handleEditInstructionsChange: (instructions: string) => void;
   handleEditColorChange: (color: PresetColorId) => void;
+  handleEditFormattingEnabledChange: (enabled: boolean) => void;
+  handleEditSpeechModelIdChange: (speechModelId: SpeechModelId | undefined) => void;
 }
 
-export function useFormattingSettings(): UseFormattingSettingsReturn {
+export function usePresetSettings(): UsePresetSettingsReturn {
   // tRPC queries
-  const formatterConfigQuery = api.settings.getFormatterConfig.useQuery();
+  const presetConfigQuery = api.settings.getPresetConfig.useQuery();
   const openaiConfigQuery = api.settings.getOpenAIConfig.useQuery();
   const activePresetQuery = api.settings.getActivePreset.useQuery();
   const utils = api.useUtils();
 
   // Use query data directly
-  const formatterConfig = formatterConfigQuery.data ?? null;
+  const presetConfig = presetConfigQuery.data ?? null;
   const hasOpenAIKey = !!openaiConfigQuery.data?.apiKey;
   const activePreset = activePresetQuery.data ?? null;
-  const presets = formatterConfig?.presets ?? [];
+  const presets = presetConfig?.presets ?? [];
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
@@ -228,6 +211,8 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   const [editModelId, setEditModelId] = useState("gpt-4.1-mini");
   const [editInstructions, setEditInstructions] = useState("");
   const [editColor, setEditColor] = useState<PresetColorId>("yellow");
+  const [editFormattingEnabled, setEditFormattingEnabled] = useState(true);
+  const [editSpeechModelId, setEditSpeechModelId] = useState<SpeechModelId | undefined>(undefined);
   const [pendingTypeChange, setPendingTypeChange] = useState<PresetTypeId | null>(null);
   const [showResetAllConfirm, setShowResetAllConfirm] = useState(false);
   const [initialEditState, setInitialEditState] = useState({
@@ -236,6 +221,8 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     modelId: "gpt-5-mini",
     instructions: "",
     color: "yellow" as PresetColorId,
+    formattingEnabled: true,
+    speechModelId: undefined as string | undefined,
   });
 
   // Reset edit mode when leaving the page or when data changes
@@ -247,32 +234,9 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   }, [isEditMode]);
 
   // Mutations
-  const setFormatterConfigMutation =
-    api.settings.setFormatterConfig.useMutation({
-      onMutate: async (newConfig) => {
-        await utils.settings.getFormatterConfig.cancel();
-        const previousConfig = utils.settings.getFormatterConfig.getData();
-        utils.settings.getFormatterConfig.setData(undefined, newConfig);
-        return { previousConfig };
-      },
-      onError: (error, _newConfig, context) => {
-        if (context?.previousConfig) {
-          utils.settings.getFormatterConfig.setData(
-            undefined,
-            context.previousConfig,
-          );
-        }
-        console.error("Failed to save formatting settings:", error.message);
-        toast.error("設定の保存に失敗しました");
-      },
-      onSettled: () => {
-        utils.settings.getFormatterConfig.invalidate();
-      },
-    });
-
   const createPresetMutation = api.settings.createFormatPreset.useMutation({
     onSuccess: (newPreset) => {
-      utils.settings.getFormatterConfig.invalidate();
+      utils.settings.getPresetConfig.invalidate();
       utils.settings.getActivePreset.invalidate();
       setActivePresetMutation.mutate({ presetId: newPreset.id });
       setIsEditMode(false);
@@ -287,7 +251,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
 
   const updatePresetMutation = api.settings.updateFormatPreset.useMutation({
     onSuccess: () => {
-      utils.settings.getFormatterConfig.invalidate();
+      utils.settings.getPresetConfig.invalidate();
       utils.settings.getActivePreset.invalidate();
       setIsEditMode(false);
       toast.success("プリセットを保存しました");
@@ -300,7 +264,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
 
   const deletePresetMutation = api.settings.deleteFormatPreset.useMutation({
     onSuccess: () => {
-      utils.settings.getFormatterConfig.invalidate();
+      utils.settings.getPresetConfig.invalidate();
       utils.settings.getActivePreset.invalidate();
       setIsEditMode(false);
       toast.success("プリセットを削除しました");
@@ -322,7 +286,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
 
   const resetAllPresetsMutation = api.settings.resetAllPresetsToDefault.useMutation({
     onSuccess: () => {
-      utils.settings.getFormatterConfig.invalidate();
+      utils.settings.getPresetConfig.invalidate();
       utils.settings.getActivePreset.invalidate();
       setIsEditMode(false);
       setShowResetAllConfirm(false);
@@ -336,8 +300,6 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
 
   // Derived values
   const hasFormattingOptions = hasOpenAIKey;
-  const formattingEnabled = formatterConfig?.enabled ?? false;
-  const disableFormattingToggle = !hasFormattingOptions;
   const showApiKeyRequired = !hasOpenAIKey;
   const canCreatePreset = presets.length < MAX_PRESETS;
 
@@ -348,9 +310,11 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       editType !== initialEditState.type ||
       editModelId !== initialEditState.modelId ||
       editInstructions !== initialEditState.instructions ||
-      editColor !== initialEditState.color
+      editColor !== initialEditState.color ||
+      editFormattingEnabled !== initialEditState.formattingEnabled ||
+      editSpeechModelId !== initialEditState.speechModelId
     );
-  }, [isEditMode, editName, editType, editModelId, editInstructions, editColor, initialEditState]);
+  }, [isEditMode, editName, editType, editModelId, editInstructions, editColor, editFormattingEnabled, editSpeechModelId, initialEditState]);
 
   // Check if currently editing a default preset
   const editingPreset = useMemo(() => {
@@ -370,9 +334,10 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       editType !== defaultValues.type ||
       editModelId !== defaultValues.modelId ||
       editInstructions !== defaultValues.instructions ||
-      editColor !== defaultValues.color
+      editColor !== defaultValues.color ||
+      editFormattingEnabled !== true
     );
-  }, [isEditMode, isCreatingNew, editingPreset, editName, editType, editModelId, editInstructions, editColor]);
+  }, [isEditMode, isCreatingNew, editingPreset, editName, editType, editModelId, editInstructions, editColor, editFormattingEnabled]);
 
   const isSaving = createPresetMutation.isPending || updatePresetMutation.isPending;
   const isDeleting = deletePresetMutation.isPending;
@@ -388,20 +353,6 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
   }, [hasOpenAIKey]);
 
   // Handlers
-  const handleFormattingEnabledChange = useCallback(
-    (enabled: boolean) => {
-      const nextConfig: FormatterConfig = {
-        enabled,
-        modelId: formatterConfig?.modelId,
-        fallbackModelId: formatterConfig?.fallbackModelId,
-        presets: formatterConfig?.presets,
-        activePresetId: formatterConfig?.activePresetId,
-      };
-      setFormatterConfigMutation.mutate(nextConfig);
-    },
-    [formatterConfig, setFormatterConfigMutation],
-  );
-
   const handleSelectPreset = useCallback(
     (presetId: string | null) => {
       // Close edit mode when selecting
@@ -425,12 +376,16 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
         setEditModelId(preset.modelId);
         setEditInstructions(preset.instructions);
         setEditColor(preset.color ?? "yellow");
+        setEditFormattingEnabled(preset.formattingEnabled !== false);
+        setEditSpeechModelId(preset.speechModelId);
         setInitialEditState({
           name: preset.name,
           type: preset.type ?? "formatting",
           modelId: preset.modelId,
           instructions: preset.instructions,
           color: preset.color ?? "yellow",
+          formattingEnabled: preset.formattingEnabled !== false,
+          speechModelId: preset.speechModelId,
         });
       });
     },
@@ -459,12 +414,16 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
       setEditModelId(defaultModelId);
       setEditInstructions(defaultInstructions);
       setEditColor(defaultColor);
+      setEditFormattingEnabled(true);
+      setEditSpeechModelId(undefined);
       setInitialEditState({
         name: "",
         type: defaultType,
         modelId: defaultModelId,
         instructions: defaultInstructions,
         color: defaultColor,
+        formattingEnabled: true,
+        speechModelId: undefined,
       });
     });
   }, [canCreatePreset]);
@@ -504,6 +463,8 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
         instructions: trimmedInstructions,
         isDefault: false,
         color: editColor,
+        formattingEnabled: editFormattingEnabled,
+        speechModelId: editSpeechModelId,
       });
     } else if (editingPresetId) {
       updatePresetMutation.mutate({
@@ -513,6 +474,8 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
         modelId,
         instructions: trimmedInstructions,
         color: editColor,
+        formattingEnabled: editFormattingEnabled,
+        speechModelId: editSpeechModelId,
       });
     }
   }, [
@@ -521,6 +484,8 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     editModelId,
     editInstructions,
     editColor,
+    editFormattingEnabled,
+    editSpeechModelId,
     isCreatingNew,
     editingPresetId,
     createPresetMutation,
@@ -541,6 +506,8 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     setEditModelId(defaultValues.modelId);
     setEditInstructions(defaultValues.instructions);
     setEditColor(defaultValues.color);
+    setEditFormattingEnabled(true);
+    setEditSpeechModelId(undefined);
   }, [editingPreset]);
 
   const handleShowResetAllConfirm = useCallback(() => {
@@ -591,9 +558,16 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     setEditColor(color);
   }, []);
 
+  const handleEditFormattingEnabledChange = useCallback((enabled: boolean) => {
+    setEditFormattingEnabled(enabled);
+  }, []);
+
+  const handleEditSpeechModelIdChange = useCallback((speechModelId: SpeechModelId | undefined) => {
+    setEditSpeechModelId(speechModelId);
+  }, []);
+
   return {
     // State
-    formattingEnabled,
     formattingOptions,
     activePreset,
     presets,
@@ -609,6 +583,8 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     editModelId,
     editInstructions,
     editColor,
+    editFormattingEnabled,
+    editSpeechModelId,
 
     // Type change confirmation
     pendingTypeChange,
@@ -623,7 +599,6 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     handleCancelResetAll,
 
     // Derived booleans
-    disableFormattingToggle,
     hasFormattingOptions,
     showApiKeyRequired,
     hasUnsavedChanges,
@@ -637,7 +612,6 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     maxInstructionsLength: MAX_INSTRUCTIONS_LENGTH,
 
     // Handlers
-    handleFormattingEnabledChange,
     handleSelectPreset,
     handleStartEditing,
     handleStartCreating,
@@ -650,5 +624,7 @@ export function useFormattingSettings(): UseFormattingSettingsReturn {
     handleEditModelChange,
     handleEditInstructionsChange,
     handleEditColorChange,
+    handleEditFormattingEnabledChange,
+    handleEditSpeechModelIdChange,
   };
 }

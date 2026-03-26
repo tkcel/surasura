@@ -3,8 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   LanguageSettings,
   MicrophoneSettings,
-  TranscriptionModelSettings,
-  FormattingSettings,
+  PresetSettings,
 } from "./components";
 import { ProcessFlowHelpDialog } from "./components/ProcessFlowHelpDialog";
 
@@ -33,17 +32,10 @@ export default function DictationSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* 文字起こし設定 */}
+        {/* プリセット設定 */}
         <Card>
           <CardContent>
-            <TranscriptionModelSettings />
-          </CardContent>
-        </Card>
-
-        {/* AIフォーマット設定 */}
-        <Card>
-          <CardContent>
-            <FormattingSettings />
+            <PresetSettings />
           </CardContent>
         </Card>
       </div>

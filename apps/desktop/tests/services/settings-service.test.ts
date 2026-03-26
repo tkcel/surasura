@@ -5,7 +5,7 @@ import { initializeTestServices } from "../helpers/test-app";
 import { setTestDatabase } from "../setup";
 import type { SettingsService } from "@services/settings-service";
 import type { ServiceManager } from "@main/managers/service-manager";
-import type { FormatterConfig } from "../../src/types/formatter";
+import type { PresetConfig } from "../../src/types/formatter";
 
 describe("SettingsService", () => {
   let testDb: TestDatabase;
@@ -23,7 +23,7 @@ describe("SettingsService", () => {
   });
 
   // ==================== Formatter Config ====================
-  describe("getFormatterConfig / setFormatterConfig", () => {
+  describe("getPresetConfig / setPresetConfig", () => {
     beforeEach(async () => {
       testDb = await createTestDatabase({ name: "settings-formatter-test" });
       setTestDatabase(testDb.db);
@@ -35,33 +35,33 @@ describe("SettingsService", () => {
     });
 
     it("初期化後にフォーマッタ設定を返す", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       expect(config).toBeDefined();
       expect(config).toHaveProperty("enabled");
     });
 
     it("フォーマッタ設定を保存して取得できる", async () => {
-      const config = await settingsService.getFormatterConfig();
-      const newConfig: FormatterConfig = {
+      const config = await settingsService.getPresetConfig();
+      const newConfig: PresetConfig = {
         ...config!,
         enabled: true,
       };
-      await settingsService.setFormatterConfig(newConfig);
-      const updated = await settingsService.getFormatterConfig();
+      await settingsService.setPresetConfig(newConfig);
+      const updated = await settingsService.getPresetConfig();
       expect(updated).toBeDefined();
       expect(updated!.enabled).toBe(true);
     });
 
     it("activePresetIdなしで有効化した場合に最初のプリセットを自動選択する", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       // Set enabled=true with no activePresetId to trigger auto-select
-      await settingsService.setFormatterConfig({
+      await settingsService.setPresetConfig({
         ...config!,
         enabled: true,
         activePresetId: undefined,
       });
 
-      const updatedConfig = await settingsService.getFormatterConfig();
+      const updatedConfig = await settingsService.getPresetConfig();
       expect(updatedConfig!.activePresetId).toBeDefined();
     });
   });
@@ -324,7 +324,7 @@ describe("SettingsService", () => {
     });
 
     it("新しいプリセットを作成してIDとタイムスタンプ付きで返す", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       const existingCount = config!.presets?.length ?? 0;
       expect(existingCount).toBeLessThan(5);
 
@@ -344,8 +344,8 @@ describe("SettingsService", () => {
     });
 
     it("プリセットが5件に達した場合にエラーをスローする", async () => {
-      // Get current presets (defaults are recovered by getFormatterConfig)
-      const config = await settingsService.getFormatterConfig();
+      // Get current presets (defaults are recovered by getPresetConfig)
+      const config = await settingsService.getPresetConfig();
       const existingCount = config!.presets?.length ?? 0;
 
       // Add presets until we reach 5
@@ -415,7 +415,7 @@ describe("SettingsService", () => {
 
     it("既存のプリセットを更新する", async () => {
       // Use existing default presets
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       const firstPreset = config!.presets![0];
 
       const updated = await settingsService.updateFormatPreset(firstPreset.id, {
@@ -427,7 +427,7 @@ describe("SettingsService", () => {
     });
 
     it("presets-updatedイベントを発火する", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       const firstPreset = config!.presets![0];
 
       const listener = vi.fn();
@@ -443,7 +443,7 @@ describe("SettingsService", () => {
     });
 
     it("アクティブなプリセットの更新時にactive-preset-changedイベントを発火する", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       const firstPreset = config!.presets![0];
 
       // Set this preset as active
@@ -478,20 +478,20 @@ describe("SettingsService", () => {
     });
 
     it("プリセットを削除する", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       const presetToDelete = config!.presets![0];
       const initialCount = config!.presets!.length;
 
       await settingsService.deleteFormatPreset(presetToDelete.id);
 
-      const updated = await settingsService.getFormatterConfig();
+      const updated = await settingsService.getPresetConfig();
       const found = updated!.presets!.find((p) => p.id === presetToDelete.id);
       expect(found).toBeUndefined();
       expect(updated!.presets!.length).toBe(initialCount - 1);
     });
 
     it("削除されたプリセットがアクティブだった場合にactivePresetIdをクリアする", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       const presets = config!.presets!;
       expect(presets.length).toBeGreaterThanOrEqual(2);
 
@@ -507,7 +507,7 @@ describe("SettingsService", () => {
       await settingsService.deleteFormatPreset(targetPreset.id);
 
       // The activePresetId should be cleared
-      const updatedConfig = await settingsService.getFormatterConfig();
+      const updatedConfig = await settingsService.getPresetConfig();
       expect(updatedConfig!.activePresetId).toBeNull();
     });
   });
@@ -527,7 +527,7 @@ describe("SettingsService", () => {
     });
 
     it("アクティブなプリセットを設定して取得できる", async () => {
-      const config = await settingsService.getFormatterConfig();
+      const config = await settingsService.getPresetConfig();
       const preset = config!.presets![0];
 
       await settingsService.setActivePreset(preset.id);
@@ -566,8 +566,8 @@ describe("SettingsService", () => {
     });
 
     it("フォーマッタが無効の場合にnullを返す", async () => {
-      const config = await settingsService.getFormatterConfig();
-      await settingsService.setFormatterConfig({
+      const config = await settingsService.getPresetConfig();
+      await settingsService.setPresetConfig({
         ...config!,
         enabled: false,
       });
@@ -577,8 +577,8 @@ describe("SettingsService", () => {
     });
 
     it("インデックスが範囲外の場合にnullを返す", async () => {
-      const config = await settingsService.getFormatterConfig();
-      await settingsService.setFormatterConfig({
+      const config = await settingsService.getPresetConfig();
+      await settingsService.setPresetConfig({
         ...config!,
         enabled: true,
       });
@@ -590,8 +590,8 @@ describe("SettingsService", () => {
     });
 
     it("フォーマッタが有効な場合にインデックスでプリセットを選択する", async () => {
-      const config = await settingsService.getFormatterConfig();
-      await settingsService.setFormatterConfig({
+      const config = await settingsService.getPresetConfig();
+      await settingsService.setPresetConfig({
         ...config!,
         enabled: true,
       });

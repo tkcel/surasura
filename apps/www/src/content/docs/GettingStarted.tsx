@@ -130,7 +130,7 @@ export function GettingStarted() {
       <DocsOrderedList>
         <DocsListItem>フローティングウィジェットにカーソルを合わせると、再生ボタンが表示される</DocsListItem>
         <DocsListItem>再生ボタンをクリックすると音声入力が開始</DocsListItem>
-        <DocsListItem>停止ボタンをクリックすると音声入力が終了し、AIフォーマット処理が開始</DocsListItem>
+        <DocsListItem>停止ボタンをクリックすると音声入力が終了し、テキスト整形処理が開始</DocsListItem>
         <DocsListItem>整形が完了すると、カーソル位置にテキストが自動的にペーストされる</DocsListItem>
       </DocsOrderedList>
 
@@ -143,7 +143,7 @@ export function GettingStarted() {
 
       <DocsP>
         <Kbd>Fn</Kbd>（macOS）または <Kbd>Ctrl + Win</Kbd>（Windows）を<Strong>押している間</Strong>音声入力されます。
-        キーを離すと音声入力が終了し、テキスト入力欄にカーソルがあればAIフォーマット処理後にテキストが自動でペーストされます。
+        キーを離すと音声入力が終了し、テキスト入力欄にカーソルがあればテキスト整形処理後にテキストが自動でペーストされます。
         カーソルがテキスト入力欄にない場合は、結果パネルが表示されます。
       </DocsP>
 
@@ -161,8 +161,8 @@ export function GettingStarted() {
         <Step number={2} title="ショートカットを覚える">
           <Kbd>Fn</Kbd>（macOS）/ <Kbd>Ctrl + Win</Kbd>（Windows）を押しながら話す
         </Step>
-        <Step number={3} title="好みのAIフォーマットを選ぶ">
-          標準、カジュアル、即時回答から選択
+        <Step number={3} title="好みのプリセットを選ぶ">
+          標準、文字起こし、即時回答から選択
         </Step>
         <Step number={4} title="どんなアプリでも使う">
           メール、チャット、ドキュメントなど、テキスト入力ができる場所ならどこでも
@@ -173,7 +173,7 @@ export function GettingStarted() {
 
       <RelatedPages
         links={[
-          { to: "/docs/presets", title: "AIフォーマット（プリセット）", description: "整形スタイルのカスタマイズ" },
+          { to: "/docs/presets", title: "プリセット", description: "整形スタイルのカスタマイズ" },
           { to: "/docs/dictionary", title: "辞書機能", description: "固有名詞や専門用語の認識精度向上" },
         ]}
       />

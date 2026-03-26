@@ -29,6 +29,12 @@ export type FormatterModelId =
   | "gpt-4.1"
   | "gpt-4o";
 
+// サポートされる文字起こしモデルID
+export type SpeechModelId =
+  | "gpt-4o-mini-transcribe"
+  | "whisper-1"
+  | "gpt-4o-transcribe";
+
 export interface FormatPreset {
   id: string;
   name: string; // 最大20文字
@@ -37,12 +43,14 @@ export interface FormatPreset {
   instructions: string; // 最大1000文字
   isDefault: boolean;
   color: PresetColorId; // プリセットの色
+  speechModelId?: SpeechModelId; // 文字起こしモデル（未設定時はグローバルデフォルトにフォールバック）
+  formattingEnabled?: boolean; // フォーマット実行するか（未設定時はtrue）
   createdAt: string; // ISO 8601
   updatedAt: string;
 }
 
-export interface FormatterConfig {
-  enabled: boolean;
+export interface PresetConfig {
+  enabled?: boolean; // レガシー: プリセット単位のformattingEnabledに移行済み
   modelId?: string;
   fallbackModelId?: string;
   presets?: FormatPreset[]; // 最大5つ

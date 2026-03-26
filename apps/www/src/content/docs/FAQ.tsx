@@ -77,7 +77,7 @@ export function FAQ() {
         <Strong>A.</Strong> 以下の方法で料金を抑えられます。
       </DocsP>
       <DocsList>
-        <DocsListItem>整形モデルは<Code>gpt-4.1-nano</Code>（最安）を使用</DocsListItem>
+        <DocsListItem>整形モデルは<Code>gpt-5-nano</Code>（最安）を使用</DocsListItem>
         <DocsListItem>短く簡潔に話す</DocsListItem>
         <DocsListItem>不要な音声入力はキャンセル（<Kbd>Escape</Kbd>キー）</DocsListItem>
       </DocsList>
@@ -166,10 +166,10 @@ export function FAQ() {
         詳しくは<DocsLink to="/docs/settings">設定</DocsLink>をご覧ください。
       </DocsP>
 
-      <DocsH3>Q. 複数のAIフォーマットを切り替えながら使えますか？</DocsH3>
+      <DocsH3>Q. 複数のプリセットを切り替えながら使えますか？</DocsH3>
       <DocsP>
-        <Strong>A.</Strong> はい、メニューバーからいつでもAIフォーマットを切り替えられます。
-        また、デフォルトのAIフォーマットは設定画面から変更できます。
+        <Strong>A.</Strong> はい、メニューバーからいつでもプリセットを切り替えられます。
+        また、デフォルトのプリセットは設定画面から変更できます。
       </DocsP>
 
       <DocsH2>その他</DocsH2>

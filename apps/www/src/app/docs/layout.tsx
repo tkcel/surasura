@@ -13,11 +13,11 @@ export const metadata: Metadata = {
     default: "surasura ドキュメント - 使い方ガイド",
   },
   description:
-    "surasuraの使い方ガイド。初期設定、AIフォーマット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
+    "surasuraの使い方ガイド。初期設定、プリセット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
   openGraph: {
     title: "surasura ドキュメント - 使い方ガイド",
     description:
-      "surasuraの使い方ガイド。初期設定、AIフォーマット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
+      "surasuraの使い方ガイド。初期設定、プリセット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
     type: "website",
     url: `${baseUrl}/docs`,
     siteName: "surasura",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "surasura ドキュメント - 使い方ガイド",
     description:
-      "surasuraの使い方ガイド。初期設定、AIフォーマット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
+      "surasuraの使い方ガイド。初期設定、プリセット、辞書機能、履歴、FAQ、トラブルシューティングなど。",
     images: [`${baseUrl}/ogp.png`],
   },
 };

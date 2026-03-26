@@ -295,7 +295,7 @@ export function TranscriptionDetailDialog({
                 )}
                 {transcription.meta?.presetName && (
                   <div>
-                    <p className="text-muted-foreground">AIフォーマット</p>
+                    <p className="text-muted-foreground">プリセット</p>
                     <p>{transcription.meta.presetName}</p>
                   </div>
                 )}

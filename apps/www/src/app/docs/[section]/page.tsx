@@ -18,8 +18,8 @@ const sectionMeta: Record<DocsSectionId, { title: string; description: string }>
     description: "surasuraの基本的な使い方と初期設定について解説します。",
   },
   presets: {
-    title: "AIフォーマット（プリセット）",
-    description: "AIフォーマット（プリセット）の設定方法と活用方法を解説します。",
+    title: "プリセット",
+    description: "プリセットの設定方法と活用方法を解説します。",
   },
   dictionary: {
     title: "辞書機能",

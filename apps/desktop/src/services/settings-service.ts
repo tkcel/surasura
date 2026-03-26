@@ -1,6 +1,6 @@
 import { app, safeStorage } from "electron";
 import { EventEmitter } from "events";
-import { FormatterConfig, FormatPreset } from "../types/formatter";
+import { PresetConfig, FormatPreset } from "../types/formatter";
 import {
   getSettingsSection,
   updateSettingsSection,
@@ -39,34 +39,34 @@ export class SettingsService extends EventEmitter {
   }
 
   /**
-   * Get formatter configuration
+   * Get preset configuration
    */
-  async getFormatterConfig(): Promise<FormatterConfig | null> {
-    const formatterConfig = await getSettingsSection("formatterConfig");
-    if (!formatterConfig) return null;
+  async getPresetConfig(): Promise<PresetConfig | null> {
+    const presetConfig = await getSettingsSection("formatterConfig");
+    if (!presetConfig) return null;
 
     // プリセットが消失している場合はデフォルトを復元
-    if (!formatterConfig.presets || formatterConfig.presets.length === 0) {
+    if (!presetConfig.presets || presetConfig.presets.length === 0) {
       const defaultPresets = generateDefaultPresets();
-      const recovered: FormatterConfig = {
-        ...formatterConfig,
-        presets: defaultPresets as FormatterConfig["presets"],
+      const recovered: PresetConfig = {
+        ...presetConfig,
+        presets: defaultPresets as PresetConfig["presets"],
         activePresetId:
-          formatterConfig.activePresetId ?? defaultPresets[0]?.id ?? null,
+          presetConfig.activePresetId ?? defaultPresets[0]?.id ?? null,
       };
       await updateSettingsSection("formatterConfig", recovered);
       return recovered;
     }
 
-    return formatterConfig;
+    return presetConfig;
   }
 
   /**
-   * Set formatter configuration
+   * Set preset configuration
    */
-  async setFormatterConfig(config: FormatterConfig): Promise<void> {
-    // 有効化時にactivePresetIdが未設定なら最初のプリセットを自動選択
-    if (config.enabled && !config.activePresetId && config.presets?.length) {
+  async setPresetConfig(config: PresetConfig): Promise<void> {
+    // activePresetIdが未設定なら最初のプリセットを自動選択
+    if (!config.activePresetId && config.presets?.length) {
       config = { ...config, activePresetId: config.presets[0].id };
     }
     await updateSettingsSection("formatterConfig", config);
@@ -433,7 +433,7 @@ export class SettingsService extends EventEmitter {
   async createFormatPreset(
     preset: Omit<FormatPreset, "id" | "createdAt" | "updatedAt">,
   ): Promise<FormatPreset> {
-    const config = await this.getFormatterConfig();
+    const config = await this.getPresetConfig();
     const presets = config?.presets ?? [];
 
     if (presets.length >= 5) {
@@ -457,9 +457,8 @@ export class SettingsService extends EventEmitter {
     };
 
     const updatedPresets = [...presets, newPreset];
-    await this.setFormatterConfig({
+    await this.setPresetConfig({
       ...config,
-      enabled: config?.enabled ?? false,
       presets: updatedPresets,
     });
 
@@ -476,7 +475,7 @@ export class SettingsService extends EventEmitter {
     id: string,
     updates: Partial<Omit<FormatPreset, "id" | "createdAt" | "updatedAt">>,
   ): Promise<FormatPreset> {
-    const config = await this.getFormatterConfig();
+    const config = await this.getPresetConfig();
     const presets = config?.presets ?? [];
 
     const presetIndex = presets.findIndex((p) => p.id === id);
@@ -504,9 +503,8 @@ export class SettingsService extends EventEmitter {
     const updatedPresets = [...presets];
     updatedPresets[presetIndex] = updatedPreset;
 
-    await this.setFormatterConfig({
+    await this.setPresetConfig({
       ...config,
-      enabled: config?.enabled ?? false,
       presets: updatedPresets,
     });
 
@@ -528,7 +526,7 @@ export class SettingsService extends EventEmitter {
    * Delete a format preset
    */
   async deleteFormatPreset(id: string): Promise<void> {
-    const config = await this.getFormatterConfig();
+    const config = await this.getPresetConfig();
     const presets = config?.presets ?? [];
 
     const updatedPresets = presets.filter((p) => p.id !== id);
@@ -537,9 +535,8 @@ export class SettingsService extends EventEmitter {
     const activePresetId =
       config?.activePresetId === id ? null : config?.activePresetId;
 
-    await this.setFormatterConfig({
+    await this.setPresetConfig({
       ...config,
-      enabled: config?.enabled ?? false,
       presets: updatedPresets,
       activePresetId,
     });
@@ -552,12 +549,11 @@ export class SettingsService extends EventEmitter {
    * Reset all presets to default
    */
   async resetAllPresetsToDefault(): Promise<FormatPreset[]> {
-    const config = await this.getFormatterConfig();
+    const config = await this.getPresetConfig();
     const defaultPresets = generateDefaultPresets();
 
-    await this.setFormatterConfig({
+    await this.setPresetConfig({
       ...config,
-      enabled: config?.enabled ?? false,
       presets: defaultPresets,
       activePresetId: defaultPresets[0]?.id ?? null,
     });
@@ -572,7 +568,7 @@ export class SettingsService extends EventEmitter {
    * Set the active preset
    */
   async setActivePreset(presetId: string | null): Promise<void> {
-    const config = await this.getFormatterConfig();
+    const config = await this.getPresetConfig();
     const presets = config?.presets ?? [];
 
     // If setting a preset, verify it exists
@@ -583,9 +579,8 @@ export class SettingsService extends EventEmitter {
       }
     }
 
-    await this.setFormatterConfig({
+    await this.setPresetConfig({
       ...config,
-      enabled: config?.enabled ?? false,
       activePresetId: presetId,
     });
 
@@ -604,7 +599,7 @@ export class SettingsService extends EventEmitter {
    * Falls back to the first default preset (標準) when no preset is explicitly selected.
    */
   async getActivePreset(): Promise<FormatPreset | null> {
-    const config = await this.getFormatterConfig();
+    const config = await this.getPresetConfig();
     const presets = config?.presets ?? [];
 
     if (config?.activePresetId) {
@@ -618,17 +613,11 @@ export class SettingsService extends EventEmitter {
 
   /**
    * Select a preset by index (0-4)
-   * Returns the selected preset, or null if index is out of range or formatter is disabled
+   * Returns the selected preset, or null if index is out of range
    */
   async selectPresetByIndex(index: number): Promise<FormatPreset | null> {
-    const config = await this.getFormatterConfig();
-
-    // Return null if formatter is disabled
-    if (!config?.enabled) {
-      return null;
-    }
-
-    const presets = config.presets ?? [];
+    const config = await this.getPresetConfig();
+    const presets = config?.presets ?? [];
 
     // Return null if index is out of range
     if (index < 0 || index >= presets.length) {

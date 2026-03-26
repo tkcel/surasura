@@ -212,6 +212,9 @@ export class TranscriptionService {
           : undefined;
       const aggregatedTranscription = session.transcriptionResults.join("");
 
+      // Get active preset for speech model override
+      const currentPreset = await this.settingsService.getActivePreset();
+
       // Select the appropriate provider
       const provider = await this.selectProvider();
 
@@ -226,6 +229,7 @@ export class TranscriptionService {
           previousChunk,
           aggregatedTranscription: aggregatedTranscription || undefined,
           language: session.context.sharedData.userPreferences?.language,
+          speechModelOverride: currentPreset?.speechModelId,
         },
       });
 
@@ -299,7 +303,9 @@ export class TranscriptionService {
       session.recordingStartedAt = recordingStartedAt;
     }
 
-    const formatterConfig = await this.settingsService.getFormatterConfig();
+    // Get active preset to determine speech model and formatting settings
+    const activePreset = await this.settingsService.getActivePreset();
+    const presetConfig = await this.settingsService.getPresetConfig();
 
     // Flush provider to get any remaining buffered audio
     await this.transcriptionMutex.acquire();
@@ -321,6 +327,7 @@ export class TranscriptionService {
         aggregatedTranscription: aggregatedTranscription || undefined,
         language: session.context.sharedData.userPreferences?.language,
         formattingEnabled: false,
+        speechModelOverride: activePreset?.speechModelId,
       });
 
       if (finalTranscription.trim()) {
@@ -357,26 +364,27 @@ export class TranscriptionService {
       chunkCount: session.transcriptionResults.length,
     });
 
-    // Fetch formatter config on-demand
+    // Fetch formatting status based on active preset
     let formattingUsed = false;
     let formattingModel: string | undefined;
     let formattingStatus: "success" | "failed" | "skipped" = "skipped";
-    let activePreset: Awaited<ReturnType<typeof this.settingsService.getActivePreset>> | undefined;
 
-    if (!formatterConfig || !formatterConfig.enabled) {
-      logger.transcription.debug("Formatting skipped: disabled in config");
+    // Check if formatting is enabled for the active preset (default: true)
+    const isFormattingEnabled = activePreset?.formattingEnabled !== false;
+
+    if (!isFormattingEnabled) {
+      logger.transcription.debug("Formatting skipped: disabled in preset", {
+        presetName: activePreset?.name,
+      });
     } else if (!completeTranscription.trim().length) {
       logger.transcription.debug("Formatting skipped: empty transcription");
     } else {
-      // Get active preset to determine model
-      activePreset = await this.settingsService.getActivePreset();
-
       // Determine model ID from preset or config
       const modelId =
         activePreset?.modelId ||
-        formatterConfig.modelId ||
+        presetConfig?.modelId ||
         (await this.settingsService.getDefaultLanguageModel()) ||
-        "gpt-5-mini";
+        "gpt-5-nano";
 
       // Use OpenAI formatter
       const openaiConfig = await this.settingsService.getOpenAIConfig();

@@ -131,7 +131,7 @@ export default function PreferencesSettingsPage() {
     },
     onSuccess: () => {
       toast.success("プリセットをデフォルトにリセットしました");
-      utils.settings.getFormatterConfig.invalidate();
+      utils.settings.getPresetConfig.invalidate();
       setIsResettingPresets(false);
       setShowResetPresetsConfirm(false);
     },
@@ -457,7 +457,7 @@ export default function PreferencesSettingsPage() {
                     プリセットをリセット
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    すべてのAIフォーマットプリセットをデフォルトに戻します
+                    すべてのプリセットをデフォルトに戻します
                   </p>
                 </div>
               </div>

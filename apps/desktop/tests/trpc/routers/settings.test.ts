@@ -39,7 +39,7 @@ describe("Settings ルーター", () => {
     });
   });
 
-  describe("getFormatterConfig / setFormatterConfig", () => {
+  describe("getPresetConfig / setPresetConfig", () => {
     beforeEach(async () => {
       testDb = await createTestDatabase({ name: "settings-formatter-test" });
       setTestDatabase(testDb.db);
@@ -50,7 +50,7 @@ describe("Settings ルーター", () => {
     });
 
     it("フォーマッター設定を取得する", async () => {
-      const config = await trpcCaller.settings.getFormatterConfig();
+      const config = await trpcCaller.settings.getPresetConfig();
 
       // May be null or an object depending on initial state
       if (config !== null) {
@@ -59,11 +59,11 @@ describe("Settings ルーター", () => {
     });
 
     it("フォーマッター設定を保存・取得する", async () => {
-      await trpcCaller.settings.setFormatterConfig({
+      await trpcCaller.settings.setPresetConfig({
         enabled: true,
       });
 
-      const config = await trpcCaller.settings.getFormatterConfig();
+      const config = await trpcCaller.settings.getPresetConfig();
       expect(config).toBeDefined();
       expect(config!.enabled).toBe(true);
     });
@@ -225,7 +225,7 @@ describe("Settings ルーター", () => {
 
     it("インデックスでプリセットを選択する", async () => {
       // Enable formatter first and create a preset
-      await trpcCaller.settings.setFormatterConfig({ enabled: true });
+      await trpcCaller.settings.setPresetConfig({ enabled: true });
       await trpcCaller.settings.createFormatPreset({
         name: "First",
         modelId: "gpt-4o-mini",

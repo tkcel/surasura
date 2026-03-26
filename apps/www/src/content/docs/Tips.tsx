@@ -28,7 +28,7 @@ export function Tips() {
       <DocsH1>Tips</DocsH1>
 
       <DocsP>
-        プリセット（AIフォーマット）の仕組みやカスタマイズのコツを紹介します。
+        プリセットの仕組みやカスタマイズのコツを紹介します。
         プリセットの <Code>instructions</Code>（指示文 = 設定画面の「プロンプト」欄）がどのように処理されるかを理解することで、より効果的なカスタマイズが可能になります。
       </DocsP>
 
@@ -700,7 +700,7 @@ export function Tips() {
 
       <RelatedPages
         links={[
-          { to: "/docs/presets", title: "AIフォーマット（プリセット）", description: "プリセットの基本的な使い方と切り替え方法" },
+          { to: "/docs/presets", title: "プリセット", description: "プリセットの基本的な使い方と切り替え方法" },
           { to: "/docs/dictionary", title: "辞書機能", description: "専門用語・固有名詞の登録方法" },
         ]}
       />

@@ -23,17 +23,17 @@ import {
 export function Presets() {
   return (
     <>
-      <DocsH1>AIフォーマット（プリセット）</DocsH1>
+      <DocsH1>プリセット</DocsH1>
 
       <DocsP>
-        AIフォーマット（プリセット）は、音声をどのようにテキストに変換するかを定義する設定です。
+        プリセットは、音声をどのようにテキストに変換するかを定義する設定です。
         用途に合わせて使い分けることで、より自然で使いやすいテキストが得られます。
       </DocsP>
 
-      <DocsH2>AIフォーマットの種類</DocsH2>
+      <DocsH2>プリセットの種類</DocsH2>
 
       <DocsP>
-        surasuraには2種類のAIフォーマットがあります。
+        surasuraには2種類のプリセットがあります。
       </DocsP>
 
       <DocsH3>整形タイプ</DocsH3>
@@ -57,7 +57,7 @@ export function Presets() {
         <DocsListItem>アイデア出しの補助</DocsListItem>
       </DocsList>
 
-      <DocsH2>デフォルトのAIフォーマット</DocsH2>
+      <DocsH2>デフォルトのプリセット</DocsH2>
 
       <DocsH3>標準</DocsH3>
       <DocsP>
@@ -70,15 +70,15 @@ export function Presets() {
         <Strong>出力例</Strong>: 「明日の会議は10時からでお願いします。また、資料の確認もしたいと思います。」
       </DocsP>
 
-      <DocsH3>カジュアル</DocsH3>
+      <DocsH3>文字起こし</DocsH3>
       <DocsP>
-        友達と話すようなフランクな口調に整形します。フォーカス中のアプリに適した出力形式で整形されます。
+        テキスト整形をスキップし、音声認識の結果をそのまま出力します（整形OFF）。最速で結果を得たいときに最適です。
       </DocsP>
       <DocsP>
-        <Strong>入力例</Strong>: 「今日のランチめっちゃ美味しかったよーまたいこうね」
+        <Strong>入力例</Strong>: 「えーと明日の会議なんですけど10時からでお願いします」
       </DocsP>
       <DocsP>
-        <Strong>出力例</Strong>: 「今日のランチめっちゃ美味しかった！また行こうね」
+        <Strong>出力例</Strong>: 「えーと明日の会議なんですけど10時からでお願いします」
       </DocsP>
 
       <DocsH3>即時回答</DocsH3>
@@ -92,38 +92,38 @@ export function Presets() {
         <Strong>出力例</Strong>: 「東京タワーの高さは333メートルです。」
       </DocsP>
 
-      <DocsH2>AIフォーマットの切り替え</DocsH2>
+      <DocsH2>プリセットの切り替え</DocsH2>
 
-      <DocsRealImage src="/images/docs/AIフォーマット選択メニュー.png" alt="AIフォーマット選択メニュー" />
+      <DocsRealImage src="/images/docs/プリセット選択メニュー.png" alt="プリセット選択メニュー" />
 
       <DocsP>
-        AIフォーマットはいつでも簡単に切り替えることができます。
+        プリセットはいつでも簡単に切り替えることができます。
       </DocsP>
 
       <DocsH3>ウィジェットから切り替え（おすすめ）</DocsH3>
       <DocsOrderedList>
         <DocsListItem>フローティングウィジェットを右クリック</DocsListItem>
-        <DocsListItem>AIフォーマット一覧から選択</DocsListItem>
+        <DocsListItem>プリセット一覧から選択</DocsListItem>
       </DocsOrderedList>
 
       <DocsH3>設定画面から切り替え</DocsH3>
       <DocsOrderedList>
         <DocsListItem>設定画面を開く</DocsListItem>
-        <DocsListItem>「デフォルトのAIフォーマット」から選択</DocsListItem>
+        <DocsListItem>「デフォルトのプリセット」から選択</DocsListItem>
       </DocsOrderedList>
 
-      <DocsH2>カスタムAIフォーマット作成</DocsH2>
+      <DocsH2>カスタムプリセット作成</DocsH2>
 
-      <DocsRealImage src="/images/docs/AIフォーマット編集画面.png" alt="AIフォーマット編集画面" />
+      <DocsRealImage src="/images/docs/プリセット編集画面.png" alt="プリセット編集画面" />
 
       <DocsP>
-        独自のAIフォーマットを作成して、特定の用途に最適化された出力を得ることができます。
+        独自のプリセットを作成して、特定の用途に最適化された出力を得ることができます。
       </DocsP>
 
       <DocsH3>作成手順</DocsH3>
       <Steps>
         <Step number={1} title="設定画面を開く" />
-        <Step number={2} title="「AIフォーマット」タブを選択" />
+        <Step number={2} title="「プリセット」タブを選択" />
         <Step number={3} title="「新規作成」をクリック" />
         <Step number={4} title="名前、種類（整形/回答）、プロンプトを入力" />
         <Step number={5} title="「保存」をクリック" />
@@ -189,14 +189,14 @@ Slackなら絵文字を使ってカジュアルに、メールアプリなら丁
 質問:
 {{transcription}}`}</CodeBlock>
 
-      <DocsH2>AIフォーマットのリセット</DocsH2>
+      <DocsH2>プリセットのリセット</DocsH2>
 
       <DocsP>
-        環境設定の「プリセットリセット」から、すべてのAIフォーマットをデフォルトに戻すことができます。
+        環境設定の「プリセットリセット」から、すべてのプリセットをデフォルトに戻すことができます。
       </DocsP>
 
       <DocsNote>
-        <Strong>注意</Strong>: リセットすると、カスタムで作成したAIフォーマットも含めてすべて削除され、デフォルトのAIフォーマット（標準、カジュアル、即時回答）のみになります。
+        <Strong>注意</Strong>: リセットすると、カスタムで作成したプリセットも含めてすべて削除され、デフォルトのプリセット（標準、文字起こし、即時回答）のみになります。
       </DocsNote>
 
       <NextPage current="presets" />

@@ -103,10 +103,10 @@ export const FloatingButton: React.FC = () => {
 
   const { enableCapture, disableCapture, forceDisable } = useMouseEventCapture();
 
-  const { data: formatterConfig } = api.settings.getFormatterConfig.useQuery();
+  const { data: presetConfig } = api.settings.getPresetConfig.useQuery();
   const { data: activePreset } = api.settings.getActivePreset.useQuery();
-  const isFormatterEnabled = formatterConfig?.enabled ?? false;
-  const presets = formatterConfig?.presets ?? [];
+  const presets = presetConfig?.presets ?? [];
+  const hasPresets = presets.length > 0;
 
   const {
     recordingStatus,
@@ -222,12 +222,12 @@ export const FloatingButton: React.FC = () => {
 
       // Only in idle state
       if (!isIdle) return;
-      if (!isFormatterEnabled || presets.length === 0) return;
+      if (!hasPresets || presets.length === 0) return;
 
       setMenuPosition({ x: e.clientX, y: e.clientY - 10 });
       setShowPresetMenu(true);
     },
-    [isIdle, isFormatterEnabled, presets.length]
+    [isIdle, hasPresets, presets.length]
   );
 
   const handleClosePresetMenu = useCallback(() => {
@@ -352,7 +352,7 @@ export const FloatingButton: React.FC = () => {
         role="button"
         onClick={handleButtonClick}
       >
-        {isFormatterEnabled && activePreset && (
+        {hasPresets && activePreset && (
           <div className="flex items-center gap-1 text-xs text-white/70">
             <Sparkles
               className={`w-3 h-3 ${getPresetColorClass(activePreset.color)}`}

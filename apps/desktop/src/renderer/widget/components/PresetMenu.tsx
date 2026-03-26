@@ -114,6 +114,9 @@ export const PresetMenu: React.FC<PresetMenuProps> = ({
                   <Sparkles className={`w-3.5 h-3.5 ${getPresetColorClass(preset.color)}`} />
                 )}
                 <span className="truncate max-w-[100px]">{preset.name}</span>
+                {preset.formattingEnabled === false && (
+                  <span className="text-[10px] text-gray-500">（整形OFF）</span>
+                )}
               </div>
               {shortcutDisplay && (
                 <span className="text-xs text-gray-500">{shortcutDisplay}</span>

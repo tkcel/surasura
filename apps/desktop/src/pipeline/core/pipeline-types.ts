@@ -17,6 +17,7 @@ export interface TranscribeContext {
   aggregatedTranscription?: string;
   language?: string;
   formattingEnabled?: boolean;
+  speechModelOverride?: string; // プリセット単位の文字起こしモデル指定
 }
 
 // Transcription input parameters

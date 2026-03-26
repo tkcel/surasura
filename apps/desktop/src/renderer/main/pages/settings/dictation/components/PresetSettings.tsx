@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Combobox } from "@/components/ui/combobox";
-import { useFormattingSettings } from "../hooks/use-formatting-settings";
+import { usePresetSettings } from "../hooks/use-preset-settings";
 import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -46,10 +46,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PRESET_COLORS, PRESET_TYPES, type PresetColorId, type PresetTypeId } from "@/types/formatter";
 import {
+  SPEECH_MODEL_COSTS,
   getLanguageModelCost,
   getSpeedLabel,
   getQualityLabel,
   formatLanguageCost,
+  formatSpeechCost,
 } from "../../../../../../constants/model-costs";
 import { InstructionsEditor, type InstructionsEditorHandle } from "./InstructionsEditor";
 import { FORMATTING_VARIABLES, type FormattingVariableKey } from "../constants/formatting-variables";
@@ -62,9 +64,14 @@ const MODEL_LABELS: Record<string, string> = {
   "gpt-4o": "GPT-4o",
 };
 
-export function FormattingSettings() {
+const SPEECH_MODEL_OPTIONS = SPEECH_MODEL_COSTS.map((m) => ({
+  value: m.id,
+  label: m.name,
+  description: `${m.description} · ${formatSpeechCost(m)}`,
+}));
+
+export function PresetSettings() {
   const {
-    formattingEnabled,
     formattingOptions,
     activePreset,
     presets,
@@ -76,7 +83,6 @@ export function FormattingSettings() {
     editName,
     editModelId,
     editInstructions,
-    disableFormattingToggle,
     showApiKeyRequired,
     hasUnsavedChanges,
     canCreatePreset,
@@ -85,7 +91,6 @@ export function FormattingSettings() {
     maxPresets,
     maxNameLength,
     maxInstructionsLength,
-    handleFormattingEnabledChange,
     handleSelectPreset,
     handleStartEditing,
     handleStartCreating,
@@ -105,7 +110,11 @@ export function FormattingSettings() {
     handleCancelTypeChange,
     handleConfirmResetAll,
     isResettingAll,
-  } = useFormattingSettings();
+    editFormattingEnabled,
+    editSpeechModelId,
+    handleEditFormattingEnabledChange,
+    handleEditSpeechModelIdChange,
+  } = usePresetSettings();
 
   const instructionsEditorRef = useRef<InstructionsEditorHandle>(null);
   const [isVariableHelpOpen, setIsVariableHelpOpen] = useState(false);
@@ -133,7 +142,7 @@ export function FormattingSettings() {
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
             <Label className="text-base font-semibold text-foreground">
-              AIフォーマット
+              プリセット
             </Label>
             <Tooltip delayDuration={100}>
               <TooltipTrigger asChild>
@@ -154,22 +163,6 @@ export function FormattingSettings() {
             音声認識後のテキストをAIで整形します
           </p>
         </div>
-        <Tooltip delayDuration={100}>
-          <TooltipTrigger asChild>
-            <div>
-              <Switch
-                checked={formattingEnabled}
-                onCheckedChange={handleFormattingEnabledChange}
-                disabled={disableFormattingToggle}
-              />
-            </div>
-          </TooltipTrigger>
-          {disableFormattingToggle && (
-            <TooltipContent className="max-w-sm text-center">
-              OpenAI APIキーが必要です
-            </TooltipContent>
-          )}
-        </Tooltip>
       </div>
 
       {/* API Key Required */}
@@ -183,142 +176,141 @@ export function FormattingSettings() {
       )}
 
       {/* Main Content */}
-      {formattingEnabled && (
-        <div className="space-y-4">
-          {/* Presets Section */}
-          <div className="rounded-lg border border-border p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-sm font-medium">プリセット</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  使用するプリセットを選択（{presets.length}/{maxPresets}）
-                </p>
-              </div>
-              <Tooltip delayDuration={100}>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleStartCreating();
-                    }}
-                    disabled={!canCreatePreset}
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    新規作成
-                  </Button>
-                </TooltipTrigger>
-                {!canCreatePreset && (
-                  <TooltipContent>
-                    プリセットは{maxPresets}個まで作成できます
-                  </TooltipContent>
-                )}
-              </Tooltip>
+      <div className="space-y-4">
+        {/* Presets Section */}
+        <div className="rounded-lg border border-border p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">プリセット</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                使用するプリセットを選択（{presets.length}/{maxPresets}）
+              </p>
             </div>
-
-            {/* Preset List */}
-            {presets.length > 0 && (
-              <div className="space-y-2">
-                {presets.map((preset, index) => {
-                  const isActive = activePreset?.id === preset.id;
-                  return (
-                    <div
-                      key={preset.id}
-                      className={cn(
-                        "flex items-center justify-between p-3 rounded-lg border transition-all",
-                        isActive
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-muted-foreground/30"
-                      )}
-                    >
-                      <button
-                        onClick={() => handleSelectPreset(preset.id)}
-                        className="flex-1 text-left"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground w-4 text-center flex-shrink-0">
-                            {index + 1}
-                          </span>
-                          {isActive ? (
-                            <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                          ) : (
-                            <Sparkles className={cn("w-4 h-4 flex-shrink-0", PRESET_COLORS.find(c => c.id === preset.color)?.class ?? "text-yellow-500")} />
-                          )}
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  "font-medium text-sm",
-                                  isActive && "text-primary"
-                                )}
-                              >
-                                {preset.name}
-                              </span>
-                              {isActive && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                                  使用中
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {MODEL_LABELS[preset.modelId] || preset.modelId}
-                              {preset.instructions && (
-                                <span className="mx-1">·</span>
-                              )}
-                              {preset.instructions && (
-                                <span className="truncate">
-                                  {preset.instructions.length > 30
-                                    ? preset.instructions.slice(0, 30) + "..."
-                                    : preset.instructions}
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleStartEditing(preset.id)}
-                        className="ml-2 h-8 w-8 p-0"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  );
-                })}
-
-              </div>
-            )}
-
-            {/* Empty State */}
-            {presets.length === 0 && (
-              <div className="py-6 text-center text-sm text-muted-foreground">
-                <p>プリセットがありません</p>
-                <p className="text-xs mt-1">
-                  「新規作成」をクリックして作成してください
-                </p>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
-                  onClick={handleConfirmResetAll}
-                  disabled={isResettingAll}
-                  className="mt-3"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleStartCreating();
+                  }}
+                  disabled={!canCreatePreset}
                 >
-                  {isResettingAll ? (
-                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                  ) : (
-                    <RotateCcw className="w-4 h-4 mr-1.5" />
-                  )}
-                  デフォルトに復元
+                  <Plus className="w-4 h-4 mr-1" />
+                  新規作成
                 </Button>
-              </div>
-            )}
+              </TooltipTrigger>
+              {!canCreatePreset && (
+                <TooltipContent>
+                  プリセットは{maxPresets}個まで作成できます
+                </TooltipContent>
+              )}
+            </Tooltip>
           </div>
+
+          {/* Preset List */}
+          {presets.length > 0 && (
+            <div className="space-y-2">
+              {presets.map((preset, index) => {
+                const isActive = activePreset?.id === preset.id;
+                return (
+                  <div
+                    key={preset.id}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-lg border transition-all",
+                      isActive
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground/30"
+                    )}
+                  >
+                    <button
+                      onClick={() => handleSelectPreset(preset.id)}
+                      className="flex-1 text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground w-4 text-center flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        {isActive ? (
+                          <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                        ) : (
+                          <Sparkles className={cn("w-4 h-4 flex-shrink-0", PRESET_COLORS.find(c => c.id === preset.color)?.class ?? "text-yellow-500")} />
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "font-medium text-sm",
+                                isActive && "text-primary"
+                              )}
+                            >
+                              {preset.name}
+                            </span>
+                            {isActive && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                                使用中
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground">
+                              <span className="opacity-60">音声</span>
+                              <span className="font-medium">{preset.speechModelId || "gpt-4o-transcribe"}</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground">
+                              <span className="opacity-60">整形</span>
+                              <span className="font-medium">
+                                {preset.formattingEnabled === false
+                                  ? "OFF"
+                                  : MODEL_LABELS[preset.modelId] || preset.modelId}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleStartEditing(preset.id)}
+                      className="ml-2 h-8 w-8 p-0"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+
+            </div>
+          )}
+
+          {/* Empty State */}
+          {presets.length === 0 && (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              <p>プリセットがありません</p>
+              <p className="text-xs mt-1">
+                「新規作成」をクリックして作成してください
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleConfirmResetAll}
+                disabled={isResettingAll}
+                className="mt-3"
+              >
+                {isResettingAll ? (
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-4 h-4 mr-1.5" />
+                )}
+                デフォルトに復元
+              </Button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Edit Preset Drawer */}
       <Drawer open={isEditMode} onOpenChange={(open) => !open && handleCancelEdit()}>
@@ -415,102 +407,130 @@ export function FormattingSettings() {
               </div>
             </div>
 
-            {/* Model Selection */}
+            {/* Speech Model Selection */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">使用モデル</Label>
-              <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <Combobox
-                    options={formattingOptions}
-                    value={editModelId}
-                    onChange={handleEditModelChange}
-                    placeholder="モデルを選択..."
-                  />
-                </div>
-                {(() => {
-                  const modelInfo = getLanguageModelCost(editModelId);
-                  return modelInfo ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge variant="secondary" className="text-xs cursor-help">
-                            {getSpeedLabel(modelInfo.speed)} / {getQualityLabel(modelInfo.quality)}
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="text-sm">
-                            <p className="font-medium">{modelInfo.name}</p>
-                            <p className="text-muted-foreground">{modelInfo.description}</p>
-                            <p className="mt-1">コスト: {formatLanguageCost(modelInfo)}</p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : null;
-                })()}
-              </div>
+              <Label className="text-sm font-medium mb-2 block">文字起こしモデル</Label>
+              <Combobox
+                options={SPEECH_MODEL_OPTIONS}
+                value={editSpeechModelId ?? "gpt-4o-transcribe"}
+                onChange={(value) => handleEditSpeechModelIdChange(value as import("@/types/formatter").SpeechModelId)}
+                placeholder="モデルを選択..."
+              />
             </div>
 
-            {/* Instructions */}
+            {/* Formatting Enabled Toggle */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-sm font-medium">フォーマット指示</Label>
-                <span
-                  className={cn(
-                    "text-xs",
-                    instructionsLength > maxInstructionsLength
-                      ? "text-destructive"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {instructionsLength}/{maxInstructionsLength}
-                </span>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">テキスト整形</Label>
+                <Switch
+                  checked={editFormattingEnabled}
+                  onCheckedChange={handleEditFormattingEnabledChange}
+                />
               </div>
-
-              {/* Variable Buttons */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs text-muted-foreground">変数を挿入:</span>
-                {(Object.entries(FORMATTING_VARIABLES) as [FormattingVariableKey, typeof FORMATTING_VARIABLES[FormattingVariableKey]][]).map(([variable, { label, colorClass }]) => (
-                  <Badge
-                    key={variable}
-                    variant="secondary"
-                    className={cn(
-                      "px-2 py-1 text-xs cursor-pointer hover:opacity-80 transition-opacity",
-                      colorClass
-                    )}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => insertVariable(variable)}
-                  >
-                    {label}
-                  </Badge>
-                ))}
-                <Tooltip delayDuration={100}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      onClick={() => setIsVariableHelpOpen(true)}
-                    >
-                      <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>変数の使い方</TooltipContent>
-                </Tooltip>
-              </div>
-
-              <InstructionsEditor
-                ref={instructionsEditorRef}
-                value={editInstructions}
-                onChange={handleEditInstructionsChange}
-                maxLength={maxInstructionsLength + 100}
-                isEditing={isEditingInstructions}
-                onEditingChange={setIsEditingInstructions}
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                空欄の場合は標準のフォーマットのみ適用されます
+              <p className="text-xs text-muted-foreground mt-1">
+                テキスト整形を適用
               </p>
+            </div>
+
+            {/* Formatting Model & Instructions (disabled when editFormattingEnabled is false) */}
+            <div className={cn(!editFormattingEnabled && "opacity-50 pointer-events-none")}>
+              {/* Model Selection */}
+              <div>
+                <Label className="text-sm font-medium mb-2 block">使用モデル</Label>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Combobox
+                      options={formattingOptions}
+                      value={editModelId}
+                      onChange={handleEditModelChange}
+                      placeholder="モデルを選択..."
+                    />
+                  </div>
+                  {(() => {
+                    const modelInfo = getLanguageModelCost(editModelId);
+                    return modelInfo ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge variant="secondary" className="text-xs cursor-help">
+                              {getSpeedLabel(modelInfo.speed)} / {getQualityLabel(modelInfo.quality)}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="text-sm">
+                              <p className="font-medium">{modelInfo.name}</p>
+                              <p className="text-muted-foreground">{modelInfo.description}</p>
+                              <p className="mt-1">コスト: {formatLanguageCost(modelInfo)}</p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : null;
+                  })()}
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">フォーマット指示</Label>
+                  <span
+                    className={cn(
+                      "text-xs",
+                      instructionsLength > maxInstructionsLength
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {instructionsLength}/{maxInstructionsLength}
+                  </span>
+                </div>
+
+                {/* Variable Buttons */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs text-muted-foreground">変数を挿入:</span>
+                  {(Object.entries(FORMATTING_VARIABLES) as [FormattingVariableKey, typeof FORMATTING_VARIABLES[FormattingVariableKey]][]).map(([variable, { label, colorClass }]) => (
+                    <Badge
+                      key={variable}
+                      variant="secondary"
+                      className={cn(
+                        "px-2 py-1 text-xs cursor-pointer hover:opacity-80 transition-opacity",
+                        colorClass
+                      )}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertVariable(variable)}
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => setIsVariableHelpOpen(true)}
+                      >
+                        <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>変数の使い方</TooltipContent>
+                  </Tooltip>
+                </div>
+
+                <InstructionsEditor
+                  ref={instructionsEditorRef}
+                  value={editInstructions}
+                  onChange={handleEditInstructionsChange}
+                  maxLength={maxInstructionsLength + 100}
+                  isEditing={isEditingInstructions}
+                  onEditingChange={setIsEditingInstructions}
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  空欄の場合は標準のフォーマットのみ適用されます
+                </p>
+              </div>
             </div>
 
             {/* Secondary actions at bottom of content */}

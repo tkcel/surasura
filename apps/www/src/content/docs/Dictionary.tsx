@@ -216,7 +216,7 @@ export function Dictionary() {
 
       <RelatedPages
         links={[
-          { to: "/docs/presets", title: "AIフォーマット（プリセット）", description: "整形スタイルの設定" },
+          { to: "/docs/presets", title: "プリセット", description: "整形スタイルの設定" },
           { to: "/docs/troubleshooting", title: "トラブルシューティング", description: "認識がうまくいかない場合" },
         ]}
       />

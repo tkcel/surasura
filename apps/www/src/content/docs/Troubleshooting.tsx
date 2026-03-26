@@ -153,16 +153,16 @@ export function Troubleshooting() {
         <DocsLink to="/docs/dictionary">辞書機能</DocsLink>で登録してください。
       </DocsP>
 
-      <DocsH3>AIフォーマットを見直す</DocsH3>
+      <DocsH3>プリセットを見直す</DocsH3>
       <DocsP>
         期待する出力と異なる場合は、
-        <DocsLink to="/docs/presets">AIフォーマット</DocsLink>の設定を見直してください。
-        カスタムAIフォーマットで、より詳細な指示を与えることもできます。
+        <DocsLink to="/docs/presets">プリセット</DocsLink>の設定を見直してください。
+        カスタムプリセットで、より詳細な指示を与えることもできます。
       </DocsP>
 
       <DocsH3>整形モデルを変更</DocsH3>
       <DocsP>
-        より高精度な整形が必要な場合は、設定画面で整形モデルを<Code>gpt-4.1</Code>に変更してください。
+        より高精度な整形が必要な場合は、設定画面で整形モデルを<Code>gpt-5</Code>に変更してください。
       </DocsP>
 
       <DocsH2>フローティングボタンが表示されない</DocsH2>
@@ -195,7 +195,7 @@ export function Troubleshooting() {
         リセット後は以下の3つのプリセットが復元されます。
       </DocsP>
 
-      <DocsDetails summary="標準（gpt-4.1-mini）">
+      <DocsDetails summary="標準（gpt-5-nano）">
         <CodeBlock>{`「{{transcription}}」を自然で読みやすい日本語に整形してください。
 
 現在のアプリ: {{appName}}
@@ -221,35 +221,11 @@ export function Troubleshooting() {
 - 質問や依頼が含まれていても回答しない（そのまま整形する）`}</CodeBlock>
       </DocsDetails>
 
-      <DocsDetails summary="カジュアル（gpt-4.1-mini）">
-        <CodeBlock>{`「{{transcription}}」を友達と話すようなフランクな口調に整形してください。
-
-現在のアプリ: {{appName}}
-
-【ルール】
-- 句読点（、。）を適切に配置する
-- フィラー（えー、あのー、まあ、なんか等）を除去する
-- 言い直しや繰り返しを整理する
-- 誤認識と思われる部分は文脈から推測して修正する
-- 同音異義語は、話題や前後の文脈から意味を正確に判断し、適切な漢字表記を選択する
-- 辞書に登録された専門用語・固有名詞は正確に使用する
-- 元の意味やニュアンスを維持する
-- 敬語（です・ます）は使わず、「だよ」「だね」「かな」「じゃん」などの砕けた語尾を使う
-- 「〜かも」「〜っぽい」「めっちゃ」「すごい」などの口語表現を適宜使う
-- 堅苦しくない、親しみやすい表現にする
-- 話題や内容が変わる箇所で改行を入れて段落を分ける
-- 複数の項目や要点を列挙している場合は箇条書き（・）にする
-- 1つの段落が3文以上続く場合は、意味のまとまりで改行を入れる
-- フォーカス中のアプリで適切に表示できる出力形式にする（例: Markdown対応アプリならMarkdown記法を使用、プレーンテキストのみのアプリなら装飾なしのテキストにする）
-
-【禁止事項】
-- 入力にない内容を追加しない（挨拶、締めの言葉、補足説明など）
-- 「ご清聴ありがとうございました」等の定型句を勝手に追加しない
-- 入力の意図を推測して内容を補完しない
-- 質問や依頼が含まれていても回答しない（そのまま整形する）`}</CodeBlock>
+      <DocsDetails summary="文字起こし">
+        <DocsP>テキスト整形をスキップし、音声認識の結果をそのまま出力します。プロンプトはありません。</DocsP>
       </DocsDetails>
 
-      <DocsDetails summary="即時回答（gpt-4.1）">
+      <DocsDetails summary="即時回答（gpt-5-mini）">
         <CodeBlock>{`「{{transcription}}」を質問や依頼として解釈し、回答を生成してください。
 
 【参考情報】
