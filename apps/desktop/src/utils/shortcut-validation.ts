@@ -434,6 +434,11 @@ export function validateShortcutComprehensive(
 ): ValidationResult {
   const { currentShortcut, otherShortcut, shortcutType, platform } = context;
 
+  // Empty shortcut = disabled. Skip all checks (valid).
+  if (currentShortcut.length === 0) {
+    return { valid: true };
+  }
+
   // 1. Max keys length check
   const maxKeysCheck = checkMaxKeysLength(currentShortcut);
   if (!maxKeysCheck.valid) return maxKeysCheck;

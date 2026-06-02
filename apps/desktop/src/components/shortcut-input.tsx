@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, X } from "lucide-react";
+import { Pencil, X, Ban } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -87,22 +87,26 @@ function RecordingDisplay({
 function ShortcutDisplay({
   value,
   onEdit,
+  onClear,
 }: {
   value?: string[];
   onEdit: () => void;
+  onClear: () => void;
 }) {
   // Format array as display string (e.g., ["Fn", "Space"] -> "Fn+Space")
   const displayValue = value?.length ? value.join("+") : undefined;
 
   return (
     <>
-      {displayValue && (
+      {displayValue ? (
         <kbd
           onClick={onEdit}
           className="inline-flex items-center px-3 py-1 bg-muted hover:bg-muted/70 rounded-md text-sm font-mono cursor-pointer transition-colors"
         >
           {displayValue}
         </kbd>
+      ) : (
+        <span className="text-sm text-muted-foreground">無効</span>
       )}
       <Button
         variant="ghost"
@@ -112,6 +116,17 @@ function ShortcutDisplay({
       >
         <Pencil className="h-3 w-3" />
       </Button>
+      {displayValue && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+          onClick={onClear}
+          title="無効化"
+        >
+          <Ban className="h-3 w-3" />
+        </Button>
+      )}
     </>
   );
 }
@@ -183,7 +198,11 @@ export function ShortcutInput({
             onCancel={handleCancelRecording}
           />
         ) : (
-          <ShortcutDisplay value={value} onEdit={handleStartRecording} />
+          <ShortcutDisplay
+            value={value}
+            onEdit={handleStartRecording}
+            onClear={() => onChange([])}
+          />
         )}
       </div>
     </TooltipProvider>

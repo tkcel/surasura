@@ -102,18 +102,24 @@ export function ShortcutsSettingsPage() {
       if (data.warning) {
         toast.warning(data.warning);
       } else {
-        const messages: Record<string, string> = {
-          pushToTalk: "Push to Talkのショートカットを更新しました",
-          toggleRecording: "録音切り替えのショートカットを更新しました",
-          pasteLastTranscription: "履歴ペーストのショートカットを更新しました",
-          cancelRecording: "録音キャンセルのショートカットを更新しました",
-          selectPreset1: "プリセット1のショートカットを更新しました",
-          selectPreset2: "プリセット2のショートカットを更新しました",
-          selectPreset3: "プリセット3のショートカットを更新しました",
-          selectPreset4: "プリセット4のショートカットを更新しました",
-          selectPreset5: "プリセット5のショートカットを更新しました",
+        const names: Record<string, string> = {
+          pushToTalk: "Push to Talk",
+          toggleRecording: "録音切り替え",
+          pasteLastTranscription: "履歴ペースト",
+          cancelRecording: "録音キャンセル",
+          selectPreset1: "プリセット1",
+          selectPreset2: "プリセット2",
+          selectPreset3: "プリセット3",
+          selectPreset4: "プリセット4",
+          selectPreset5: "プリセット5",
         };
-        toast.success(messages[variables.type]);
+        const name = names[variables.type];
+        // Empty shortcut = disabled
+        if (variables.shortcut.length === 0) {
+          toast.success(`${name}のショートカットを無効化しました`);
+        } else {
+          toast.success(`${name}のショートカットを更新しました`);
+        }
       }
     },
     onError: (error) => {
