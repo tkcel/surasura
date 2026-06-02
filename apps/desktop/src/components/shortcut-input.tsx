@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, X, Ban } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
@@ -10,6 +12,9 @@ interface ShortcutInputProps {
   onChange: (value: string[]) => void;
   isRecordingShortcut?: boolean;
   onRecordingShortcutChange: (recording: boolean) => void;
+  /** Disabled state. When provided, an enable/disable switch is rendered. */
+  disabled?: boolean;
+  onDisabledChange?: (disabled: boolean) => void;
 }
 
 const MODIFIER_KEYS = ["Cmd", "Win", "Ctrl", "Alt", "Shift", "Fn"];
@@ -87,11 +92,12 @@ function RecordingDisplay({
 function ShortcutDisplay({
   value,
   onEdit,
-  onClear,
+  dimmed = false,
 }: {
   value?: string[];
   onEdit: () => void;
-  onClear: () => void;
+  /** When true, the binding is shown muted/struck-through (disabled state). */
+  dimmed?: boolean;
 }) {
   // Format array as display string (e.g., ["Fn", "Space"] -> "Fn+Space")
   const displayValue = value?.length ? value.join("+") : undefined;
@@ -101,12 +107,15 @@ function ShortcutDisplay({
       {displayValue ? (
         <kbd
           onClick={onEdit}
-          className="inline-flex items-center px-3 py-1 bg-muted hover:bg-muted/70 rounded-md text-sm font-mono cursor-pointer transition-colors"
+          className={cn(
+            "inline-flex items-center px-3 py-1 bg-muted hover:bg-muted/70 rounded-md text-sm font-mono cursor-pointer transition-colors",
+            dimmed && "line-through opacity-50",
+          )}
         >
           {displayValue}
         </kbd>
       ) : (
-        <span className="text-sm text-muted-foreground">無効</span>
+        <span className="text-sm text-muted-foreground">未設定</span>
       )}
       <Button
         variant="ghost"
@@ -116,17 +125,6 @@ function ShortcutDisplay({
       >
         <Pencil className="h-3 w-3" />
       </Button>
-      {displayValue && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-          onClick={onClear}
-          title="無効化"
-        >
-          <Ban className="h-3 w-3" />
-        </Button>
-      )}
     </>
   );
 }
@@ -136,6 +134,8 @@ export function ShortcutInput({
   onChange,
   isRecordingShortcut = false,
   onRecordingShortcutChange,
+  disabled = false,
+  onDisabledChange,
 }: ShortcutInputProps) {
   const [activeKeys, setActiveKeys] = useState<string[]>([]);
   const setRecordingStateMutation =
@@ -189,20 +189,44 @@ export function ShortcutInput({
     }
   }, [isRecordingShortcut]);
 
+  // Show the enable/disable switch only when the shortcut has a binding and a
+  // handler is provided. An unset shortcut has nothing to disable.
+  const showSwitch =
+    !!onDisabledChange && !isRecordingShortcut && !!value?.length;
+
   return (
     <TooltipProvider>
-      <div className="inline-flex items-center gap-2">
-        {isRecordingShortcut ? (
-          <RecordingDisplay
-            activeKeys={activeKeys}
-            onCancel={handleCancelRecording}
-          />
-        ) : (
-          <ShortcutDisplay
-            value={value}
-            onEdit={handleStartRecording}
-            onClear={() => onChange([])}
-          />
+      <div className="inline-flex items-center gap-3">
+        <div className="inline-flex items-center gap-2">
+          {isRecordingShortcut ? (
+            <RecordingDisplay
+              activeKeys={activeKeys}
+              onCancel={handleCancelRecording}
+            />
+          ) : (
+            <ShortcutDisplay
+              value={value}
+              onEdit={handleStartRecording}
+              dimmed={disabled}
+            />
+          )}
+        </div>
+        {showSwitch && (
+          <div className="flex items-center gap-1.5">
+            <Switch
+              checked={!disabled}
+              onCheckedChange={(checked) => onDisabledChange?.(!checked)}
+              aria-label={disabled ? "有効化" : "無効化"}
+            />
+            <span
+              className={cn(
+                "text-xs w-7 select-none",
+                disabled ? "text-muted-foreground" : "text-emerald-600",
+              )}
+            >
+              {disabled ? "無効" : "有効"}
+            </span>
+          </div>
         )}
       </div>
     </TooltipProvider>

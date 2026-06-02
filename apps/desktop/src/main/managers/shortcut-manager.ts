@@ -1,6 +1,9 @@
 import { EventEmitter } from "events";
 import { globalShortcut } from "electron";
-import { SettingsService } from "@/services/settings-service";
+import {
+  SettingsService,
+  type ShortcutsDisabledConfig,
+} from "@/services/settings-service";
 import { NativeBridge } from "@/services/platform/native-bridge-service";
 import { getKeyNameFromPayload } from "@/utils/keycode-map";
 import { isWindows } from "@/utils/platform";
@@ -49,6 +52,19 @@ export class ShortcutManager extends EventEmitter {
     selectPreset4: [],
     selectPreset5: [],
   };
+  // Per-shortcut disabled state. A disabled shortcut keeps its binding but is
+  // treated as not-pressed and is not synced to the native helper.
+  private disabled: ShortcutsDisabledConfig = {
+    pushToTalk: false,
+    toggleRecording: false,
+    pasteLastTranscription: false,
+    cancelRecording: false,
+    selectPreset1: false,
+    selectPreset2: false,
+    selectPreset3: false,
+    selectPreset4: false,
+    selectPreset5: false,
+  };
   private settingsService: SettingsService;
   private nativeBridge: NativeBridge | null = null;
   private isRecordingShortcut: boolean = false;
@@ -72,8 +88,10 @@ export class ShortcutManager extends EventEmitter {
   private async loadShortcuts() {
     try {
       const shortcuts = await this.settingsService.getShortcuts();
+      const disabled = await this.settingsService.getShortcutsDisabled();
       this.shortcuts = shortcuts;
-      log.info("Shortcuts loaded", { shortcuts });
+      this.disabled = disabled;
+      log.info("Shortcuts loaded", { shortcuts, disabled });
     } catch (error) {
       log.error("Failed to load shortcuts", { error });
     }
@@ -91,11 +109,19 @@ export class ShortcutManager extends EventEmitter {
     }
 
     try {
+      // Disabled shortcuts are synced as empty so the native helper does not
+      // consume their keys.
       await this.nativeBridge.setShortcuts({
-        pushToTalk: this.shortcuts.pushToTalk,
-        toggleRecording: this.shortcuts.toggleRecording,
-        pasteLastTranscription: this.shortcuts.pasteLastTranscription,
-        cancelRecording: this.shortcuts.cancelRecording,
+        pushToTalk: this.disabled.pushToTalk ? [] : this.shortcuts.pushToTalk,
+        toggleRecording: this.disabled.toggleRecording
+          ? []
+          : this.shortcuts.toggleRecording,
+        pasteLastTranscription: this.disabled.pasteLastTranscription
+          ? []
+          : this.shortcuts.pasteLastTranscription,
+        cancelRecording: this.disabled.cancelRecording
+          ? []
+          : this.shortcuts.cancelRecording,
       });
       log.info("Shortcuts synced to native helper");
     } catch (error) {
@@ -159,6 +185,20 @@ export class ShortcutManager extends EventEmitter {
     await this.syncShortcutsToNative();
 
     return result;
+  }
+
+  /**
+   * Enable or disable a shortcut. The key binding is preserved; a disabled
+   * shortcut is simply treated as inactive and not synced to native.
+   */
+  async setShortcutDisabled(
+    type: ShortcutType,
+    disabled: boolean,
+  ): Promise<void> {
+    await this.settingsService.setShortcutDisabled(type, disabled);
+    this.disabled = { ...this.disabled, [type]: disabled };
+    log.info("Shortcut disabled state updated", { type, disabled });
+    await this.syncShortcutsToNative();
   }
 
   setIsRecordingShortcut(isRecording: boolean) {
@@ -321,9 +361,17 @@ export class ShortcutManager extends EventEmitter {
 
     const activeKeysList = this.getActiveKeys();
 
+    const presetDisabled = [
+      this.disabled.selectPreset1,
+      this.disabled.selectPreset2,
+      this.disabled.selectPreset3,
+      this.disabled.selectPreset4,
+      this.disabled.selectPreset5,
+    ];
+
     for (let i = 0; i < presetShortcuts.length; i++) {
       const shortcutKeys = presetShortcuts[i];
-      if (!shortcutKeys || shortcutKeys.length === 0) {
+      if (!shortcutKeys || shortcutKeys.length === 0 || presetDisabled[i]) {
         continue;
       }
 
@@ -340,6 +388,9 @@ export class ShortcutManager extends EventEmitter {
   }
 
   private isPTTShortcutPressed(): boolean {
+    if (this.disabled.pushToTalk) {
+      return false;
+    }
     const pttKeys = this.shortcuts.pushToTalk;
     if (!pttKeys || pttKeys.length === 0) {
       return false;
@@ -352,6 +403,9 @@ export class ShortcutManager extends EventEmitter {
   }
 
   private isToggleRecordingShortcutPressed(): boolean {
+    if (this.disabled.toggleRecording) {
+      return false;
+    }
     const toggleKeys = this.shortcuts.toggleRecording;
     if (!toggleKeys || toggleKeys.length === 0) {
       return false;
@@ -367,6 +421,9 @@ export class ShortcutManager extends EventEmitter {
   }
 
   private isPasteLastTranscriptionShortcutPressed(): boolean {
+    if (this.disabled.pasteLastTranscription) {
+      return false;
+    }
     const pasteKeys = this.shortcuts.pasteLastTranscription;
     if (!pasteKeys || pasteKeys.length === 0) {
       return false;
@@ -382,6 +439,9 @@ export class ShortcutManager extends EventEmitter {
   }
 
   private isCancelRecordingShortcutPressed(): boolean {
+    if (this.disabled.cancelRecording) {
+      return false;
+    }
     const cancelKeys = this.shortcuts.cancelRecording;
     if (!cancelKeys || cancelKeys.length === 0) {
       return false;

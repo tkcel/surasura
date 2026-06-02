@@ -17,6 +17,19 @@ type ShortcutType =
   | "selectPreset4"
   | "selectPreset5";
 
+// Display names per shortcut type (used in toast messages)
+const SHORTCUT_NAMES: Record<ShortcutType, string> = {
+  pushToTalk: "Push to Talk",
+  toggleRecording: "録音切り替え",
+  pasteLastTranscription: "履歴ペースト",
+  cancelRecording: "録音キャンセル",
+  selectPreset1: "プリセット1",
+  selectPreset2: "プリセット2",
+  selectPreset3: "プリセット3",
+  selectPreset4: "プリセット4",
+  selectPreset5: "プリセット5",
+};
+
 // Helper to compare arrays
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -74,12 +87,49 @@ export function ShortcutsSettingsPage() {
   );
   const [recordingShortcut, setRecordingShortcut] =
     useState<ShortcutType | null>(null);
+  const [disabledMap, setDisabledMap] = useState<Record<ShortcutType, boolean>>(
+    {
+      pushToTalk: false,
+      toggleRecording: false,
+      pasteLastTranscription: false,
+      cancelRecording: false,
+      selectPreset1: false,
+      selectPreset2: false,
+      selectPreset3: false,
+      selectPreset4: false,
+      selectPreset5: false,
+    },
+  );
 
   // tRPC queries and mutations
   const shortcutsQuery = api.settings.getShortcuts.useQuery();
   const defaultShortcutsQuery = api.settings.getDefaultShortcuts.useQuery();
+  const shortcutsDisabledQuery = api.settings.getShortcutsDisabled.useQuery();
   const presetConfigQuery = api.settings.getPresetConfig.useQuery();
   const utils = api.useUtils();
+
+  const setShortcutDisabledMutation =
+    api.settings.setShortcutDisabled.useMutation({
+      onSuccess: (_data, variables) => {
+        utils.settings.getShortcutsDisabled.invalidate();
+        toast.success(
+          `${SHORTCUT_NAMES[variables.type]}のショートカットを${
+            variables.disabled ? "無効化" : "有効化"
+          }しました`,
+        );
+      },
+      onError: (error) => {
+        // Revert optimistic update
+        utils.settings.getShortcutsDisabled.invalidate();
+        toast.error(error.message);
+      },
+    });
+
+  const handleDisabledChange = (type: ShortcutType, disabled: boolean) => {
+    // Optimistic update for instant feedback
+    setDisabledMap((prev) => ({ ...prev, [type]: disabled }));
+    setShortcutDisabledMutation.mutate({ type, disabled });
+  };
 
   const setShortcutMutation = api.settings.setShortcut.useMutation({
     onSuccess: (data, variables) => {
@@ -102,24 +152,9 @@ export function ShortcutsSettingsPage() {
       if (data.warning) {
         toast.warning(data.warning);
       } else {
-        const names: Record<string, string> = {
-          pushToTalk: "Push to Talk",
-          toggleRecording: "録音切り替え",
-          pasteLastTranscription: "履歴ペースト",
-          cancelRecording: "録音キャンセル",
-          selectPreset1: "プリセット1",
-          selectPreset2: "プリセット2",
-          selectPreset3: "プリセット3",
-          selectPreset4: "プリセット4",
-          selectPreset5: "プリセット5",
-        };
-        const name = names[variables.type];
-        // Empty shortcut = disabled
-        if (variables.shortcut.length === 0) {
-          toast.success(`${name}のショートカットを無効化しました`);
-        } else {
-          toast.success(`${name}のショートカットを更新しました`);
-        }
+        toast.success(
+          `${SHORTCUT_NAMES[variables.type]}のショートカットを更新しました`,
+        );
       }
     },
     onError: (error) => {
@@ -155,6 +190,13 @@ export function ShortcutsSettingsPage() {
       setSelectPreset5Shortcut(shortcutsQuery.data.selectPreset5);
     }
   }, [shortcutsQuery.data]);
+
+  // Load disabled state when query data is available
+  useEffect(() => {
+    if (shortcutsDisabledQuery.data) {
+      setDisabledMap(shortcutsDisabledQuery.data);
+    }
+  }, [shortcutsDisabledQuery.data]);
 
   const handlePushToTalkChange = (shortcut: string[]) => {
     setShortcutMutation.mutate({
@@ -233,6 +275,10 @@ export function ShortcutsSettingsPage() {
                     onRecordingShortcutChange={(recording) =>
                       setRecordingShortcut(recording ? "pushToTalk" : null)
                     }
+                    disabled={disabledMap.pushToTalk}
+                    onDisabledChange={(d) =>
+                      handleDisabledChange("pushToTalk", d)
+                    }
                   />
                   <ResetToDefaultLink
                     currentValue={pushToTalkShortcut}
@@ -263,6 +309,10 @@ export function ShortcutsSettingsPage() {
                     }
                     onRecordingShortcutChange={(recording) =>
                       setRecordingShortcut(recording ? "toggleRecording" : null)
+                    }
+                    disabled={disabledMap.toggleRecording}
+                    onDisabledChange={(d) =>
+                      handleDisabledChange("toggleRecording", d)
                     }
                   />
                   <ResetToDefaultLink
@@ -297,6 +347,10 @@ export function ShortcutsSettingsPage() {
                         recording ? "pasteLastTranscription" : null,
                       )
                     }
+                    disabled={disabledMap.pasteLastTranscription}
+                    onDisabledChange={(d) =>
+                      handleDisabledChange("pasteLastTranscription", d)
+                    }
                   />
                   <ResetToDefaultLink
                     currentValue={pasteLastTranscriptionShortcut}
@@ -329,6 +383,10 @@ export function ShortcutsSettingsPage() {
                     }
                     onRecordingShortcutChange={(recording) =>
                       setRecordingShortcut(recording ? "cancelRecording" : null)
+                    }
+                    disabled={disabledMap.cancelRecording}
+                    onDisabledChange={(d) =>
+                      handleDisabledChange("cancelRecording", d)
                     }
                   />
                   <ResetToDefaultLink
@@ -403,6 +461,10 @@ export function ShortcutsSettingsPage() {
                           setRecordingShortcut(
                             recording ? shortcutTypes[num - 1] : null,
                           )
+                        }
+                        disabled={disabledMap[shortcutTypes[num - 1]]}
+                        onDisabledChange={(d) =>
+                          handleDisabledChange(shortcutTypes[num - 1], d)
                         }
                       />
                       <ResetToDefaultLink

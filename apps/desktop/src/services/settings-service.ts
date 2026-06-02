@@ -26,6 +26,23 @@ export interface ShortcutsConfig {
   selectPreset5: string[];
 }
 
+export type ShortcutKey = keyof ShortcutsConfig;
+
+// Per-shortcut disabled state. true = disabled (binding preserved but inactive).
+export type ShortcutsDisabledConfig = Record<ShortcutKey, boolean>;
+
+const SHORTCUT_KEYS: ShortcutKey[] = [
+  "pushToTalk",
+  "toggleRecording",
+  "pasteLastTranscription",
+  "cancelRecording",
+  "selectPreset1",
+  "selectPreset2",
+  "selectPreset3",
+  "selectPreset4",
+  "selectPreset5",
+];
+
 export interface AppPreferences {
   launchAtLogin: boolean;
   minimizeToTray: boolean;
@@ -221,6 +238,30 @@ export class SettingsService extends EventEmitter {
         : undefined,
     };
     await updateSettingsSection("shortcuts", dataToStore);
+  }
+
+  /**
+   * Get per-shortcut disabled state. Absent entries default to false (enabled).
+   */
+  async getShortcutsDisabled(): Promise<ShortcutsDisabledConfig> {
+    const stored = await getSettingsSection("shortcutsDisabled");
+    const result = {} as ShortcutsDisabledConfig;
+    for (const key of SHORTCUT_KEYS) {
+      result[key] = stored?.[key] ?? false;
+    }
+    return result;
+  }
+
+  /**
+   * Update the disabled state of a single shortcut. The key binding itself
+   * is left untouched, so re-enabling restores the original shortcut.
+   */
+  async setShortcutDisabled(key: ShortcutKey, disabled: boolean): Promise<void> {
+    const current = await this.getShortcutsDisabled();
+    await updateSettingsSection("shortcutsDisabled", {
+      ...current,
+      [key]: disabled,
+    });
   }
 
   /**

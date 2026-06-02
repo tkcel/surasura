@@ -56,20 +56,29 @@ const UpdateFormatPresetSchema = z.object({
   formattingEnabled: z.boolean().optional(),
 });
 
+// Shortcut type enum (shared across shortcut-related inputs)
+const ShortcutTypeSchema = z.enum([
+  "pushToTalk",
+  "toggleRecording",
+  "pasteLastTranscription",
+  "cancelRecording",
+  "selectPreset1",
+  "selectPreset2",
+  "selectPreset3",
+  "selectPreset4",
+  "selectPreset5",
+]);
+
 // Shortcut schema (array of key names)
 const SetShortcutSchema = z.object({
-  type: z.enum([
-    "pushToTalk",
-    "toggleRecording",
-    "pasteLastTranscription",
-    "cancelRecording",
-    "selectPreset1",
-    "selectPreset2",
-    "selectPreset3",
-    "selectPreset4",
-    "selectPreset5",
-  ]),
+  type: ShortcutTypeSchema,
   shortcut: z.array(z.string()),
+});
+
+// Enable/disable a shortcut (binding is preserved)
+const SetShortcutDisabledSchema = z.object({
+  type: ShortcutTypeSchema,
+  disabled: z.boolean(),
 });
 
 // Model providers schemas
@@ -451,6 +460,31 @@ export const settingsRouter = createRouter({
       }
 
       return { success: true, warning: result.warning };
+    }),
+
+  // Get per-shortcut disabled state
+  getShortcutsDisabled: procedure.query(async ({ ctx }) => {
+    const settingsService = ctx.serviceManager.getService("settingsService");
+    if (!settingsService) {
+      throw new Error("SettingsService not available");
+    }
+    return await settingsService.getShortcutsDisabled();
+  }),
+
+  // Enable/disable a single shortcut (keeps the key binding)
+  setShortcutDisabled: procedure
+    .input(SetShortcutDisabledSchema)
+    .mutation(async ({ input, ctx }) => {
+      const shortcutManager = ctx.serviceManager.getService("shortcutManager");
+      if (!shortcutManager) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "ShortcutManager not available",
+        });
+      }
+
+      await shortcutManager.setShortcutDisabled(input.type, input.disabled);
+      return { success: true };
     }),
 
   // Get default shortcuts for current platform

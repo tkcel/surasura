@@ -108,6 +108,19 @@ export interface AppSettingsData {
     selectPreset4?: string[];
     selectPreset5?: string[];
   };
+  // Per-shortcut enabled/disabled state. Keys above are preserved even when
+  // disabled, so re-enabling restores the original binding. Absent = enabled.
+  shortcutsDisabled?: {
+    pushToTalk?: boolean;
+    toggleRecording?: boolean;
+    pasteLastTranscription?: boolean;
+    cancelRecording?: boolean;
+    selectPreset1?: boolean;
+    selectPreset2?: boolean;
+    selectPreset3?: boolean;
+    selectPreset4?: boolean;
+    selectPreset5?: boolean;
+  };
 
   modelProvidersConfig?: {
     openai?: {
