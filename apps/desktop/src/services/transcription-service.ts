@@ -353,6 +353,19 @@ export class TranscriptionService {
       preSelectionText,
     );
 
+    // Discard Whisper prompt echoes. When the audio is silent / not captured /
+    // effectively empty, the speech model tends to echo back its recognition
+    // prompt (which contains the user's dictionary words). Treat a result that
+    // consists solely of registered dictionary content as empty so we don't
+    // paste vocabulary the user never spoke.
+    if (this.isDictionaryEcho(completeTranscription, session)) {
+      logger.transcription.info(
+        "Discarding transcription: output is only dictionary content (prompt echo)",
+        { sessionId, discardedLength: completeTranscription.length },
+      );
+      completeTranscription = "";
+    }
+
     // Save raw transcription before formatting
     const rawTranscription = completeTranscription;
 
@@ -549,6 +562,68 @@ export class TranscriptionService {
       (preSelectionText.length === 0 || /[ \t\r\n]$/.test(preSelectionText));
 
     return shouldStripLeadingSpace ? transcription.slice(1) : transcription;
+  }
+
+  /**
+   * Detect whether a transcription consists solely of dictionary-registered
+   * content (a Whisper "prompt echo").
+   *
+   * The recognition prompt sent to the speech model includes the user's
+   * vocabulary so it can recognize those terms. On silent / empty / failed
+   * audio the model often returns the prompt content verbatim instead of an
+   * empty string. We strip every known dictionary token (words, readings and
+   * replacement targets, length >= 2 to avoid over-matching) plus separators
+   * and punctuation; if nothing meaningful remains, the result was just an echo
+   * and should be discarded.
+   */
+  private isDictionaryEcho(
+    text: string,
+    session: StreamingSession,
+  ): boolean {
+    const stripSeparators = (s: string): string =>
+      s.replace(/[\s、。，,.　・･,()（）「」『』:：;；!！?？\-ー~〜…]/g, "");
+
+    const normalized = stripSeparators(text).toLowerCase();
+    if (!normalized) {
+      return false;
+    }
+
+    const { vocabulary, dictionaryEntries, replacements } =
+      session.context.sharedData;
+
+    // Collect every string the speech model could have echoed from the prompt.
+    const candidates = new Set<string>();
+    const add = (value?: string) => {
+      if (!value) return;
+      const n = stripSeparators(value).toLowerCase();
+      if (n.length >= 2) candidates.add(n);
+    };
+
+    for (const word of vocabulary ?? []) add(word);
+    for (const entry of dictionaryEntries ?? []) {
+      add(entry.word);
+      for (const reading of entry.readings ?? []) add(reading);
+    }
+    for (const [from, to] of replacements ?? []) {
+      add(from);
+      add(to);
+    }
+
+    if (candidates.size === 0) {
+      return false;
+    }
+
+    // Greedily remove dictionary tokens (longest first) from the normalized
+    // text. If everything is consumed, the transcription was only dictionary
+    // content.
+    const sorted = [...candidates].sort((a, b) => b.length - a.length);
+    let remaining = normalized;
+    for (const candidate of sorted) {
+      if (!remaining) break;
+      remaining = remaining.split(candidate).join("");
+    }
+
+    return remaining.length === 0;
   }
 
   /**
